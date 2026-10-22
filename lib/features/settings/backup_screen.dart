@@ -358,7 +358,7 @@ class _LocalTile extends StatelessWidget {
     };
     return ListTile(
       leading: ArtTile(art, size: 40),
-      title: Text('$label · ${DateFormat('d MMM, h:mm a').format(s.createdAt)}'),
+      title: Text('$label · ${DateFormat('d MMM, h:mm a', L10n.language).format(s.createdAt)}'),
       subtitle: Text(
         '{0} {1} · {2} readings · {3} bills'.trf({'0': s.meters, '1': s.meters == 1 ? 'meter'.tr : 'meters'.tr, '2': Fmt.whole(s.readings), '3': s.bills}),
       ),

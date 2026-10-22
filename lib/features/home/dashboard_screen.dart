@@ -214,7 +214,7 @@ class DashboardScreen extends StatelessWidget {
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                           ),
                           TextSpan(
-                            text: DateFormat('EEE, d MMM').format(now),
+                            text: DateFormat('EEE, d MMM', L10n.language).format(now),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

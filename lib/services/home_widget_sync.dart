@@ -31,7 +31,7 @@ class HomeWidgetSync {
         'progress': 0,
         'status': '',
         'statusColor': '#F5B700',
-        'line': hasReading ? 'Add another reading to see this month' : 'Tap to add today\'s reading',
+        'line': hasReading ? 'Add another reading to see this month'.tr : 'Tap to add today\'s reading'.tr,
       };
     }
     final days = '${s.daysLeft} ${s.daysLeft == 1 ? 'day'.tr : 'days'.tr} left';
@@ -41,15 +41,15 @@ class HomeWidgetSync {
     if (s.isTou || target == null) {
       line = '~${Fmt.whole(s.projectedUnits)} by month end · $days';
     } else if (budget != null) {
-      line = 'Max ${Fmt.oneDp(budget)} units a day · $days';
+      line = 'Max {0} units a day · {1}'.trf({'0': Fmt.oneDp(budget), '1': days});
     } else {
       line = days;
     }
     final (String status, String color) = switch (s.status) {
-      UsageStatus.safe => ('On track', '#34C38F'),
+      UsageStatus.safe => ('On track'.tr, '#34C38F'),
       UsageStatus.warn => ('Close', '#F5A524'),
-      UsageStatus.danger => ('Will cross', '#F06565'),
-      UsageStatus.overLimits => ('Highest slab', '#F06565'),
+      UsageStatus.danger => ('Will cross'.tr, '#F06565'),
+      UsageStatus.overLimits => ('Highest slab'.tr, '#F06565'),
       UsageStatus.noData => ('', '#F5B700'),
     };
     return {

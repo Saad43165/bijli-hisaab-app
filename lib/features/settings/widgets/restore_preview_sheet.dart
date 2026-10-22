@@ -43,7 +43,7 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
     final theme = Theme.of(context);
     final p = AppPalette.of(context);
     final s = widget.summary;
-    final when = DateFormat('d MMM yyyy, h:mm a').format(s.createdAt);
+    final when = DateFormat('d MMM yyyy, h:mm a', L10n.language).format(s.createdAt);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),

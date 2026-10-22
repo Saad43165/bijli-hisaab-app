@@ -221,7 +221,7 @@ class _StatusCard extends StatelessWidget {
     } else if (last == null) {
       lastLine = 'Not checked yet';
     } else {
-      lastLine = 'Checked ${DateFormat('d MMM, h:mm a').format(last)}'
+      lastLine = 'Checked ${DateFormat('d MMM, h:mm a', L10n.language).format(last)}'
           '${state.lastRatesStatus == null ? '' : ' · ${state.lastRatesStatus}'}';
     }
 

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:intl/intl.dart';
 
 import '../../core/utils/formatters.dart';
 import '../usage_forecaster.dart';
@@ -27,17 +26,17 @@ enum ReminderType {
       };
 
   String get label => switch (this) {
-        readingDay => 'Meter reading day',
-        closeToSlab => 'Close to a slab',
-        billDue => 'Bill due date',
-        noReading => 'No recent reading',
+        readingDay => 'Meter reading day'.tr,
+        closeToSlab => 'Close to a slab'.tr,
+        billDue => 'Bill due date'.tr,
+        noReading => 'No recent reading'.tr,
       }.tr;
 
   String get description => switch (this) {
         readingDay => '3 days and 1 day before your meter is read',
-        closeToSlab => 'Evenings in the last 10 days, only when you\'re near a limit',
+        closeToSlab => 'Evenings in the last 10 days, only when you\'re near a limit'.tr,
         billDue => '2 days before and on the due date',
-        noReading => 'After 6 days without a reading',
+        noReading => 'After 6 days without a reading'.tr,
       }.tr;
 }
 
@@ -130,24 +129,25 @@ class ReminderPlanner {
     // ------------------------------------------------- 1. reading day
     if (i.enabled.contains(ReminderType.readingDay) && s != null) {
       final readingDay = _day(s.cycleEnd);
-      final dayText = _ordinal(readingDay.day);
+      final dayText = L10n.isUrdu ? Fmt.dayShort(readingDay) : _ordinal(readingDay.day);
       final hasProjection = s.status != UsageStatus.noData && s.projectedUnits > 0;
-      final track = hasProjection ? ' You\'re on track for ${Fmt.whole(s.projectedUnits)} units.' : '';
+      final track =
+          hasProjection ? ' You\'re on track for {0} units.'.trf({'0': Fmt.whole(s.projectedUnits)}) : '';
       add(
         0,
         ReminderType.readingDay,
         readingDay.subtract(const Duration(days: 3)),
         _eveningHour,
-        'Meter reading in 3 days',
-        'Your meter is read on the $dayText.$track Add a reading now to check.',
+        'Meter reading in 3 days'.tr,
+        'Your meter is read on the {0}.{1} Add a reading now to check.'.trf({'0': dayText, '1': track}),
       );
       add(
         1,
         ReminderType.readingDay,
         readingDay.subtract(const Duration(days: 1)),
         _eveningHour,
-        'Meter reading tomorrow',
-        'Last chance to save units this month.$track',
+        'Meter reading tomorrow'.tr,
+        'Last chance to save units this month.{0}'.trf({'0': track}),
       );
     }
 
@@ -172,12 +172,12 @@ class ReminderPlanner {
         final String title;
         final String body;
         if (left <= 0) {
-          title = 'You may have crossed $limit units';
-          body = 'Add a reading to check where you are.';
+          title = 'You may have crossed {0} units'.trf({'0': limit});
+          body = 'Add a reading to check where you are.'.tr;
         } else {
           final budget = left / daysLeft;
-          title = '$daysLeft ${daysLeft == 1 ? 'day'.tr : 'days'.tr} left in this bill';
-          body = 'Use max ${Fmt.oneDp(budget)} units a day to stay under $limit.';
+          title = '{0} {1} left in this bill'.trf({'0': daysLeft, '1': daysLeft == 1 ? 'day'.tr : 'days'.tr});
+          body = 'Use max {0} units a day to stay under {1}.'.trf({'0': Fmt.oneDp(budget), '1': limit});
         }
         final before = out.length;
         add(slot, ReminderType.closeToSlab, day, _slabHour, title, body);
@@ -189,23 +189,23 @@ class ReminderPlanner {
     final due = i.billDueDate == null ? null : _day(i.billDueDate!);
     if (i.enabled.contains(ReminderType.billDue) && due != null && !due.isBefore(today)) {
       final company = i.companyCode.isEmpty ? '' : '${i.companyCode} ';
-      final amount = (i.billAmount ?? 0) > 0 ? ' of ${Fmt.rs(i.billAmount!)}' : '';
-      final weekday = DateFormat('EEEE').format(due);
+      final amount = (i.billAmount ?? 0) > 0 ? ' of {0}'.trf({'0': Fmt.rs(i.billAmount!)}) : '';
+      final weekday = Fmt.weekday().format(due);
       add(
         20,
         ReminderType.billDue,
         due.subtract(const Duration(days: 2)),
         _billHour,
-        'Bill due on $weekday',
-        'Your ${company}bill$amount is due on $weekday, ${Fmt.dayShort(due)}.',
+        'Bill due on {0}'.trf({'0': weekday}),
+        'Your {0}bill{1} is due on {2}, {3}.'.trf({'0': company, '1': amount, '2': weekday, '3': Fmt.dayShort(due)}),
       );
       add(
         21,
         ReminderType.billDue,
         due,
         _billHour,
-        'Bill due today',
-        'Pay your ${company}bill$amount today to avoid the late payment surcharge.',
+        'Bill due today'.tr,
+        'Pay your {0}bill{1} today to avoid the late payment surcharge.'.trf({'0': company, '1': amount}),
       );
     }
 
@@ -228,8 +228,8 @@ class ReminderPlanner {
           ReminderType.noReading,
           day,
           _eveningHour,
-          'Check your meter',
-          'No reading for $days days. Add one to keep your bill estimate accurate.',
+          'Check your meter'.tr,
+          'No reading for {0} days. Add one to keep your bill estimate accurate.'.trf({'0': days}),
         );
       }
     }

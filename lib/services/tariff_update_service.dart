@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../core/config/remote_config.dart';
 import '../data/models/tariff.dart';
 import 'settings_service.dart';
+import '../core/l10n/l10n.dart';
 
 enum TariffCheckStatus { updated, upToDate, skipped, notConfigured, failed }
 
@@ -43,8 +44,8 @@ class TariffUpdateService {
 
   Future<TariffCheckResult> check({required int currentVersion, bool force = false}) async {
     if (!RemoteConfig.isConfigured) {
-      return const TariffCheckResult(TariffCheckStatus.notConfigured,
-          message: 'Online rates are not set up yet');
+      return TariffCheckResult(TariffCheckStatus.notConfigured,
+          message: 'Online rates are not set up yet'.tr);
     }
     final last = _settings.lastTariffCheck;
     if (!force && last != null && DateTime.now().difference(last) < RemoteConfig.checkInterval) {
@@ -60,27 +61,27 @@ class TariffUpdateService {
       await _settings.setLastTariffCheck(DateTime.now());
 
       if (res.statusCode == 404) {
-        return await _fail('Online rates aren\'t published yet — using built-in rates');
+        return await _fail('Online rates aren\'t published yet — using built-in rates'.tr);
       }
       if (res.statusCode != 200) {
-        return await _fail('Server returned ${res.statusCode}');
+        return await _fail('Server returned {0}'.trf({'0': res.statusCode}));
       }
       final tariff = Tariff.fromJson(jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>);
       final problem = TariffValidator.validate(tariff);
-      if (problem != null) return await _fail('Published rates rejected: $problem');
+      if (problem != null) return await _fail('Published rates rejected: {0}'.trf({'0': problem}));
 
       if (tariff.version <= currentVersion) {
-        await _settings.setLastTariffStatus('Up to date');
+        await _settings.setLastTariffStatus('Up to date'.tr);
         return const TariffCheckResult(TariffCheckStatus.upToDate);
       }
       await _settings.setRemoteTariffJson(jsonEncode(tariff.toJson()));
-      await _settings.setLastTariffStatus('Updated to ${tariff.updatedAt}');
+      await _settings.setLastTariffStatus('Updated to {0}'.trf({'0': tariff.updatedAt}));
       return TariffCheckResult(TariffCheckStatus.updated, tariff: tariff);
     } on TimeoutException {
-      return _fail('No response — check your internet');
+      return _fail('No response — check your internet'.tr);
     } catch (e) {
       debugPrint('Tariff check failed: $e');
-      return _fail('Could not check for new rates');
+      return _fail('Could not check for new rates'.tr);
     }
   }
 

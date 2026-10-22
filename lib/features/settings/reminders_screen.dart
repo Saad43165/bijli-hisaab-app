@@ -137,7 +137,7 @@ class _UpcomingTile extends StatelessWidget {
     final day = switch (days) {
       0 => 'Today'.tr,
       1 => 'Tomorrow'.tr,
-      _ => DateFormat('EEE d MMM').format(w),
+      _ => DateFormat('EEE d MMM', L10n.language).format(w),
     };
     return ListTile(
       leading: ArtTile(RemindersScreen.art(reminder.type), size: 40),
@@ -148,7 +148,7 @@ class _UpcomingTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(day, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
-          Text(DateFormat('h:mm a').format(w), style: theme.textTheme.labelSmall),
+          Text(DateFormat('h:mm a', L10n.language).format(w), style: theme.textTheme.labelSmall),
         ],
       ),
       isThreeLine: true,

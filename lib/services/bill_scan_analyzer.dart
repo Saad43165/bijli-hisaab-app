@@ -1,5 +1,6 @@
 import 'bill_text_parser.dart';
 import 'bill_values.dart';
+import '../core/l10n/l10n.dart';
 
 /// Axis-aligned box in image pixels (pure Dart so this file stays testable).
 class OcrBox {
@@ -204,7 +205,7 @@ class BillScanAnalyzer {
       if (units == null) {
         if (fromReadings > 0 && fromReadings < 20000) {
           units = ScanField(fromReadings, FieldConfidence.medium,
-              note: 'Worked out from present − previous reading');
+              note: 'Worked out from present − previous reading'.tr);
         }
       } else if ((units.value - fromReadings).abs() <= 1) {
         units = units.withConfidence(FieldConfidence.high);
@@ -212,9 +213,8 @@ class BillScanAnalyzer {
         previous = previous.withConfidence(FieldConfidence.high);
       } else {
         units = units.withConfidence(FieldConfidence.low,
-            note: 'Readings give $fromReadings units');
-        warnings.add('Units (${units.value}) don\'t match the meter readings ($fromReadings). '
-            'Check the units on your bill.');
+            note: 'Readings give {0} units'.trf({'0': fromReadings}));
+        warnings.add('Units ({0}) don\'t match the meter readings ({1}). Check the units on your bill.'.trf({'0': units.value, '1': fromReadings}));
       }
     }
 
@@ -225,9 +225,8 @@ class BillScanAnalyzer {
         final ratio = amount.value / expected;
         if (ratio < 0.55 || ratio > 1.8) {
           amount = amount.withConfidence(FieldConfidence.low,
-              note: 'Expected about Rs ${expected.round()}');
-          warnings.add('The amount looks unusual for ${units.value} units '
-              '(expected about Rs ${expected.round()}). It may include arrears or be misread.');
+              note: 'Expected about Rs {0}'.trf({'0': expected.round()}));
+          warnings.add('The amount looks unusual for {0} units (expected about Rs {1}). It may include arrears or be misread.'.trf({'0': units.value, '1': expected.round()}));
         }
       }
     }
@@ -236,20 +235,20 @@ class BillScanAnalyzer {
     if (due != null) {
       final days = due.value.difference(DateTime(today.year, today.month, today.day)).inDays;
       if (days < -120 || days > 60) {
-        due = due.withConfidence(FieldConfidence.low, note: 'Date looks far from today');
+        due = due.withConfidence(FieldConfidence.low, note: 'Date looks far from today'.tr);
       }
     }
 
     // Cross-check 4: bill month vs due date (due in the same or next month).
     if (month == null && due != null) {
       month = ScanField(BillValues.monthKey(due.value.year, due.value.month - 1), FieldConfidence.medium,
-          note: 'Guessed from the due date');
+          note: 'Guessed from the due date'.tr);
     } else if (month != null && due != null) {
       final parts = month.value.split('-');
       final m = DateTime(int.parse(parts[0]), int.parse(parts[1]));
       final gap = (due.value.year - m.year) * 12 + due.value.month - m.month;
       if (gap < 0 || gap > 2) {
-        month = month.withConfidence(FieldConfidence.low, note: 'Doesn\'t fit the due date');
+        month = month.withConfidence(FieldConfidence.low, note: 'Doesn\'t fit the due date'.tr);
       }
     }
 

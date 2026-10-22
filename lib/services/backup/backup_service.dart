@@ -10,6 +10,7 @@ import '../../data/db/app_database.dart';
 import '../settings_service.dart';
 import 'backup_data.dart';
 import 'restore_plan.dart';
+import '../../core/l10n/l10n.dart';
 
 /// A backup file kept on this phone (weekly auto copy or pre-restore copy).
 class LocalBackup {
@@ -68,9 +69,8 @@ class BackupService {
     return SharePlus.instance.share(
       ShareParams(
         files: [XFile(file.path, mimeType: 'application/json', name: p.basename(file.path))],
-        subject: 'Bijli Hisaab backup',
-        text: 'Bijli Hisaab backup — ${data.meters.length} meters, ${data.readings.length} readings, '
-            '${data.bills.length} bills. Open Bijli Hisaab → Tools → Backup to restore it.',
+        subject: 'Bijli Hisaab backup'.tr,
+        text: 'Bijli Hisaab backup — {0} meters, {1} readings, {2} bills. Open Bijli Hisaab → Tools → Backup to restore it.'.trf({'0': data.meters.length, '1': data.readings.length, '2': data.bills.length}),
       ),
     );
   }

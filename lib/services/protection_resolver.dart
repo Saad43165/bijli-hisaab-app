@@ -1,6 +1,7 @@
 import '../data/models/bill.dart';
 import '../data/models/meter.dart';
 import '../data/models/tariff.dart';
+import '../core/l10n/l10n.dart';
 
 class ProtectionStatus {
   const ProtectionStatus({required this.consumerClass, required this.reason});
@@ -20,24 +21,24 @@ class ProtectionResolver {
     switch (meter.protectedSetting) {
       case ProtectedSetting.lifeline:
         if (meter.phase != 'single' || meter.sanctionedLoadKw > 1) {
-          return const ProtectionStatus(
+          return ProtectionStatus(
             consumerClass: ConsumerClass.protected,
-            reason: 'Lifeline needs a single-phase meter with load up to 1 kW — using protected rates',
+            reason: 'Lifeline needs a single-phase meter with load up to 1 kW — using protected rates'.tr,
           );
         }
-        return const ProtectionStatus(
+        return ProtectionStatus(
           consumerClass: ConsumerClass.lifeline,
-          reason: 'Set as lifeline in meter settings',
+          reason: 'Set as lifeline in meter settings'.tr,
         );
       case ProtectedSetting.protected:
-        return const ProtectionStatus(
+        return ProtectionStatus(
           consumerClass: ConsumerClass.protected,
-          reason: 'Set as protected in meter settings',
+          reason: 'Set as protected in meter settings'.tr,
         );
       case ProtectedSetting.unprotected:
-        return const ProtectionStatus(
+        return ProtectionStatus(
           consumerClass: ConsumerClass.unprotected,
-          reason: 'Set as not protected in meter settings',
+          reason: 'Set as not protected in meter settings'.tr,
         );
       case ProtectedSetting.auto:
         break;
@@ -51,19 +52,18 @@ class ProtectionResolver {
     if (recent.any((b) => b.units > limit)) {
       return ProtectionStatus(
         consumerClass: ConsumerClass.unprotected,
-        reason: 'A bill in the last $months months was above $limit units',
+        reason: 'A bill in the last {0} months was above {1} units'.trf({'0': months, '1': limit}),
       );
     }
     if (recent.length < months) {
       return ProtectionStatus(
         consumerClass: ConsumerClass.unprotected,
-        reason: 'Needs $months months of bills to confirm (have ${recent.length}). '
-            'Add past bills or set the status in meter settings.',
+        reason: 'Needs {0} months of bills to confirm (have {1}). Add past bills or set the status in meter settings.'.trf({'0': months, '1': recent.length}),
       );
     }
     return ProtectionStatus(
       consumerClass: ConsumerClass.protected,
-      reason: 'Last $months bills were all $limit units or less',
+      reason: 'Last {0} bills were all {1} units or less'.trf({'0': months, '1': limit}),
     );
   }
 }

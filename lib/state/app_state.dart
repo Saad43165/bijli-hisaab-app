@@ -251,7 +251,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e, st) {
       debugPrint('AppState.init failed: $e\n$st');
-      _error = 'Could not load your data. Please restart the app.';
+      _error = 'Could not load your data. Please restart the app.'.tr;
     } finally {
       _loading = false;
       notifyListeners();
@@ -465,17 +465,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final String title;
     final String body;
     if (s.protectionAtRisk) {
-      title = 'You may lose protected rates';
-      body = 'At this pace you\'ll reach ${Fmt.whole(s.projectedUnits)} units. '
-          'Use max $budget units/day to stay at ${s.protectedThreshold} or below.';
+      title = 'You may lose protected rates'.tr;
+      body = 'At this pace you\'ll reach {0} units. Use max {1} units/day to stay at {2} or below.'.trf({'0': Fmt.whole(s.projectedUnits), '1': budget, '2': s.protectedThreshold});
     } else if (s.status == UsageStatus.danger) {
-      title = 'Slab alert: ${s.targetLimit} units';
-      body = 'Projected ${Fmt.whole(s.projectedUnits)} units this month. '
-          'Use max $budget units/day to stay under ${s.targetLimit}.';
+      title = 'Slab alert: {0} units'.trf({'0': s.targetLimit});
+      body = 'Projected {0} units this month. Use max {1} units/day to stay under {2}.'.trf({'0': Fmt.whole(s.projectedUnits), '1': budget, '2': s.targetLimit});
     } else {
-      title = 'Close to ${s.targetLimit} units';
-      body = 'You\'re on track for ${Fmt.whole(s.projectedUnits)} units. '
-          'Keep it under $budget units/day.';
+      title = 'Close to {0} units'.trf({'0': s.targetLimit});
+      body = 'You\'re on track for {0} units. Keep it under {1} units/day.'.trf({'0': Fmt.whole(s.projectedUnits), '1': budget});
     }
     await _notifications.showSlabAlert(title: title, body: body);
   }
@@ -606,7 +603,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         await _reloadTariff();
         _recompute();
         final t = result.tariff!;
-        _ratesNotice = 'Rates updated (${Fmt.isoLabel(t.updatedAt)}) — ${t.fcaLabel}';
+        _ratesNotice = 'Rates updated ({0}) — {1}'.trf({'0': Fmt.isoLabel(t.updatedAt), '1': t.fcaLabel});
       }
       return result;
     } finally {

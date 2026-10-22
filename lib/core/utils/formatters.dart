@@ -11,7 +11,7 @@ class Fmt {
   static final NumberFormat _twoDp = NumberFormat('#,##0.00', 'en_US');
 
   // Display formats follow the app language (Urdu month names in Urdu).
-  static String get _loc => L10n.isUrdu ? 'ur' : 'en';
+  static String? get _loc => L10n.isUrdu ? 'ur' : null;
   static DateFormat get _day => DateFormat(L10n.isUrdu ? 'd MMMM yyyy' : 'd MMM yyyy', _loc);
   static DateFormat get _dayShort => DateFormat(L10n.isUrdu ? 'd MMMM' : 'd MMM', _loc);
   static DateFormat get _month => DateFormat(L10n.isUrdu ? 'MMMM yyyy' : 'MMM yyyy', _loc);
