@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Full-screen "reading your bill" state: the captured page with a moving
 /// scan line while OCR runs.
@@ -72,18 +73,18 @@ class _ScanningOverlayState extends State<ScanningOverlay> with SingleTickerProv
               ),
             ),
             const SizedBox(height: 28),
-            Text('Reading your bill…',
+            Text('Reading your bill…'.tr,
                 style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
             const SizedBox(height: 6),
             Text(
               widget.pages > 1
                   ? '${widget.pages} pages · finding units, amount and dates'
-                  : 'Finding units, amount and dates',
+                  : 'Finding units, amount and dates'.tr,
               style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
             ),
             const SizedBox(height: 4),
             Text(
-              'Nothing leaves your phone',
+              'Nothing leaves your phone'.tr,
               style: theme.textTheme.bodySmall?.copyWith(color: Colors.white54),
             ),
             const Spacer(),

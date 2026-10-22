@@ -6,6 +6,7 @@ import '../../../shared/widgets/animated_number.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import 'bill_breakdown_sheet.dart';
+import '../../../core/l10n/l10n.dart';
 
 class BillEstimateCard extends StatelessWidget {
   const BillEstimateCard({super.key, required this.summary, required this.ratesDate});
@@ -35,7 +36,7 @@ class BillEstimateCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(projected.total < 0 ? 'ESTIMATED CREDIT' : 'ESTIMATED BILL',
+                    Text(projected.total < 0 ? 'ESTIMATED CREDIT'.tr : 'ESTIMATED BILL'.tr,
                         style: theme.textTheme.labelSmall),
                     const SizedBox(height: 2),
                     AnimatedNumber(
@@ -54,19 +55,19 @@ class BillEstimateCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _Mini(
-                  label: 'So far',
+                  label: 'So far'.tr,
                   value: now.total < 0 ? '−${Fmt.rs(-now.total)}' : Fmt.rs(now.total),
                 ),
               ),
               Expanded(
                 child: _Mini(
-                  label: projected.exportCredit > 0 ? 'Solar credit' : 'Per unit',
+                  label: projected.exportCredit > 0 ? 'Solar credit'.tr : 'Per unit'.tr,
                   value: projected.exportCredit > 0
                       ? '−${Fmt.rs(projected.exportCredit)}'
                       : Fmt.rate(projected.effectiveRate),
                 ),
               ),
-              Expanded(child: _Mini(label: projected.isTou ? 'Billing' : 'Slab', value: projected.slabLabel)),
+              Expanded(child: _Mini(label: projected.isTou ? 'Billing'.tr : 'Slab'.tr, value: projected.slabLabel)),
             ],
           ),
           const SizedBox(height: 12),

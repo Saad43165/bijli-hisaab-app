@@ -6,6 +6,7 @@ import '../../../core/constants/companies.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/company_badge.dart';
 import '../../../shared/widgets/dialogs.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// The active meter's electricity company with quick links.
 class CompanyCard extends StatelessWidget {
@@ -49,8 +50,7 @@ class CompanyCard extends StatelessWidget {
           if (!c.usesNepraTariff) ...[
             const SizedBox(height: 10),
             Text(
-              'This area has its own tariff set by the regional government. Enter your rates in '
-              'Electricity rates → Edit for accurate estimates.',
+              'This area has its own tariff set by the regional government. Enter your rates in Electricity rates → Edit for accurate estimates.'.tr,
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
             ),
           ],
@@ -63,7 +63,7 @@ class CompanyCard extends StatelessWidget {
                 if (c.billUrl != null)
                   _Action(
                     icon: Icons.receipt_long_rounded,
-                    label: 'View bill online',
+                    label: 'View bill online'.tr,
                     onTap: () => _open(context, Uri.parse(c.billUrl!)),
                   ),
                 if (c.helpline != null)
@@ -75,7 +75,7 @@ class CompanyCard extends StatelessWidget {
                 if (c.website != null && c.website != c.billUrl)
                   _Action(
                     icon: Icons.public_rounded,
-                    label: 'Website',
+                    label: 'Website'.tr,
                     onTap: () => _open(context, Uri.parse(c.website!)),
                   ),
               ],

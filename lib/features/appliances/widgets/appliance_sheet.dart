@@ -10,6 +10,7 @@ import '../../../shared/widgets/art.dart';
 import '../../../shared/widgets/dialogs.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Add / edit appliance: search the common ones, or type your own; hour
 /// shortcuts; live units and rupees; delete when editing.
@@ -101,7 +102,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
       await state.saveAppliance(appliance);
       if (!mounted) return;
       Navigator.pop(context);
-      showSnack(context, base == null ? '${appliance.name} added' : 'Saved');
+      showSnack(context, base == null ? '${appliance.name} added' : 'Saved'.tr);
     } catch (e) {
       if (mounted) {
         setState(() => _saving = false);
@@ -117,8 +118,8 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
     final ok = await confirmDialog(
       context,
       title: 'Remove ${a.name}?',
-      message: 'It will be removed from your estimate.',
-      confirmLabel: 'Remove',
+      message: 'It will be removed from your estimate.'.tr,
+      confirmLabel: 'Remove'.tr,
     );
     if (!ok) return;
     await state.deleteAppliance(a);
@@ -159,13 +160,13 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Add appliance', style: theme.textTheme.titleLarge),
+                Text('Add appliance'.tr, style: theme.textTheme.titleLarge),
                 const SizedBox(height: 12),
                 TextField(
                   autofocus: false,
                   onChanged: (v) => setState(() => _query = v),
-                  decoration: const InputDecoration(
-                    hintText: 'Search: fan, AC, motor…',
+                  decoration: InputDecoration(
+                    hintText: 'Search: fan, AC, motor…'.tr,
                     prefixIcon: Icon(Icons.search_rounded),
                   ),
                 ),
@@ -200,7 +201,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                 if (matches.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text('Not in the list — add it yourself below.', style: theme.textTheme.bodyMedium),
+                    child: Text('Not in the list — add it yourself below.'.tr, style: theme.textTheme.bodyMedium),
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -209,7 +210,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                     if (_query.trim().isNotEmpty) _name.text = _query.trim();
                   }),
                   icon: const Icon(Icons.edit_rounded),
-                  label: Text(q.isEmpty ? 'Something else — type it in' : 'Add "${_query.trim()}" yourself'),
+                  label: Text(q.isEmpty ? 'Something else — type it in'.tr : 'Add "${_query.trim()}" yourself'),
                 ),
               ],
             ),
@@ -242,13 +243,13 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                 ArtTile(Art.forAppliance(_name.text, _category), size: 44),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(isNew ? 'Add appliance' : 'Edit appliance', style: theme.textTheme.titleLarge),
+                  child: Text(isNew ? 'Add appliance'.tr : 'Edit appliance'.tr, style: theme.textTheme.titleLarge),
                 ),
                 if (isNew)
-                  TextButton(onPressed: () => setState(() => _picking = true), child: const Text('Change'))
+                  TextButton(onPressed: () => setState(() => _picking = true), child: Text('Change'.tr))
                 else
                   IconButton(
-                    tooltip: 'Remove',
+                    tooltip: 'Remove'.tr,
                     onPressed: _delete,
                     icon: Icon(Icons.delete_outline_rounded, color: p.danger),
                   ),
@@ -258,9 +259,9 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
             TextFormField(
               controller: _name,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: 'Name'.tr),
               onChanged: (_) => setState(() {}),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter a name'.tr : null,
             ),
             const SizedBox(height: 12),
             Row(
@@ -271,10 +272,10 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                     controller: _watts,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      labelText: 'Power',
+                    decoration: InputDecoration(
+                      labelText: 'Power'.tr,
                       suffixText: 'W',
-                      helperText: 'On the sticker. 1 kW = 1000 W',
+                      helperText: 'On the sticker. 1 kW = 1000 W'.tr,
                     ),
                     onChanged: (_) => setState(() {}),
                     validator: (v) {
@@ -292,7 +293,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                     const SizedBox(height: 4),
                     Padding(
                       padding: const EdgeInsets.only(left: 12),
-                      child: Text('How many', style: theme.textTheme.bodySmall),
+                      child: Text('How many'.tr, style: theme.textTheme.bodySmall),
                     ),
                   ],
                 ),
@@ -301,7 +302,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Text('USED PER DAY', style: theme.textTheme.labelSmall),
+                Text('USED PER DAY'.tr, style: theme.textTheme.labelSmall),
                 const Spacer(),
                 Text(_hoursLabel(_hours), style: theme.textTheme.titleMedium),
               ],
@@ -335,9 +336,9 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
               ),
               child: Row(
                 children: [
-                  Expanded(child: _Est(label: 'Per day', value: '${Fmt.oneDp(_dailyUnits)} units')),
-                  Expanded(child: _Est(label: 'Per month', value: Fmt.units(units))),
-                  Expanded(child: _Est(label: 'Costs about', value: '${Fmt.rs(units * rate)}/mo')),
+                  Expanded(child: _Est(label: 'Per day'.tr, value: '${Fmt.oneDp(_dailyUnits)} units')),
+                  Expanded(child: _Est(label: 'Per month'.tr, value: Fmt.units(units))),
+                  Expanded(child: _Est(label: 'Costs about'.tr, value: '${Fmt.rs(units * rate)}/mo')),
                 ],
               ),
             ),
@@ -360,7 +361,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
             ],
             const SizedBox(height: 16),
             LoadingButton(
-              label: isNew ? 'Add appliance' : 'Save changes',
+              label: isNew ? 'Add appliance'.tr : 'Save changes'.tr,
               loading: _saving,
               onPressed: _save,
               icon: isNew ? Icons.add_rounded : Icons.check_rounded,

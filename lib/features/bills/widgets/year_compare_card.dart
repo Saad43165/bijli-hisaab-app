@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../services/year_comparison.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "Nov 2026 vs Nov 2025": units and amount against the same month last year.
 class YearCompareCard extends StatelessWidget {
@@ -24,7 +25,7 @@ class YearCompareCard extends StatelessWidget {
             children: [
               const ArtTile(Art.calendar, size: 40),
               const SizedBox(width: 12),
-              Expanded(child: Text('Compared with last year', style: theme.textTheme.titleMedium)),
+              Expanded(child: Text('Compared with last year'.tr, style: theme.textTheme.titleMedium)),
             ],
           ),
           const SizedBox(height: 8),

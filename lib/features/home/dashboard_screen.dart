@@ -42,9 +42,9 @@ class DashboardScreen extends StatelessWidget {
 
   static String _greeting(DateTime now) {
     final h = now.hour;
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return 'Good morning'.tr;
+    if (h < 17) return 'Good afternoon'.tr;
+    return 'Good evening'.tr;
   }
 
   @override
@@ -65,7 +65,7 @@ class DashboardScreen extends StatelessWidget {
         spaced(InfoBanner(
           icon: Icons.auto_awesome_rounded,
           leadingArt: Art.sparkles,
-          title: 'New electricity rates',
+          title: 'New electricity rates'.tr,
           message: state.ratesNotice!,
           onClose: state.dismissRatesNotice,
         )),
@@ -73,8 +73,7 @@ class DashboardScreen extends StatelessWidget {
         spaced(InfoBanner(
           icon: Icons.info_outline_rounded,
           title: '${state.company.shortCode} has its own tariff',
-          message: 'Units and slab warnings are accurate. For the bill amount, enter '
-              'your area\'s rates in Tools → Rates → edit.',
+          message: 'Units and slab warnings are accurate. For the bill amount, enter your area\'s rates in Tools → Rates → edit.'.tr,
         )),
       if (showStartHere && hasData)
         spaced(StartHereCard(
@@ -115,19 +114,19 @@ class DashboardScreen extends StatelessWidget {
           onScan: () => _push(context, const ScanBillScreen()),
         )),
 
-      const SectionHeader('Shortcuts', padding: EdgeInsets.fromLTRB(4, 8, 4, 10)),
+      SectionHeader('Shortcuts'.tr, padding: EdgeInsets.fromLTRB(4, 8, 4, 10)),
       QuickActionsRow(
         actions: [
-          QuickAction(art: Art.camera, label: 'Scan bill', onTap: () => _push(context, const ScanBillScreen())),
+          QuickAction(art: Art.camera, label: 'Scan bill'.tr, onTap: () => _push(context, const ScanBillScreen())),
           if (hasData)
-            QuickAction(art: Art.clipboard, label: 'Readings', onTap: () => _push(context, const ReadingsScreen()))
+            QuickAction(art: Art.clipboard, label: 'Readings'.tr, onTap: () => _push(context, const ReadingsScreen()))
           else
-            QuickAction(art: Art.bell, label: 'Reminders', onTap: () => _push(context, const RemindersScreen())),
-          QuickAction(art: Art.plug, label: 'Appliances', onTap: () => onOpenTab(2)),
-          QuickAction(art: Art.chartUp, label: 'Rates', onTap: () => _push(context, const TariffScreen())),
+            QuickAction(art: Art.bell, label: 'Reminders'.tr, onTap: () => _push(context, const RemindersScreen())),
+          QuickAction(art: Art.plug, label: 'Appliances'.tr, onTap: () => onOpenTab(2)),
+          QuickAction(art: Art.chartUp, label: 'Rates'.tr, onTap: () => _push(context, const TariffScreen())),
         ],
       ),
-      const SectionHeader('Tip of the day', padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
+      SectionHeader('Tip of the day'.tr, padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
       const TipCard(),
     ];
 
@@ -173,12 +172,12 @@ class DashboardScreen extends StatelessWidget {
           ),
           if (hasData)
             IconButton(
-              tooltip: 'Share this month',
+              tooltip: 'Share this month'.tr,
               onPressed: () => ShareSummarySheet.show(context),
               icon: const Icon(Icons.ios_share_rounded),
             ),
           IconButton(
-            tooltip: 'Reminders',
+            tooltip: 'Reminders'.tr,
             onPressed: () => _push(context, const RemindersScreen()),
             icon: const Icon(Icons.notifications_none_rounded),
           ),
@@ -190,7 +189,7 @@ class DashboardScreen extends StatelessWidget {
           ? FloatingActionButton.extended(
               onPressed: () => _push(context, const AddReadingScreen()),
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Add reading', style: TextStyle(fontWeight: FontWeight.w800)),
+              label: Text('Add reading'.tr, style: TextStyle(fontWeight: FontWeight.w800)),
             )
           : null,
       body: meter == null || summary == null

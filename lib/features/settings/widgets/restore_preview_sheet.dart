@@ -6,6 +6,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../services/backup/backup_data.dart';
 import '../../../services/backup/restore_plan.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Shows what's in a backup and asks how to restore it.
 /// Returns the chosen [RestoreMode], or null if cancelled.
@@ -58,7 +59,7 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Restore this backup?', style: theme.textTheme.titleLarge),
+                    Text('Restore this backup?'.tr, style: theme.textTheme.titleLarge),
                     Text('Saved $when', style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
                   ],
                 ),
@@ -69,9 +70,9 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
           Row(
             children: [
               _Count(value: s.meters, label: s.meters == 1 ? 'meter' : 'meters'),
-              _Count(value: s.readings, label: 'readings'),
-              _Count(value: s.bills, label: 'bills'),
-              _Count(value: s.appliances, label: 'appliances'),
+              _Count(value: s.readings, label: 'readings'.tr),
+              _Count(value: s.bills, label: 'bills'.tr),
+              _Count(value: s.appliances, label: 'appliances'.tr),
             ],
           ),
           if (s.meterNames.isNotEmpty) ...[
@@ -89,16 +90,16 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
             _ModeOption(
               selected: _mode == RestoreMode.merge,
               icon: Icons.merge_rounded,
-              title: 'Add to my data',
-              text: 'Keeps everything on this phone and adds what\'s missing.',
+              title: 'Add to my data'.tr,
+              text: 'Keeps everything on this phone and adds what\'s missing.'.tr,
               onTap: () => setState(() => _mode = RestoreMode.merge),
             ),
             const SizedBox(height: 10),
             _ModeOption(
               selected: _mode == RestoreMode.replace,
               icon: Icons.swap_horiz_rounded,
-              title: 'Replace my data',
-              text: 'Deletes what\'s on this phone and loads the backup.',
+              title: 'Replace my data'.tr,
+              text: 'Deletes what\'s on this phone and loads the backup.'.tr,
               danger: true,
               onTap: () => setState(() => _mode = RestoreMode.replace),
             ),
@@ -109,7 +110,7 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'A copy of your current data is saved first, so you can undo this.',
+                    'A copy of your current data is saved first, so you can undo this.'.tr,
                     style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
                   ),
                 ),
@@ -126,14 +127,14 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
             icon: const Icon(Icons.restore_rounded),
             label: Text(
               !widget.phoneHasData
-                  ? 'Restore'
+                  ? 'Restore'.tr
                   : _mode == RestoreMode.merge
-                      ? 'Add to my data'
-                      : 'Replace my data',
+                      ? 'Add to my data'.tr
+                      : 'Replace my data'.tr,
             ),
           ),
           const SizedBox(height: 6),
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel'.tr)),
         ],
       ),
     );

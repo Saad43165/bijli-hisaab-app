@@ -8,6 +8,7 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/status_pill.dart';
 import '../../state/app_state.dart';
 import 'meter_edit_screen.dart';
+import '../../core/l10n/l10n.dart';
 
 class MetersScreen extends StatelessWidget {
   const MetersScreen({super.key});
@@ -21,11 +22,11 @@ class MetersScreen extends StatelessWidget {
     final state = context.watch<AppState>();
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Meters')),
+      appBar: AppBar(title: Text('Meters'.tr)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _open(context),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add meter'),
+        label: Text('Add meter'.tr),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
@@ -56,7 +57,7 @@ class MetersScreen extends StatelessWidget {
                   else
                     TextButton(
                       onPressed: () => state.setActiveMeter(m.id!),
-                      child: const Text('Use'),
+                      child: Text('Use'.tr),
                     ),
                 ],
               ),

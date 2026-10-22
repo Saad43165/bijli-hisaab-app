@@ -6,6 +6,7 @@ import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
 import 'widgets/meter_form.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Add a new meter (meterId == null) or edit an existing one.
 class MeterEditScreen extends StatefulWidget {
@@ -39,7 +40,7 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
         await state.updateMeter(result.meter);
       }
       if (!mounted) return;
-      showSnack(context, 'Meter saved');
+      showSnack(context, 'Meter saved'.tr);
       Navigator.pop(context);
     } catch (e) {
       if (mounted) showSnack(context, 'Could not save: $e');
@@ -54,7 +55,7 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
     final ok = await confirmDialog(
       context,
       title: 'Delete ${meter.name}?',
-      message: 'All readings, bills and appliances for this meter will be deleted.',
+      message: 'All readings, bills and appliances for this meter will be deleted.'.tr,
     );
     if (!ok) return;
     nav.pop();
@@ -69,13 +70,13 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNew ? 'Add meter' : 'Edit meter'),
+        title: Text(isNew ? 'Add meter'.tr : 'Edit meter'.tr),
         actions: [
           if (existing != null && state.meters.length > 1)
             IconButton(
               onPressed: () => _delete(existing),
               icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: 'Delete meter',
+              tooltip: 'Delete meter'.tr,
             ),
         ],
       ),
@@ -85,7 +86,7 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
           children: [
             MeterForm(key: _formKey, initial: existing, askForReading: isNew),
             const SizedBox(height: 24),
-            LoadingButton(label: 'Save meter', loading: _saving, onPressed: _save),
+            LoadingButton(label: 'Save meter'.tr, loading: _saving, onPressed: _save),
           ],
         ),
       ),

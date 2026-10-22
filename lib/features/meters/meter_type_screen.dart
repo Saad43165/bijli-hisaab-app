@@ -10,6 +10,7 @@ import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
 import '../home/widgets/start_here_card.dart';
+import '../../core/l10n/l10n.dart';
 
 /// "Solar & TOU": pick what kind of meter the active meter is.
 class MeterTypeScreen extends StatefulWidget {
@@ -39,9 +40,9 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
       await state.setUiFlag(StartHereCard.meterTypeKey, true);
       if (!mounted) return;
       showSnack(context, switch (_type) {
-        MeterType.standard => 'Set to a normal meter',
-        MeterType.tou => 'TOU set — add peak and off-peak readings from now on',
-        _ => 'Solar set — add import and export readings from now on',
+        MeterType.standard => 'Set to a normal meter'.tr,
+        MeterType.tou => 'TOU set — add peak and off-peak readings from now on'.tr,
+        _ => 'Solar set — add import and export readings from now on'.tr,
       });
       Navigator.pop(context);
     } catch (e) {
@@ -58,7 +59,7 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
     final solar = _type.isSolar;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Solar & TOU')),
+      appBar: AppBar(title: Text('Solar & TOU'.tr)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -69,22 +70,21 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'This changes how readings are entered and how the bill is worked out.',
+              'This changes how readings are entered and how the bill is worked out.'.tr,
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             _Option(
               art: Art.bolt,
-              title: 'Normal meter',
-              body: 'One number on the display. Billed by slabs (most homes).',
+              title: 'Normal meter'.tr,
+              body: 'One number on the display. Billed by slabs (most homes).'.tr,
               selected: _type == MeterType.standard,
               onTap: () => setState(() => _type = MeterType.standard),
             ),
             _Option(
               art: Art.sun,
-              title: 'Solar panels (net meter)',
-              body: 'The meter counts units taken from the grid (import) and sent to it (export). '
-                  'We take the export credit off your bill.',
+              title: 'Solar panels (net meter)'.tr,
+              body: 'The meter counts units taken from the grid (import) and sent to it (export). We take the export credit off your bill.'.tr,
               selected: solar,
               onTap: () => setState(() => _type = solar ? _type : MeterType.netBilling),
             ),
@@ -97,12 +97,12 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('When was your solar agreement signed?', style: theme.textTheme.labelSmall),
-                          const SizedBox(height: 8),
+                          Text('When was your solar agreement signed?'.tr, style: theme.textTheme.labelSmall),
+                          SizedBox(height: 8),
                           SegmentedButton<MeterType>(
-                            segments: const [
-                              ButtonSegment(value: MeterType.netMetering, label: Text('Before Feb 2026')),
-                              ButtonSegment(value: MeterType.netBilling, label: Text('Feb 2026 or later')),
+                            segments: [
+                              ButtonSegment(value: MeterType.netMetering, label: Text('Before Feb 2026'.tr)),
+                              ButtonSegment(value: MeterType.netBilling, label: Text('Feb 2026 or later'.tr)),
                             ],
                             selected: {_type},
                             showSelectedIcon: false,
@@ -111,8 +111,8 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
                           const SizedBox(height: 6),
                           Text(
                             _type == MeterType.netMetering
-                                ? 'Net metering: exported units cancel out imported units — you pay for the difference.'
-                                : 'Net billing: imported units at normal rates; exported units bought back at a lower rate.',
+                                ? 'Net metering: exported units cancel out imported units — you pay for the difference.'.tr
+                                : 'Net billing: imported units at normal rates; exported units bought back at a lower rate.'.tr,
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
@@ -121,19 +121,19 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
             ),
             _Option(
               art: Art.hourglass,
-              title: 'Peak / off-peak (TOU)',
-              body: 'Your bill shows peak and off-peak units — usually homes with 5 kW or more.',
+              title: 'Peak / off-peak (TOU)'.tr,
+              body: 'Your bill shows peak and off-peak units — usually homes with 5 kW or more.'.tr,
               selected: _type == MeterType.tou,
               onTap: () => setState(() => _type = MeterType.tou),
             ),
             const SizedBox(height: 8),
             Text(
-              'Not sure? Look at your bill: "Export units" means solar; "Peak" and "Off-peak" means TOU.',
+              'Not sure? Look at your bill: "Export units" means solar; "Peak" and "Off-peak" means TOU.'.tr,
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 20),
             LoadingButton(
-              label: 'Save',
+              label: 'Save'.tr,
               loading: _saving,
               onPressed: _save,
               icon: Icons.check_rounded,

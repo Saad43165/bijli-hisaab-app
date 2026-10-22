@@ -11,6 +11,7 @@ import '../../../shared/widgets/fade_slide_in.dart';
 import '../../../shared/widgets/hero_style.dart';
 import '../../../shared/widgets/urdu_text.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -57,7 +58,7 @@ class WelcomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Know your units before the bill comes',
+                  'Know your units before the bill comes'.tr,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(color: h.fg),
                 ),
@@ -88,12 +89,12 @@ class WelcomePage extends StatelessWidget {
                       TextSpan(
                         style: theme.textTheme.bodyMedium,
                         children: [
-                          const TextSpan(text: 'Did you know? '),
+                          TextSpan(text: 'Did you know? '.tr),
                           TextSpan(
                             text: '201 units costs $slabFact more than 200',
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
-                          const TextSpan(text: ' — one unit can change your whole bill. We warn you in time.'),
+                          TextSpan(text: ' — one unit can change your whole bill. We warn you in time.'.tr),
                         ],
                       ),
                     ),
@@ -104,36 +105,36 @@ class WelcomePage extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 20),
-        const FadeSlideIn(
+        FadeSlideIn(
           index: 2,
           child: _Point(
             art: Art.stopwatch,
-            title: 'Track units every few days',
-            text: 'Type or photograph your meter. See units used and the month-end forecast.',
+            title: 'Track units every few days'.tr,
+            text: 'Type or photograph your meter. See units used and the month-end forecast.'.tr,
           ),
         ),
-        const FadeSlideIn(
+        FadeSlideIn(
           index: 3,
           child: _Point(
             art: Art.bell,
-            title: 'Stay under your slab',
-            text: 'A safe daily budget and reminders before you cross 200, 300…',
+            title: 'Stay under your slab'.tr,
+            text: 'A safe daily budget and reminders before you cross 200, 300…'.tr,
           ),
         ),
-        const FadeSlideIn(
+        FadeSlideIn(
           index: 4,
           child: _Point(
             art: Art.camera,
-            title: 'Scan your bill',
-            text: 'Units, amount, due date and reading day — read on your phone.',
+            title: 'Scan your bill'.tr,
+            text: 'Units, amount, due date and reading day — read on your phone.'.tr,
           ),
         ),
-        const FadeSlideIn(
+        FadeSlideIn(
           index: 5,
           child: _Point(
             art: Art.sun,
-            title: 'Solar and TOU meters too',
-            text: 'Export credit, peak/off-peak bills and current NEPRA rates for all 14 companies.',
+            title: 'Solar and TOU meters too'.tr,
+            text: 'Export credit, peak/off-peak bills and current NEPRA rates for all 14 companies.'.tr,
           ),
         ),
       ],

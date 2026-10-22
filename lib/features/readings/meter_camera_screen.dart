@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../../services/meter_ocr_service.dart';
 import '../../services/meter_reading_extractor.dart';
 import 'widgets/meter_frame_overlay.dart';
+import '../../core/l10n/l10n.dart';
 
 /// What the camera screen hands back to Add reading.
 class MeterScanOutcome {
@@ -281,9 +282,8 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       case _CamState.noPermission:
         return _Problem(
           icon: Icons.no_photography_rounded,
-          title: 'Camera permission needed',
-          message: 'Allow camera access to scan your meter.\n'
-              'If you chose "Don\'t allow", turn it on in Settings → Apps → Bijli Hisaab → Permissions.',
+          title: 'Camera permission needed'.tr,
+          message: 'Allow camera access to scan your meter.\nIf you chose "Don\'t allow", turn it on in Settings → Apps → Bijli Hisaab → Permissions.'.tr,
           primaryLabel: 'Try again',
           onPrimary: _start,
           onGallery: _fromGallery,
@@ -291,14 +291,14 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       case _CamState.noCamera:
         return _Problem(
           icon: Icons.videocam_off_rounded,
-          title: 'No camera found',
-          message: 'You can pick a photo of the meter from your gallery instead.',
+          title: 'No camera found'.tr,
+          message: 'You can pick a photo of the meter from your gallery instead.'.tr,
           onGallery: _fromGallery,
         );
       case _CamState.failed:
         return _Problem(
           icon: Icons.error_outline_rounded,
-          title: 'Camera didn\'t start',
+          title: 'Camera didn\'t start'.tr,
           message: _error ?? 'Something went wrong.',
           primaryLabel: 'Try again',
           onPrimary: _start,
@@ -337,12 +337,12 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
             children: [
               _RoundButton(
                 icon: Icons.close_rounded,
-                tooltip: 'Close',
+                tooltip: 'Close'.tr,
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Scan meter',
+                  'Scan meter'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800),
                 ),
@@ -350,7 +350,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
               if (_state == _CamState.ready)
                 _RoundButton(
                   icon: _torch ? Icons.flashlight_on_rounded : Icons.flashlight_off_rounded,
-                  tooltip: _torch ? 'Turn light off' : 'Turn light on',
+                  tooltip: _torch ? 'Turn light off'.tr : 'Turn light on'.tr,
                   active: _torch,
                   onPressed: _toggleTorch,
                 )
@@ -422,7 +422,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
                   children: [
                     _RoundButton(
                       icon: Icons.photo_library_rounded,
-                      tooltip: 'Pick from gallery',
+                      tooltip: 'Pick from gallery'.tr,
                       onPressed: _fromGallery,
                       size: 52,
                     ),
@@ -448,7 +448,7 @@ class _Shutter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Take photo',
+      label: 'Take photo'.tr,
       child: GestureDetector(
         onTap: onPressed,
         child: Container(
@@ -567,11 +567,11 @@ class _Problem extends StatelessWidget {
             ),
             onPressed: onGallery,
             icon: const Icon(Icons.photo_library_rounded),
-            label: const Text('Pick from gallery'),
+            label: Text('Pick from gallery'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Type it in instead', style: TextStyle(color: Colors.white70)),
+            child: Text('Type it in instead'.tr, style: TextStyle(color: Colors.white70)),
           ),
         ],
       ),
@@ -587,7 +587,7 @@ class _ReadingVeil extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: Colors.black.withValues(alpha: 0.6),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -598,7 +598,7 @@ class _ReadingVeil extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'Reading the meter…',
+              'Reading the meter…'.tr,
               style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ],

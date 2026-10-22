@@ -10,6 +10,7 @@ import 'shared/widgets/art.dart';
 import 'shared/widgets/urdu_text.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'state/app_state.dart';
+import './core/l10n/l10n.dart';
 
 class BijliBachaoApp extends StatelessWidget {
   const BijliBachaoApp({super.key});
@@ -101,7 +102,7 @@ class _Splash extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 48),
               child: Text(
-                'Your units. Your slab. Your bill.',
+                'Your units. Your slab. Your bill.'.tr,
                 style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.55)),
               ),
             ),
@@ -132,7 +133,7 @@ class _ErrorView extends StatelessWidget {
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: () => context.read<AppState>().init(),
-                child: const Text('Try again'),
+                child: Text('Try again'.tr),
               ),
             ],
           ),

@@ -5,6 +5,7 @@ import '../../../services/usage_forecaster.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/status_pill.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Explains the slab situation and gives the safe daily budget.
 class SlabAlertCard extends StatelessWidget {
@@ -37,11 +38,11 @@ class SlabAlertCard extends StatelessWidget {
         body = 'Use at most ${Fmt.oneDp(budget)} units a day for $days days to stay under $target '
             '(now ${Fmt.oneDp(summary.dailyRate)} a day).$extra';
       case UsageStatus.overLimits:
-        title = 'You\'re in the highest slab';
+        title = 'You\'re in the highest slab'.tr;
         body = 'Every extra unit costs ${Fmt.rate(summary.estimateProjected.slab.rate)} before taxes. '
             'Check Appliances to see what uses the most.';
       case UsageStatus.noData:
-        title = 'Add readings to see your slab';
+        title = 'Add readings to see your slab'.tr;
         body = '';
     }
 
@@ -96,7 +97,7 @@ class SlabAlertCard extends StatelessWidget {
               child: Text(
                 summary.protectionAtRisk
                     ? 'Going above ${summary.protectedThreshold} units ends your protected rates for the next 6 bills.'
-                    : 'Going above 100 units ends lifeline rates for this bill.',
+                    : 'Going above 100 units ends lifeline rates for this bill.'.tr,
                 style: TextStyle(color: style.color, fontWeight: FontWeight.w700),
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../services/bill_scan_analyzer.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// A box to draw on a scanned page.
 class PageHighlight {
@@ -157,14 +158,14 @@ class _ScannedPageViewerState extends State<ScannedPageViewer> {
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: () => widget.onRotate!(_pages.hasClients ? (_pages.page ?? 0).round() : widget.page),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.rotate_right_rounded, size: 18, color: Colors.white),
                           SizedBox(width: 6),
-                          Text('Rotate',
+                          Text('Rotate'.tr,
                               style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                         ],
                       ),
@@ -187,7 +188,7 @@ class _ScannedPageViewerState extends State<ScannedPageViewer> {
                     const Icon(Icons.zoom_in_rounded, size: 14, color: Colors.white),
                     const SizedBox(width: 4),
                     Text(
-                      n > 1 ? 'Tap to zoom · swipe for page 2' : 'Tap to zoom',
+                      n > 1 ? 'Tap to zoom · swipe for page 2'.tr : 'Tap to zoom'.tr,
                       style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
                     ),
                   ],

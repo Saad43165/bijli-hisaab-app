@@ -4,6 +4,7 @@ import '../../core/constants/saving_tips.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/urdu_text.dart';
 import '../../shared/widgets/art.dart';
+import '../../core/l10n/l10n.dart';
 
 class TipsScreen extends StatelessWidget {
   const TipsScreen({super.key});
@@ -18,7 +19,7 @@ class TipsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Saving tips')),
+      appBar: AppBar(title: Text('Saving tips'.tr)),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         itemCount: SavingTips.all.length,

@@ -4,6 +4,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/appliance.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 class ApplianceTile extends StatelessWidget {
   const ApplianceTile({
@@ -46,7 +47,7 @@ class ApplianceTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(a.name, style: theme.textTheme.titleSmall, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       '$qty${a.watts} W · ${_hours(a.hoursPerDay)} a day',
                       style: theme.textTheme.bodySmall,
@@ -54,7 +55,7 @@ class ApplianceTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -63,17 +64,17 @@ class ApplianceTile extends StatelessWidget {
                 ],
               ),
               PopupMenuButton<String>(
-                tooltip: 'More',
+                tooltip: 'More'.tr,
                 icon: Icon(Icons.more_vert_rounded, color: theme.colorScheme.onSurfaceVariant),
                 onSelected: (v) => switch (v) {
                   'edit' => onTap(),
                   'duplicate' => onDuplicate(),
                   _ => onDelete(),
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
-                  PopupMenuItem(value: 'delete', child: Text('Remove')),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'edit', child: Text('Edit'.tr)),
+                  PopupMenuItem(value: 'duplicate', child: Text('Duplicate'.tr)),
+                  PopupMenuItem(value: 'delete', child: Text('Remove'.tr)),
                 ],
               ),
             ],

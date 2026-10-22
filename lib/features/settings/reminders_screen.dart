@@ -8,6 +8,7 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Tools → Reminders.
 class RemindersScreen extends StatelessWidget {
@@ -29,7 +30,7 @@ class RemindersScreen extends StatelessWidget {
     final upcoming = state.upcomingReminders;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reminders & alerts')),
+      appBar: AppBar(title: Text('Reminders & alerts'.tr)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
@@ -38,13 +39,13 @@ class RemindersScreen extends StatelessWidget {
             child: SwitchListTile(
               contentPadding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
               secondary: const ArtTile(Art.bell, size: 44),
-              title: Text('Smart reminders', style: theme.textTheme.titleMedium),
-              subtitle: const Text('Only when it matters — based on your readings, slab and bill'),
+              title: Text('Smart reminders'.tr, style: theme.textTheme.titleMedium),
+              subtitle: Text('Only when it matters — based on your readings, slab and bill'.tr),
               value: on,
               onChanged: state.setRemindersEnabled,
             ),
           ),
-          const SectionHeader('Remind me about'),
+          SectionHeader('Remind me about'.tr),
           AnimatedOpacity(
             duration: const Duration(milliseconds: 200),
             opacity: on ? 1 : 0.5,
@@ -66,18 +67,18 @@ class RemindersScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SectionHeader('Instant alert'),
+          SectionHeader('Instant alert'.tr),
           AppCard(
             padding: EdgeInsets.zero,
             child: SwitchListTile(
               secondary: const ArtTile(Art.warning, size: 40),
-              title: const Text('Slab warning'),
-              subtitle: const Text('Right after a reading that puts you over a limit'),
+              title: Text('Slab warning'.tr),
+              subtitle: Text('Right after a reading that puts you over a limit'.tr),
               value: state.slabAlertsEnabled,
               onChanged: state.setSlabAlertsEnabled,
             ),
           ),
-          const SectionHeader('Coming up'),
+          SectionHeader('Coming up'.tr),
           if (!on || upcoming.isEmpty)
             AppCard(
               padding: const EdgeInsets.all(16),
@@ -88,9 +89,8 @@ class RemindersScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       !on
-                          ? 'Smart reminders are off.'
-                          : 'Nothing scheduled right now. Reminders appear here as your reading day, '
-                              'slab limit or bill due date gets close.',
+                          ? 'Smart reminders are off.'.tr
+                          : 'Nothing scheduled right now. Reminders appear here as your reading day, slab limit or bill due date gets close.'.tr,
                       style: theme.textTheme.bodyMedium?.copyWith(color: p.muted),
                     ),
                   ),
@@ -112,8 +112,7 @@ class RemindersScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
             child: Text(
-              'Reminders update every time you add a reading or bill. Nothing is sent before 9 am or after 9:30 pm. '
-              'If nothing arrives, allow notifications for Bijli Hisaab in Android settings.',
+              'Reminders update every time you add a reading or bill. Nothing is sent before 9 am or after 9:30 pm. If nothing arrives, allow notifications for Bijli Hisaab in Android settings.'.tr,
               style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
             ),
           ),
@@ -136,8 +135,8 @@ class _UpcomingTile extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final days = DateTime(w.year, w.month, w.day).difference(today).inDays;
     final day = switch (days) {
-      0 => 'Today',
-      1 => 'Tomorrow',
+      0 => 'Today'.tr,
+      1 => 'Tomorrow'.tr,
       _ => DateFormat('EEE d MMM').format(w),
     };
     return ListTile(

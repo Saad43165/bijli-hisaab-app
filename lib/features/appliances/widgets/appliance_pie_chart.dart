@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/appliance.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Donut of estimated monthly units by appliance (top 6 + "Other").
 class ApplianceDonut extends StatelessWidget {
@@ -53,7 +54,7 @@ class ApplianceDonut extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(Fmt.whole(totalUnits), style: theme.textTheme.titleLarge),
-                  Text('units/mo', style: theme.textTheme.bodySmall),
+                  Text('units/mo'.tr, style: theme.textTheme.bodySmall),
                 ],
               ),
             ],
@@ -73,7 +74,7 @@ class ApplianceDonut extends StatelessWidget {
               if (rest > 0)
                 _LegendRow(
                   color: AppColors.chart.last,
-                  label: 'Others',
+                  label: 'Others'.tr,
                   percent: totalUnits == 0 ? 0 : rest / totalUnits,
                 ),
             ],

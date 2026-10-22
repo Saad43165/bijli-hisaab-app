@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../services/meter_ocr_service.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Drawn over the live camera: dims everything outside a wide frame in the
 /// middle (where the meter digits go), with amber corners, a guide line,
@@ -34,8 +35,8 @@ class MeterFrameOverlay extends StatelessWidget {
               left: 24,
               right: 24,
               bottom: size.height - frame.top + 14,
-              child: const Text(
-                'Fit the meter numbers inside the frame',
+              child: Text(
+                'Fit the meter numbers inside the frame'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -52,8 +53,8 @@ class MeterFrameOverlay extends StatelessWidget {
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
                 child: hint == null
-                    ? const Text(
-                        'Skip digits in red or after a decimal point',
+                    ? Text(
+                        'Skip digits in red or after a decimal point'.tr,
                         key: ValueKey('tip'),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white70, fontSize: 13),

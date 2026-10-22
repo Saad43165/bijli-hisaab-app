@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/l10n.dart';
+import '../../shared/widgets/app_nav_bar.dart';
 import '../appliances/appliances_screen.dart';
 import '../bills/history_screen.dart';
 import '../settings/tools_screen.dart';
@@ -41,30 +43,14 @@ class _HomeShellState extends State<HomeShell> {
           _tab(3, () => ToolsScreen(onOpenTab: _select)),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _select,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart_rounded),
-            label: 'History',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.kitchen_outlined),
-            selectedIcon: Icon(Icons.kitchen_rounded),
-            label: 'Appliances',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view_rounded),
-            label: 'Tools',
-          ),
+      bottomNavigationBar: AppNavBar(
+        index: _index,
+        onSelect: _select,
+        items: [
+          AppNavItem(icon: Icons.home_outlined, selectedIcon: Icons.home_rounded, label: 'Home'.tr),
+          AppNavItem(icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart_rounded, label: 'History'.tr),
+          AppNavItem(icon: Icons.kitchen_outlined, selectedIcon: Icons.kitchen_rounded, label: 'Appliances'.tr),
+          AppNavItem(icon: Icons.grid_view_outlined, selectedIcon: Icons.grid_view_rounded, label: 'Tools'.tr),
         ],
       ),
     );

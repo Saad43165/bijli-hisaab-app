@@ -9,6 +9,7 @@ import '../../../shared/widgets/animated_number.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/hero_style.dart';
 import '../../../shared/widgets/status_pill.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Navy hero card: units used this cycle in a ring that fills towards the
 /// next slab limit, with the projection shown as a faint arc.
@@ -70,7 +71,7 @@ class UsageRingCard extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('USED', style: theme.textTheme.labelSmall?.copyWith(color: onNavyMuted)),
+                    Text('USED'.tr, style: theme.textTheme.labelSmall?.copyWith(color: onNavyMuted)),
                     AnimatedNumber(
                       value: summary.unitsUsed,
                       format: Fmt.whole,
@@ -98,15 +99,15 @@ class UsageRingCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _Stat(h: h, label: 'DAY', value: '${summary.dayOfCycle}/${summary.daysTotal}', caption: '${summary.daysLeft} left'),
+                _Stat(h: h, label: 'DAY'.tr, value: '${summary.dayOfCycle}/${summary.daysTotal}', caption: '${summary.daysLeft} left'),
                 _Divider(color: h.track),
-                _Stat(h: h, label: 'PER DAY', value: Fmt.oneDp(summary.dailyRate), caption: 'units avg'),
+                _Stat(h: h, label: 'PER DAY'.tr, value: Fmt.oneDp(summary.dailyRate), caption: 'units avg'.tr),
                 _Divider(color: h.track),
                 _Stat(
                   h: h,
-                  label: 'MONTH END',
+                  label: 'MONTH END'.tr,
                   value: Fmt.whole(summary.projectedUnits),
-                  caption: 'projected',
+                  caption: 'projected'.tr,
                   valueColor: summary.status == UsageStatus.safe ? onNavy : style.color,
                 ),
               ],

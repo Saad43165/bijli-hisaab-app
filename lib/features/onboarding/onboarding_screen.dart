@@ -9,6 +9,7 @@ import '../meters/widgets/meter_form.dart';
 import '../settings/backup_screen.dart';
 import 'widgets/consent_page.dart';
 import 'widgets/welcome_page.dart';
+import '../../core/l10n/l10n.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -67,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Step ${_index + 1} of $_count',
+                    'Step {n} of {c}'.trf({'n': _index + 1, 'c': _count}),
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                   const SizedBox(width: 12),
@@ -88,6 +89,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ],
               ),
             ),
+            // Language first, so Urdu readers can switch before anything else.
+            if (_index == 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: SegmentedButton<String>(
+                    style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: 'en', label: Text('English')),
+                      ButtonSegment(value: 'ur', label: Text('اردو')),
+                    ],
+                    selected: {context.watch<AppState>().language},
+                    onSelectionChanged: (s) => context.read<AppState>().setLanguage(s.first),
+                  ),
+                ),
+              ),
             Expanded(
               child: PageView(
                 controller: _pages,
@@ -112,7 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: 110,
                       child: OutlinedButton(
                         onPressed: _saving ? null : () => _go(_index - 1),
-                        child: const Text('Back'),
+                        child: Text('Back'.tr),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -121,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: LoadingButton(
                       loading: _saving,
                       onPressed: isLast ? _finish : () => _go(_index + 1),
-                      label: isLast ? 'Start tracking' : (_index == 0 ? 'Get started' : 'Continue'),
+                      label: isLast ? 'Start tracking'.tr : (_index == 0 ? 'Get started'.tr : 'Continue'.tr),
                       icon: isLast ? Icons.bolt_rounded : null,
                     ),
                   ),
@@ -136,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     MaterialPageRoute<void>(builder: (_) => const BackupScreen(restoreOnly: true)),
                   ),
                   icon: const Icon(Icons.restore_rounded, size: 20),
-                  label: const Text('Have a backup? Restore it'),
+                  label: Text('Have a backup? Restore it'.tr),
                 ),
               ),
           ],
@@ -157,10 +176,10 @@ class _MeterPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       children: [
-        Text('Add your meter', style: theme.textTheme.headlineSmall),
+        Text('Add your meter'.tr, style: theme.textTheme.headlineSmall),
         const SizedBox(height: 6),
         Text(
-          'Keep your latest bill nearby — most of this is printed on it.',
+          'Keep your latest bill nearby — most of this is printed on it.'.tr,
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 20),

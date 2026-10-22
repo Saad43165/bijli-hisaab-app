@@ -13,6 +13,7 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../state/app_state.dart';
 import 'company_picker.dart';
+import '../../../core/l10n/l10n.dart';
 
 class MeterFormResult {
   const MeterFormResult({required this.meter, this.reading, this.readingDate});
@@ -113,7 +114,7 @@ class MeterFormState extends State<MeterForm> {
       // The missing field may be scrolled out of view.
       ScaffoldMessenger.maybeOf(context)
         ?..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Please check the fields marked in red')));
+        ..showSnackBar(SnackBar(content: Text('Please check the fields marked in red'.tr)));
       return null;
     }
     final base = widget.initial;
@@ -160,7 +161,7 @@ class MeterFormState extends State<MeterForm> {
         ?..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
           content: Text(filled.isEmpty
-              ? 'Couldn\'t read the bill. Try again in good light, or fill it in yourself.'
+              ? 'Couldn\'t read the bill. Try again in good light, or fill it in yourself.'.tr
               : 'Filled in: ${filled.join(', ')}. Please check them.'),
         ));
     } on ScanCancelled {
@@ -242,12 +243,12 @@ class MeterFormState extends State<MeterForm> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Fill in from your bill', style: theme.textTheme.titleSmall),
+                      Text('Fill in from your bill'.tr, style: theme.textTheme.titleSmall),
                       const SizedBox(height: 2),
                       Text(
                         _scanning
-                            ? 'Reading your bill…'
-                            : 'Scan it and we\'ll fill in the company, reference number, load and reading day.',
+                            ? 'Reading your bill…'.tr
+                            : 'Scan it and we\'ll fill in the company, reference number, load and reading day.'.tr,
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -264,11 +265,11 @@ class MeterFormState extends State<MeterForm> {
           TextFormField(
             controller: _name,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              labelText: 'Meter name',
-              hintText: 'Home, Shop, Ammi ka ghar…',
+            decoration: InputDecoration(
+              labelText: 'Meter name'.tr,
+              hintText: 'Home, Shop, Ammi ka ghar…'.tr,
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Give this meter a name' : null,
+            validator: (v) => (v == null || v.trim().isEmpty) ? 'Give this meter a name'.tr : null,
           ),
           gap,
           CompanyPickerField(
@@ -278,8 +279,7 @@ class MeterFormState extends State<MeterForm> {
           if (!PowerCompanies.of(_disco).usesNepraTariff) ...[
             const SizedBox(height: 8),
             Text(
-              'Your area sets its own electricity tariff. Estimates use NEPRA rates until you '
-              'enter your own in Tools → Rates.',
+              'Your area sets its own electricity tariff. Estimates use NEPRA rates until you enter your own in Tools → Rates.'.tr,
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
             ),
           ],
@@ -288,10 +288,10 @@ class MeterFormState extends State<MeterForm> {
             controller: _reference,
             textCapitalization: TextCapitalization.characters,
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Za-z ]'))],
-            decoration: const InputDecoration(
-              labelText: 'Reference number (optional)',
+            decoration: InputDecoration(
+              labelText: 'Reference number (optional)'.tr,
               hintText: 'e.g. 06 14562 1211000 U',
-              helperText: 'Printed at the top of your bill. Needed to view or pay the bill online.',
+              helperText: 'Printed at the top of your bill. Needed to view or pay the bill online.'.tr,
               helperMaxLines: 2,
             ),
           ),
@@ -310,7 +310,7 @@ class MeterFormState extends State<MeterForm> {
                       controller: controller,
                       focusNode: focusNode,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(labelText: 'City', errorMaxLines: 3),
+                      decoration: InputDecoration(labelText: 'City'.tr, errorMaxLines: 3),
                       // Say "that's LESCO's area" while typing, not only on Save.
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       validator: (v) {
@@ -359,7 +359,7 @@ class MeterFormState extends State<MeterForm> {
                   key: ValueKey(_province),
                   initialValue: _province,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Province'),
+                  decoration: InputDecoration(labelText: 'Province'.tr),
                   items: [
                     for (final p in Cities.provincesFor(_disco)) DropdownMenuItem(value: p, child: Text(p)),
                   ],
@@ -372,8 +372,8 @@ class MeterFormState extends State<MeterForm> {
             ],
           ),
           gap,
-          Text('Connection', style: theme.textTheme.labelSmall),
-          const SizedBox(height: 6),
+          Text('Connection'.tr, style: theme.textTheme.labelSmall),
+          SizedBox(height: 6),
           SegmentedButton<String>(
             segments: [
               for (final t in AppConstants.connectionTypes)
@@ -384,13 +384,13 @@ class MeterFormState extends State<MeterForm> {
             onSelectionChanged: (s) => setState(() => _connectionType = s.first),
           ),
           gap,
-          Text('Meter type', style: theme.textTheme.labelSmall),
-          const SizedBox(height: 6),
+          Text('Meter type'.tr, style: theme.textTheme.labelSmall),
+          SizedBox(height: 6),
           SegmentedButton<MeterType>(
-            segments: const [
-              ButtonSegment(value: MeterType.standard, label: Text('Normal')),
-              ButtonSegment(value: MeterType.tou, label: Text('TOU')),
-              ButtonSegment(value: MeterType.netBilling, label: Text('Solar')),
+            segments: [
+              ButtonSegment(value: MeterType.standard, label: Text('Normal'.tr)),
+              ButtonSegment(value: MeterType.tou, label: Text('TOU'.tr)),
+              ButtonSegment(value: MeterType.netBilling, label: Text('Solar'.tr)),
             ],
             // Both solar schemes show as "Solar"; the agreement picks which.
             selected: {_meterType.isSolar ? MeterType.netBilling : _meterType},
@@ -402,22 +402,22 @@ class MeterFormState extends State<MeterForm> {
           const SizedBox(height: 4),
           Text(
             switch (_meterType) {
-              MeterType.standard => 'One number on the display.',
-              MeterType.tou => 'Time of use: your bill shows peak and off-peak units (usually 5 kW and above).',
+              MeterType.standard => 'One number on the display.'.tr,
+              MeterType.tou => 'Time of use: your bill shows peak and off-peak units (usually 5 kW and above).'.tr,
               MeterType.netMetering ||
               MeterType.netBilling =>
-                'Solar: the meter counts units taken from the grid (import) and sent to it (export).',
+                'Solar: the meter counts units taken from the grid (import) and sent to it (export).'.tr,
             },
             style: theme.textTheme.bodySmall,
           ),
           if (_meterType.isSolar) ...[
             const SizedBox(height: 12),
-            Text('When was your solar agreement signed?', style: theme.textTheme.labelSmall),
-            const SizedBox(height: 6),
+            Text('When was your solar agreement signed?'.tr, style: theme.textTheme.labelSmall),
+            SizedBox(height: 6),
             SegmentedButton<MeterType>(
-              segments: const [
-                ButtonSegment(value: MeterType.netMetering, label: Text('Before Feb 2026')),
-                ButtonSegment(value: MeterType.netBilling, label: Text('Feb 2026 or later')),
+              segments: [
+                ButtonSegment(value: MeterType.netMetering, label: Text('Before Feb 2026'.tr)),
+                ButtonSegment(value: MeterType.netBilling, label: Text('Feb 2026 or later'.tr)),
               ],
               selected: {_meterType},
               showSelectedIcon: false,
@@ -426,9 +426,8 @@ class MeterFormState extends State<MeterForm> {
             const SizedBox(height: 4),
             Text(
               _meterType == MeterType.netMetering
-                  ? 'Net metering: exported units cancel out imported units; you pay for the difference.'
-                  : 'Net billing: imported units are billed at normal rates and exported units are '
-                      'bought back at a lower rate.',
+                  ? 'Net metering: exported units cancel out imported units; you pay for the difference.'.tr
+                  : 'Net billing: imported units are billed at normal rates and exported units are bought back at a lower rate.'.tr,
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -440,12 +439,12 @@ class MeterFormState extends State<MeterForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Meter phase', style: theme.textTheme.labelSmall),
-                    const SizedBox(height: 6),
+                    Text('Meter phase'.tr, style: theme.textTheme.labelSmall),
+                    SizedBox(height: 6),
                     SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'single', label: Text('Single')),
-                        ButtonSegment(value: 'three', label: Text('Three')),
+                      segments: [
+                        ButtonSegment(value: 'single', label: Text('Single'.tr)),
+                        ButtonSegment(value: 'three', label: Text('Three'.tr)),
                       ],
                       selected: {_phase},
                       showSelectedIcon: false,
@@ -463,7 +462,7 @@ class MeterFormState extends State<MeterForm> {
                     controller: _load,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [numberFormatter],
-                    decoration: const InputDecoration(labelText: 'Load (kW)'),
+                    decoration: InputDecoration(labelText: 'Load (kW)'.tr),
                     validator: (v) {
                       final n = Fmt.parseNumber(v);
                       if (n == null || n <= 0 || n > 100) return '1–100';
@@ -476,11 +475,11 @@ class MeterFormState extends State<MeterForm> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Sanctioned load is printed on your bill (e.g. "LOAD 2 KW").',
+            'Sanctioned load is printed on your bill (e.g. "LOAD 2 KW").'.tr,
             style: theme.textTheme.bodySmall,
           ),
           gap,
-          Text('Is your bill marked "Protected"?', style: theme.textTheme.labelSmall),
+          Text('Is your bill marked "Protected"?'.tr, style: theme.textTheme.labelSmall),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
@@ -503,10 +502,10 @@ class MeterFormState extends State<MeterForm> {
           const SizedBox(height: 6),
           Text(
             switch (_protected) {
-              ProtectedSetting.protected => 'Protected = 200 units or less in each of the last 6 months.',
-              ProtectedSetting.unprotected => 'Normal rates. Every unit is billed at the rate of the slab you reach.',
-              ProtectedSetting.lifeline => 'Lifeline = single-phase, up to 1 kW load and 100 units or less. Lowest rates.',
-              ProtectedSetting.auto => 'We\'ll work it out from your last 6 bills (add them in History).',
+              ProtectedSetting.protected => 'Protected = 200 units or less in each of the last 6 months.'.tr,
+              ProtectedSetting.unprotected => 'Normal rates. Every unit is billed at the rate of the slab you reach.'.tr,
+              ProtectedSetting.lifeline => 'Lifeline = single-phase, up to 1 kW load and 100 units or less. Lowest rates.'.tr,
+              ProtectedSetting.auto => 'We\'ll work it out from your last 6 bills (add them in History).'.tr,
             },
             style: theme.textTheme.bodySmall,
           ),
@@ -515,17 +514,16 @@ class MeterFormState extends State<MeterForm> {
             key: ValueKey('reading-day-$_readingDay'),
             initialValue: _readingDay,
             menuMaxHeight: 360,
-            hint: const Text('Choose day'),
-            decoration: const InputDecoration(
-              labelText: 'Meter reading day',
-              helperText: 'Look for "Reading date" on your bill — the meter reader comes on '
-                  'about the same day every month.',
+            hint: Text('Choose day'.tr),
+            decoration: InputDecoration(
+              labelText: 'Meter reading day'.tr,
+              helperText: 'Look for "Reading date" on your bill — the meter reader comes on about the same day every month.'.tr,
               helperMaxLines: 3,
             ),
             items: [
               for (var d = 1; d <= 31; d++) DropdownMenuItem(value: d, child: Text('Day $d')),
             ],
-            validator: (v) => v == null ? 'Choose the day from "Reading date" on your bill' : null,
+            validator: (v) => v == null ? 'Choose the day from "Reading date" on your bill'.tr : null,
             onChanged: (v) => setState(() => _readingDay = v ?? _readingDay),
           ),
           if (_readingDay == null)
@@ -533,15 +531,15 @@ class MeterFormState extends State<MeterForm> {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () => setState(() => _readingDay = DateTime.now().day),
-                child: const Text('Don\'t know? Use today for now'),
+                child: Text('Don\'t know? Use today for now'.tr),
               ),
             ),
           if (widget.askForReading) ...[
             const SizedBox(height: 20),
-            Text('Current meter reading (optional)', style: theme.textTheme.titleMedium),
+            Text('Current meter reading (optional)'.tr, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
-              'Read the number on your meter now, or use "Present reading" from your last bill.',
+              'Read the number on your meter now, or use "Present reading" from your last bill.'.tr,
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 10),
@@ -552,7 +550,7 @@ class MeterFormState extends State<MeterForm> {
                     controller: _reading,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [numberFormatter],
-                    decoration: const InputDecoration(labelText: 'Reading (kWh)', hintText: 'e.g. 12450'),
+                    decoration: InputDecoration(labelText: 'Reading (kWh)'.tr, hintText: 'e.g. 12450'),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return null;
                       final n = Fmt.parseNumber(v);

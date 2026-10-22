@@ -7,6 +7,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/bill.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/status_pill.dart';
+import '../../../core/l10n/l10n.dart';
 
 class BillTile extends StatelessWidget {
   const BillTile({super.key, required this.bill, this.previousUnits, this.onTap, this.threshold = 200});
@@ -38,7 +39,7 @@ class BillTile extends StatelessWidget {
     if (d != null) {
       final days = DateX.daysBetween(DateX.today(), d);
       if (days >= 0 && days <= 10) {
-        due = days == 0 ? 'Due today' : 'Due in $days ${days == 1 ? 'day' : 'days'}';
+        due = days == 0 ? 'Due today'.tr : 'Due in $days ${days == 1 ? 'day' : 'days'}';
         dueColor = days <= 2 ? p.danger : p.warn;
       } else if (days < 0 && days > -20) {
         due = 'Due date passed';

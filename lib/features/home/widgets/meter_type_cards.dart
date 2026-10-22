@@ -7,6 +7,7 @@ import '../../../data/models/tariff.dart';
 import '../../../services/usage_forecaster.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// TOU meters: peak vs off-peak split and what moving use out of peak saves.
 /// Shown instead of the slab cards (TOU bills have no slabs).
@@ -42,9 +43,9 @@ class TouSplitCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('PEAK / OFF-PEAK', style: theme.textTheme.labelSmall),
+                    Text('PEAK / OFF-PEAK'.tr, style: theme.textTheme.labelSmall),
                     Text(
-                      known ? '${(share * 100).round()}% of your use is in peak hours' : 'Peak share not known yet',
+                      known ? '${(share * 100).round()}% of your use is in peak hours' : 'Peak share not known yet'.tr,
                       style: theme.textTheme.titleMedium,
                     ),
                   ],
@@ -90,7 +91,7 @@ class TouSplitCard extends StatelessWidget {
                 ? (shift > 0
                     ? 'Move $shift units out of peak hours this month (motor, iron, washing machine) '
                         'and save about ${Fmt.rs(shift * saving)} before taxes.'
-                    : 'Almost all your use is off-peak — well done.')
+                    : 'Almost all your use is off-peak — well done.'.tr)
                 : 'Add the peak and off-peak readings to see your real split. Until then we assume '
                     '${(UsageForecaster.defaultPeakShare * 100).round()}%.',
             style: theme.textTheme.bodyMedium,
@@ -135,7 +136,7 @@ class SolarCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(netMetering ? 'SOLAR · NET METERING' : 'SOLAR · NET BILLING',
+                    Text(netMetering ? 'SOLAR · NET METERING'.tr : 'SOLAR · NET BILLING'.tr,
                         style: theme.textTheme.labelSmall),
                     Text(
                       '${Fmt.whole(summary.exportSoFar)} units sent to the grid so far',
@@ -152,14 +153,14 @@ class SolarCard extends StatelessWidget {
               Expanded(
                 child: _Part(
                   color: AppColors.amberDeep,
-                  label: 'Sent by month end',
+                  label: 'Sent by month end'.tr,
                   value: '~${Fmt.whole(summary.exportProjected)} units',
                 ),
               ),
               Expanded(
                 child: _Part(
                   color: p.safe,
-                  label: 'Credit on the bill',
+                  label: 'Credit on the bill'.tr,
                   value: e.exportCredit > 0 ? '−${Fmt.rs(e.exportCredit)}' : 'Rs 0',
                 ),
               ),

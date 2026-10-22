@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/bill.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Bars for the last 12 bill months, coloured by slab band, with a dashed
 /// line at the protected threshold.
@@ -56,15 +57,15 @@ class _MonthlyUnitsChartState extends State<MonthlyUnitsChart> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(rupees ? 'RUPEES PER BILL' : 'UNITS PER BILL', style: theme.textTheme.labelSmall),
+                  child: Text(rupees ? 'RUPEES PER BILL'.tr : 'UNITS PER BILL'.tr, style: theme.textTheme.labelSmall),
                 ),
                 if (hasAmounts)
                   SegmentedButton<bool>(
-                    style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                    style: ButtonStyle(visualDensity: VisualDensity.compact),
                     showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('Units')),
-                      ButtonSegment(value: true, label: Text('Rs')),
+                    segments: [
+                      ButtonSegment(value: false, label: Text('Units'.tr)),
+                      ButtonSegment(value: true, label: Text('Rs'.tr)),
                     ],
                     selected: {rupees},
                     onSelectionChanged: (s) => setState(() => _rupees = s.first),

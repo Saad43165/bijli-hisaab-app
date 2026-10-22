@@ -4,6 +4,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/bill.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// The latest bill at a glance, or a prompt to add one.
 class LastBillCard extends StatelessWidget {
@@ -31,10 +32,10 @@ class LastBillCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Add your last bill', style: theme.textTheme.titleSmall),
+                  Text('Add your last bill'.tr, style: theme.textTheme.titleSmall),
                   const SizedBox(height: 2),
                   Text(
-                    'Scan it to fill in your meter reading and see if you\'re on protected rates.',
+                    'Scan it to fill in your meter reading and see if you\'re on protected rates.'.tr,
                     style: theme.textTheme.bodySmall,
                   ),
                 ],

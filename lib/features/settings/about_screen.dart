@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
+import '../../core/l10n/l10n.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -23,7 +24,7 @@ class AboutScreen extends StatelessWidget {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About & privacy')),
+      appBar: AppBar(title: Text('About & privacy'.tr)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
@@ -32,7 +33,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Center(child: Text(AppConstants.appName, style: theme.textTheme.titleLarge)),
-          Center(child: Text('Version 1.0.0', style: theme.textTheme.bodySmall)),
+          Center(child: Text('Version 1.0.0'.tr, style: theme.textTheme.bodySmall)),
           const SizedBox(height: 24),
           AppCard(
             child: Column(

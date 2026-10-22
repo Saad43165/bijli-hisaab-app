@@ -9,6 +9,7 @@ import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Hand-edit the rates. Saving turns off automatic rate updates.
 class TariffEditScreen extends StatefulWidget {
@@ -131,7 +132,7 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
     await context.read<AppState>().updateTariff(updated);
     if (!mounted) return;
     setState(() => _saving = false);
-    showSnack(context, 'Your rates are saved — automatic updates are off');
+    showSnack(context, 'Your rates are saved — automatic updates are off'.tr);
     Navigator.pop(context);
   }
 
@@ -142,7 +143,7 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit rates'),
+        title: Text('Edit rates'.tr),
       ),
       body: SafeArea(
         child: Form(
@@ -163,30 +164,30 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                   ],
                 ),
               ),
-              const SectionHeader('This month'),
+              SectionHeader('This month'.tr),
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     _NumberRow(
-                      label: 'Fuel charges adjustment (FCA)',
+                      label: 'Fuel charges adjustment (FCA)'.tr,
                       helper: 'Rs per unit, from your latest bill. Can be negative.',
                       controller: _fca,
                       allowNegative: true,
                     ),
                     _NumberRow(
-                      label: 'Quarterly adjustment (QTA)',
+                      label: 'Quarterly adjustment (QTA)'.tr,
                       helper: 'Rs per unit. Can be negative.',
                       controller: _qta,
                       allowNegative: true,
                     ),
-                    _NumberRow(label: 'GST', suffix: '%', controller: _gst),
+                    _NumberRow(label: 'GST'.tr, suffix: '%', controller: _gst),
                     _NumberRow(label: 'Electricity duty ($_province)', suffix: '%', controller: _duty),
-                    _NumberRow(label: 'TV fee', prefix: 'Rs', controller: _tv),
+                    _NumberRow(label: 'TV fee'.tr, prefix: 'Rs', controller: _tv),
                   ],
                 ),
               ),
-              const SectionHeader('Protected consumers'),
+              SectionHeader('Protected consumers'.tr),
               _CategoryEditor(
                 slabs: t.protectedCategory.slabs,
                 rates: _protectedRates,
@@ -194,7 +195,7 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                 mode: _protectedMode,
                 onMode: (m) => setState(() => _protectedMode = m),
               ),
-              const SectionHeader('Normal (unprotected) consumers'),
+              SectionHeader('Normal (unprotected) consumers'.tr),
               _CategoryEditor(
                 slabs: t.unprotectedCategory.slabs,
                 rates: _unprotectedRates,
@@ -202,15 +203,15 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                 mode: _unprotectedMode,
                 onMode: (m) => setState(() => _unprotectedMode = m),
               ),
-              const SectionHeader('Time of use (5 kW and above)'),
+              SectionHeader('Time of use (5 kW and above)'.tr),
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _NumberRow(label: 'Peak', helper: 'Rs per unit', prefix: 'Rs', controller: _touPeak),
-                    _NumberRow(label: 'Off-peak', helper: 'Rs per unit', prefix: 'Rs', controller: _touOffPeak),
+                    _NumberRow(label: 'Peak'.tr, helper: 'Rs per unit', prefix: 'Rs', controller: _touPeak),
+                    _NumberRow(label: 'Off-peak'.tr, helper: 'Rs per unit', prefix: 'Rs', controller: _touOffPeak),
                     _NumberRow(
-                      label: 'Fixed charge',
+                      label: 'Fixed charge'.tr,
                       helper: 'Rs per kW, on ${(t.tou.fixedLoadShare * 100).round()}% of sanctioned load',
                       prefix: 'Rs',
                       controller: _touFixed,
@@ -218,19 +219,19 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                   ],
                 ),
               ),
-              const SectionHeader('Solar'),
+              SectionHeader('Solar'.tr),
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     _NumberRow(
-                      label: 'Net billing buyback',
+                      label: 'Net billing buyback'.tr,
                       helper: 'Rs per exported unit (agreements from Feb 2026)',
                       prefix: 'Rs',
                       controller: _netBilling,
                     ),
                     _NumberRow(
-                      label: 'Net metering surplus',
+                      label: 'Net metering surplus'.tr,
                       helper: 'Rs per surplus unit (older agreements)',
                       prefix: 'Rs',
                       controller: _netMetering,
@@ -239,7 +240,7 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              LoadingButton(label: 'Save my rates', loading: _saving, onPressed: _save),
+              LoadingButton(label: 'Save my rates'.tr, loading: _saving, onPressed: _save),
             ],
           ),
         ),
@@ -278,13 +279,13 @@ class _CategoryEditor extends StatelessWidget {
               prefix: 'Rs',
               controller: rates[i],
             ),
-          _NumberRow(label: 'FC surcharge', helper: 'Rs per unit', prefix: 'Rs', controller: fc),
+          _NumberRow(label: 'FC surcharge'.tr, helper: 'Rs per unit', prefix: 'Rs', controller: fc),
           const SizedBox(height: 4),
           DropdownButtonFormField<BillingMode>(
             key: ValueKey(mode),
             initialValue: mode,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'How slabs are billed'),
+            decoration: InputDecoration(labelText: 'How slabs are billed'.tr),
             items: [
               for (final m in BillingMode.values)
                 DropdownMenuItem(value: m, child: Text(m.label, overflow: TextOverflow.ellipsis)),
@@ -295,7 +296,7 @@ class _CategoryEditor extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Compare with a real bill: if estimates are off, try another billing method.',
+            'Compare with a real bill: if estimates are off, try another billing method.'.tr,
             style: theme.textTheme.bodySmall,
           ),
         ],

@@ -18,6 +18,7 @@ import '../../shared/widgets/art.dart';
 import '../../state/app_state.dart';
 import 'meter_camera_screen.dart';
 import 'readings_screen.dart';
+import '../../core/l10n/l10n.dart';
 
 class AddReadingScreen extends StatefulWidget {
   const AddReadingScreen({super.key});
@@ -125,7 +126,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
     final n = Fmt.parseNumber(v);
     if (n == null) {
       if (!second) return 'Enter the number shown on your meter';
-      return t == MeterType.tou ? 'Enter the peak reading' : 'Enter the export reading';
+      return t == MeterType.tou ? 'Enter the peak reading'.tr : 'Enter the export reading'.tr;
     }
     if (n < 0 || n > 9999999) return 'That doesn\'t look like a meter reading';
     final before = state.readingBefore(_date);
@@ -152,10 +153,10 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
       if (perDay > 150) {
         final ok = await confirmDialog(
           context,
-          title: 'Check this reading',
+          title: 'Check this reading'.tr,
           message: 'That is ${Fmt.whole(perDay)} units a day since your last reading, '
               'which is unusually high. Save anyway?',
-          confirmLabel: 'Save',
+          confirmLabel: 'Save'.tr,
           destructive: false,
         );
         if (!ok) return;
@@ -173,7 +174,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
         exportValue: type.isSolar ? second : null,
       );
       if (!mounted) return;
-      showSnack(context, 'Reading saved');
+      showSnack(context, 'Reading saved'.tr);
       Navigator.pop(context);
     } catch (e) {
       if (mounted) showSnack(context, 'Could not save reading: $e');
@@ -191,13 +192,13 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add reading'),
+        title: Text('Add reading'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const ReadingsScreen()),
             ),
-            child: const Text('All readings'),
+            child: Text('All readings'.tr),
           ),
         ],
       ),
@@ -214,7 +215,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
                   const Expanded(child: Divider()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('or type it', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    child: Text('or type it'.tr, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   ),
                   const Expanded(child: Divider()),
                 ],
@@ -236,20 +237,20 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
                   contentPadding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
                   labelText: switch (type) {
                     MeterType.standard => null,
-                    MeterType.tou => 'Off-peak (kWh)',
-                    MeterType.netMetering || MeterType.netBilling => 'Import · from grid (kWh)',
+                    MeterType.tou => 'Off-peak (kWh)'.tr,
+                    MeterType.netMetering || MeterType.netBilling => 'Import · from grid (kWh)'.tr,
                   },
                   helperText: switch (type) {
                     MeterType.standard =>
-                      'Number on the meter display (kWh). Skip digits in red or after a decimal point.',
-                    MeterType.tou => 'Your meter shows each register in turn — note off-peak and peak.',
+                      'Number on the meter display (kWh). Skip digits in red or after a decimal point.'.tr,
+                    MeterType.tou => 'Your meter shows each register in turn — note off-peak and peak.'.tr,
                     MeterType.netMetering ||
                     MeterType.netBilling =>
-                      'Your meter shows import and export in turn — often marked 1.8.0 and 2.8.0.',
+                      'Your meter shows import and export in turn — often marked 1.8.0 and 2.8.0.'.tr,
                   },
                   helperMaxLines: 2,
                   suffixIcon: IconButton(
-                    tooltip: 'Scan meter',
+                    tooltip: 'Scan meter'.tr,
                     icon: const Icon(Icons.photo_camera_rounded),
                     onPressed: _scanMeter,
                   ),
@@ -267,7 +268,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineMedium?.copyWith(letterSpacing: 2),
                   decoration: InputDecoration(
-                    labelText: type == MeterType.tou ? 'Peak (kWh)' : 'Export · to grid (kWh)',
+                    labelText: type == MeterType.tou ? 'Peak (kWh)'.tr : 'Export · to grid (kWh)'.tr,
                     contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                   ),
                   validator: (v) => _validate(v, state, second: true),
@@ -310,7 +311,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
                 ),
               ],
               const SizedBox(height: 28),
-              LoadingButton(label: 'Save reading', loading: _saving, onPressed: _save, icon: Icons.check_rounded),
+              LoadingButton(label: 'Save reading'.tr, loading: _saving, onPressed: _save, icon: Icons.check_rounded),
             ],
           ),
         ),
@@ -383,10 +384,10 @@ class _ScanMeterButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Scan meter', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                    Text('Scan meter'.tr, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
                     Text(
-                      'Point your camera at the meter display',
+                      'Point your camera at the meter display'.tr,
                       style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
@@ -461,12 +462,12 @@ class _ScanResultCard extends StatelessWidget {
                   ],
                 ),
               ),
-              TextButton(onPressed: onRetake, child: const Text('Retake')),
+              TextButton(onPressed: onRetake, child: Text('Retake'.tr)),
             ],
           ),
           if (others.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text('Did you mean', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text('Did you mean'.tr, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,

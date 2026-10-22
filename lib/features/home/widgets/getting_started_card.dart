@@ -12,6 +12,7 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/dialogs.dart';
 import '../../../shared/widgets/hero_style.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Navy "This month" card shown until this month's units can be worked out.
 /// Lets the user type today's reading right here instead of a separate screen.
@@ -65,7 +66,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
       await state.addReading(n!, DateX.today());
       _value.clear();
       HapticFeedback.mediumImpact();
-      if (mounted) showSnack(context, 'Reading saved');
+      if (mounted) showSnack(context, 'Reading saved'.tr);
     } catch (e) {
       if (mounted) showSnack(context, 'Could not save: $e');
     } finally {
@@ -94,15 +95,15 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
     final String title;
     final String body;
     if (last == null) {
-      title = 'What does your meter say today?';
-      body = 'Type the number on the meter display (kWh). We\'ll track your units from here.';
+      title = 'What does your meter say today?'.tr;
+      body = 'Type the number on the meter display (kWh). We\'ll track your units from here.'.tr;
     } else if (readToday) {
-      title = 'Today\'s reading is saved';
+      title = 'Today\'s reading is saved'.tr;
       body = 'Started at ${Fmt.whole(last.value)}. Come back in a day or two and add another reading — '
           'then you\'ll see your units, month-end forecast and slab warning here.';
     } else {
       final days = DateX.daysBetween(last.date, today);
-      title = 'Add today\'s reading to see your units';
+      title = 'Add today\'s reading to see your units'.tr;
       body = 'Last reading ${Fmt.whole(last.value)}, $days ${days == 1 ? 'day' : 'days'} ago.';
     }
 
@@ -160,7 +161,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
                       hintStyle: theme.textTheme.titleMedium?.copyWith(color: muted.withValues(alpha: 0.6)),
                       filled: true,
                       fillColor: h.dark ? h.faint : Colors.white.withValues(alpha: 0.75),
-                      suffixText: 'kWh',
+                      suffixText: 'kWh'.tr,
                       suffixStyle: TextStyle(color: muted),
                       errorText: _error,
                       errorStyle: TextStyle(color: h.dark ? const Color(0xFFFF9B9B) : AppColors.dangerLight),
@@ -183,7 +184,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2.5, color: h.dark ? AppColors.navy : Colors.white),
                           )
-                        : const Text('Save'),
+                        : Text('Save'.tr),
                   ),
                 ),
               ],
@@ -194,7 +195,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
               style: buttonStyle,
               onPressed: widget.onAddReading,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Add reading'),
+              label: Text('Add reading'.tr),
             ),
             const SizedBox(height: 10),
           ],
@@ -204,7 +205,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
                 child: _Link(
                   h: h,
                   icon: Icons.photo_camera_rounded,
-                  label: readToday ? 'Change reading' : 'Photo of meter',
+                  label: readToday ? 'Change reading'.tr : 'Photo of meter'.tr,
                   onTap: widget.onAddReading,
                 ),
               ),
@@ -212,7 +213,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
                 child: _Link(
                   h: h,
                   icon: Icons.document_scanner_rounded,
-                  label: 'Scan last bill',
+                  label: 'Scan last bill'.tr,
                   onTap: widget.onScanBill,
                 ),
               ),

@@ -15,6 +15,7 @@ import 'widgets/appliance_sheet.dart';
 import 'widgets/appliance_tile.dart';
 import 'widgets/quick_setup.dart';
 import 'widgets/what_if_card.dart';
+import '../../core/l10n/l10n.dart';
 
 class AppliancesScreen extends StatelessWidget {
   const AppliancesScreen({super.key});
@@ -26,8 +27,8 @@ class AppliancesScreen extends StatelessWidget {
     final ok = await confirmDialog(
       context,
       title: 'Remove ${a.name}?',
-      message: 'It will be removed from your estimate.',
-      confirmLabel: 'Remove',
+      message: 'It will be removed from your estimate.'.tr,
+      confirmLabel: 'Remove'.tr,
     );
     if (ok) await state.deleteAppliance(a);
   }
@@ -43,7 +44,7 @@ class AppliancesScreen extends StatelessWidget {
       hoursPerDay: a.hoursPerDay,
       createdAt: DateTime.now(),
     ));
-    if (context.mounted) showSnack(context, 'Copied — tap it to change hours or name');
+    if (context.mounted) showSnack(context, 'Copied — tap it to change hours or name'.tr);
   }
 
   @override
@@ -59,13 +60,13 @@ class AppliancesScreen extends StatelessWidget {
         toolbarHeight: 64,
         titleSpacing: 20,
         titleTextStyle: theme.textTheme.headlineSmall,
-        title: const Text('Appliances'),
+        title: Text('Appliances'.tr),
         actions: [
           if (items.isNotEmpty)
             TextButton.icon(
               onPressed: () => QuickSetup.show(context),
               icon: const Icon(Icons.playlist_add_rounded),
-              label: const Text('Quick add'),
+              label: Text('Quick add'.tr),
             ),
           const SizedBox(width: 8),
         ],
@@ -75,7 +76,7 @@ class AppliancesScreen extends StatelessWidget {
           : FloatingActionButton.extended(
               onPressed: () => _edit(context),
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Add', style: TextStyle(fontWeight: FontWeight.w800)),
+              label: Text('Add'.tr, style: TextStyle(fontWeight: FontWeight.w800)),
             ),
       body: items.isEmpty
           ? QuickSetup(onCustom: () => _edit(context))
@@ -89,7 +90,7 @@ class AppliancesScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('WHERE YOUR UNITS GO', style: theme.textTheme.labelSmall),
+                      Text('WHERE YOUR UNITS GO'.tr, style: theme.textTheme.labelSmall),
                       const SizedBox(height: 12),
                       ApplianceDonut(appliances: items, totalUnits: total),
                     ],
@@ -149,7 +150,7 @@ class _SummaryCard extends StatelessWidget {
     final double? metered = s != null && s.hasData
         ? s.projectedUnits
         : (state.bills.isNotEmpty ? state.bills.first.units.toDouble() : null);
-    final source = s != null && s.hasData ? 'this month\'s forecast' : 'your last bill';
+    final source = s != null && s.hasData ? 'this month\'s forecast'.tr : 'your last bill'.tr;
     final coverage = metered == null || metered <= 0 ? null : total / metered;
 
     String? advice;
@@ -170,7 +171,7 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('YOUR APPLIANCES USE ABOUT', style: theme.textTheme.labelSmall?.copyWith(color: muted)),
+          Text('YOUR APPLIANCES USE ABOUT'.tr, style: theme.textTheme.labelSmall?.copyWith(color: muted)),
           const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -180,7 +181,7 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text('units a month', style: theme.textTheme.titleMedium?.copyWith(color: muted)),
+                child: Text('units a month'.tr, style: theme.textTheme.titleMedium?.copyWith(color: muted)),
               ),
             ],
           ),
@@ -262,7 +263,7 @@ class _InsightCard extends StatelessWidget {
                   canSave
                       ? 'Using it 1 hour less a day saves about ${Fmt.units(hourUnits)} '
                           'and ${Fmt.rs(hourUnits * rate)} a month.'
-                      : 'It\'s your biggest user — check its hours per day are right.',
+                      : 'It\'s your biggest user — check its hours per day are right.'.tr,
                   style: theme.textTheme.bodyMedium,
                 ),
               ],

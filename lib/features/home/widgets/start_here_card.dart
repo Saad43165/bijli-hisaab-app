@@ -6,6 +6,7 @@ import '../../../data/models/meter.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "Start here" checklist: the five things that make the app useful, ticked
 /// off automatically. Shows new users what the app is for and what to do next.
@@ -47,11 +48,11 @@ class StartHereCard extends StatelessWidget {
     final count = done.where((d) => d).length;
 
     final steps = [
-      ('Add your meter', 'Company, load and reading day', null),
-      ('Add a meter reading', 'Every few days — this drives the forecast', onReading),
-      ('Scan or add your last bill', 'Fills your reading and shows protected-rate status', onBill),
-      ('Count your appliances', 'See which ones cost you the most', onAppliances),
-      ('Check your meter type', 'Normal, solar or peak/off-peak (TOU)', onMeterType),
+      ('Add your meter'.tr, 'Company, load and reading day'.tr, null),
+      ('Add a meter reading'.tr, 'Every few days — this drives the forecast'.tr, onReading),
+      ('Scan or add your last bill'.tr, 'Fills your reading and shows protected-rate status'.tr, onBill),
+      ('Count your appliances'.tr, 'See which ones cost you the most'.tr, onAppliances),
+      ('Check your meter type'.tr, 'Normal, solar or peak/off-peak (TOU)'.tr, onMeterType),
     ];
 
     return AppCard(
@@ -67,13 +68,13 @@ class StartHereCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('START HERE · $count OF 5 DONE', style: theme.textTheme.labelSmall),
-                    Text('Get the most from Bijli Hisaab', style: theme.textTheme.titleMedium),
+                    Text('START HERE · {n} OF 5 DONE'.trf({'n': count}), style: theme.textTheme.labelSmall),
+                    Text('Get the most from Bijli Hisaab'.tr, style: theme.textTheme.titleMedium),
                   ],
                 ),
               ),
               IconButton(
-                tooltip: 'Hide',
+                tooltip: 'Hide'.tr,
                 onPressed: () => state.setUiFlag(dismissedKey, true),
                 icon: Icon(Icons.close_rounded, size: 20, color: theme.colorScheme.onSurfaceVariant),
               ),

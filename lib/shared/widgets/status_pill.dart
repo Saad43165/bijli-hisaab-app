@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/usage_forecaster.dart';
 import 'art.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Colour + label for a [UsageStatus], used across the app.
 class StatusStyle {
@@ -26,11 +27,11 @@ class StatusStyle {
   static StatusStyle of(BuildContext context, UsageStatus status) {
     final p = AppPalette.of(context);
     return switch (status) {
-      UsageStatus.safe => StatusStyle(p.safe, 'On track', Icons.check_circle_rounded, Art.check),
-      UsageStatus.warn => StatusStyle(p.warn, 'Close to limit', Icons.error_rounded, Art.warning),
-      UsageStatus.danger => StatusStyle(p.danger, 'Will cross limit', Icons.warning_rounded, Art.warning),
-      UsageStatus.overLimits => StatusStyle(p.danger, 'Highest slab', Icons.local_fire_department_rounded, Art.fire),
-      UsageStatus.noData => StatusStyle(p.muted, 'Need readings', Icons.info_rounded, Art.hourglass),
+      UsageStatus.safe => StatusStyle(p.safe, 'On track'.tr, Icons.check_circle_rounded, Art.check),
+      UsageStatus.warn => StatusStyle(p.warn, 'Close to limit'.tr, Icons.error_rounded, Art.warning),
+      UsageStatus.danger => StatusStyle(p.danger, 'Will cross limit'.tr, Icons.warning_rounded, Art.warning),
+      UsageStatus.overLimits => StatusStyle(p.danger, 'Highest slab'.tr, Icons.local_fire_department_rounded, Art.fire),
+      UsageStatus.noData => StatusStyle(p.muted, 'Need readings'.tr, Icons.info_rounded, Art.hourglass),
     };
   }
 }

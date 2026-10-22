@@ -7,6 +7,7 @@ import '../../../data/models/tariff.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "What would N units cost?" — slide to any number of units and see the
 /// bill with this meter's company, load and rates. Warns when a few more
@@ -66,8 +67,8 @@ class _BillCalculatorCardState extends State<BillCalculatorCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('BILL CALCULATOR', style: theme.textTheme.labelSmall),
-                    Text('What would your units cost?', style: theme.textTheme.titleMedium),
+                    Text('BILL CALCULATOR'.tr, style: theme.textTheme.labelSmall),
+                    Text('What would your units cost?'.tr, style: theme.textTheme.titleMedium),
                   ],
                 ),
               ),
@@ -81,7 +82,7 @@ class _BillCalculatorCardState extends State<BillCalculatorCard> {
               const SizedBox(width: 6),
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text('units', style: theme.textTheme.bodyMedium),
+                child: Text('units'.tr, style: theme.textTheme.bodyMedium),
               ),
               const Spacer(),
               Column(
@@ -89,7 +90,7 @@ class _BillCalculatorCardState extends State<BillCalculatorCard> {
                 children: [
                   Text(Fmt.rs(e.total), style: theme.textTheme.headlineSmall?.copyWith(color: AppColors.amberDeep)),
                   Text(
-                    '${e.isTou ? 'TOU' : 'Slab ${e.slabLabel}'} · ${Fmt.rate(e.effectiveRate)}/unit',
+                    '${e.isTou ? 'TOU'.tr : 'Slab ${e.slabLabel}'} · ${Fmt.rate(e.effectiveRate)}/unit',
                     style: theme.textTheme.bodySmall,
                   ),
                 ],

@@ -7,6 +7,7 @@ import '../../../state/app_state.dart';
 import '../../meters/meters_screen.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../shared/widgets/company_badge.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// App-bar title showing the active meter; tap to switch meters.
 class MeterSwitcher extends StatelessWidget {
@@ -25,7 +26,7 @@ class MeterSwitcher extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                child: Text('Switch meter', style: theme.textTheme.titleMedium),
+                child: Text('Switch meter'.tr, style: theme.textTheme.titleMedium),
               ),
               for (final m in state.meters)
                 ListTile(
@@ -43,7 +44,7 @@ class MeterSwitcher extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.tune_rounded),
-                title: const Text('Manage meters'),
+                title: Text('Manage meters'.tr),
                 onTap: () {
                   final nav = Navigator.of(context);
                   Navigator.pop(ctx);

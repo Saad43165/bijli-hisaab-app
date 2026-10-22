@@ -10,6 +10,7 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../shared/widgets/dialogs.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "How many do you have?" — tap + / − on the usual appliances and add them
 /// all at once with typical hours. Used as the empty state and from Quick add.
@@ -119,7 +120,7 @@ class _QuickSetupState extends State<QuickSetup> {
       duration: const Duration(milliseconds: 200),
       child: _total == 0
           ? Text(
-              'Tap + for each one you have. You can change hours later.',
+              'Tap + for each one you have. You can change hours later.'.tr,
               key: const ValueKey('hint'),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall,
@@ -135,10 +136,10 @@ class _QuickSetupState extends State<QuickSetup> {
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('What do you have at home?', style: theme.textTheme.titleLarge),
+        Text('What do you have at home?'.tr, style: theme.textTheme.titleLarge),
         const SizedBox(height: 4),
         Text(
-          'Count them and see which ones cost you the most each month.',
+          'Count them and see which ones cost you the most each month.'.tr,
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 14),
@@ -159,7 +160,7 @@ class _QuickSetupState extends State<QuickSetup> {
             TextButton.icon(
               onPressed: widget.onCustom,
               icon: const Icon(Icons.search_rounded),
-              label: const Text('Something else? Search all appliances'),
+              label: Text('Something else? Search all appliances'.tr),
             ),
         ],
       ),

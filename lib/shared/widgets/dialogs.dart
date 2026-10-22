@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/l10n.dart';
 
 Future<bool> confirmDialog(
   BuildContext context, {
@@ -13,7 +14,7 @@ Future<bool> confirmDialog(
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel'.tr)),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
           style: destructive

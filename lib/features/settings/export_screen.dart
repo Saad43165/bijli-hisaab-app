@@ -7,6 +7,7 @@ import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
 import '../../shared/widgets/art.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Explains what is exported, then shares 5 CSV files for Power BI.
 class ExportScreen extends StatefulWidget {
@@ -25,10 +26,9 @@ class _ExportScreenState extends State<ExportScreen> {
     if (!state.analyticsConsent) {
       final ok = await confirmDialog(
         context,
-        title: 'Allow anonymous export?',
-        message: 'The files contain city, DISCO, units, bills and app events — '
-            'no names, phone numbers, reference numbers or addresses.',
-        confirmLabel: 'Allow',
+        title: 'Allow anonymous export?'.tr,
+        message: 'The files contain city, DISCO, units, bills and app events — no names, phone numbers, reference numbers or addresses.'.tr,
+        confirmLabel: 'Allow'.tr,
         destructive: false,
       );
       if (!ok) return;
@@ -59,14 +59,13 @@ class _ExportScreenState extends State<ExportScreen> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Export for Power BI')),
+      appBar: AppBar(title: Text('Export for Power BI'.tr)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
             Text(
-              'Share these files with your Power BI dashboard developer. '
-              'Columns match docs/POWER_BI_DATA_SCHEMA.md in the project.',
+              'Share these files with your Power BI dashboard developer. Columns match docs/POWER_BI_DATA_SCHEMA.md in the project.'.tr,
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
@@ -108,7 +107,7 @@ class _ExportScreenState extends State<ExportScreen> {
             ),
             const SizedBox(height: 24),
             LoadingButton(
-              label: 'Create & share files',
+              label: 'Create & share files'.tr,
               icon: Icons.ios_share_rounded,
               loading: _busy,
               onPressed: _export,

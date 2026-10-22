@@ -19,6 +19,7 @@ import 'widgets/bill_tile.dart';
 import 'widgets/monthly_units_chart.dart';
 import 'widgets/protection_card.dart';
 import 'widgets/year_compare_card.dart';
+import '../../core/l10n/l10n.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -38,7 +39,7 @@ class HistoryScreen extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
-                child: Text('Add a bill', style: Theme.of(ctx).textTheme.titleLarge),
+                child: Text('Add a bill'.tr, style: Theme.of(ctx).textTheme.titleLarge),
               ),
               ..._addOptions(context, close: () => Navigator.pop(ctx)),
             ],
@@ -111,13 +112,13 @@ class HistoryScreen extends StatelessWidget {
         toolbarHeight: 64,
         titleSpacing: 20,
         titleTextStyle: theme.textTheme.headlineSmall,
-        title: const Text('Bill history'),
+        title: Text('Bill history'.tr),
         actions: [
           if (bills.isNotEmpty)
             TextButton.icon(
               onPressed: () => _addMenu(context),
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Add bill'),
+              label: Text('Add bill'.tr),
             ),
           const SizedBox(width: 8),
         ],
@@ -138,12 +139,11 @@ class HistoryScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('See your whole year',
+                              Text('See your whole year'.tr,
                                   style: theme.textTheme.titleLarge?.copyWith(color: HeroStyle.of(context).fg)),
                               const SizedBox(height: 4),
                               Text(
-                                'Add your bills to see monthly units, what you paid, and whether you '
-                                'qualify for cheaper protected rates.',
+                                'Add your bills to see monthly units, what you paid, and whether you qualify for cheaper protected rates.'.tr,
                                 style: theme.textTheme.bodyMedium?.copyWith(color: HeroStyle.of(context).muted),
                               ),
                             ],
@@ -236,7 +236,7 @@ class _YearHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('LAST ${bills.length} ${bills.length == 1 ? 'BILL' : 'BILLS'}',
+          Text('LAST ${bills.length} ${bills.length == 1 ? 'BILL'.tr : 'BILLS'}',
               style: theme.textTheme.labelSmall?.copyWith(color: h.muted)),
           const SizedBox(height: 6),
           Row(
@@ -246,7 +246,7 @@ class _YearHero extends StatelessWidget {
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text('units', style: theme.textTheme.titleMedium?.copyWith(color: h.muted)),
+                child: Text('units'.tr, style: theme.textTheme.titleMedium?.copyWith(color: h.muted)),
               ),
               const Spacer(),
               if (paid > 0)
@@ -254,7 +254,7 @@ class _YearHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(Fmt.rs(paid), style: theme.textTheme.titleLarge?.copyWith(color: h.fg)),
-                    Text('paid', style: theme.textTheme.bodySmall?.copyWith(color: h.muted)),
+                    Text('paid'.tr, style: theme.textTheme.bodySmall?.copyWith(color: h.muted)),
                   ],
                 ),
             ],

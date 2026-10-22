@@ -6,6 +6,7 @@ import '../../core/utils/formatters.dart';
 import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Quick entry of the last 12 months from the bill's history table.
 class PastBillsScreen extends StatefulWidget {
@@ -46,7 +47,7 @@ class _PastBillsScreenState extends State<PastBillsScreen> {
       if (n != null && n >= 0) values[m] = n.round();
     }
     if (values.isEmpty) {
-      showSnack(context, 'Enter units for at least one month');
+      showSnack(context, 'Enter units for at least one month'.tr);
       return;
     }
     setState(() => _saving = true);
@@ -66,15 +67,14 @@ class _PastBillsScreenState extends State<PastBillsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Past 12 months')),
+      appBar: AppBar(title: Text('Past 12 months'.tr)),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
               child: Text(
-                'Your bill has a table of the last 12 months with units. '
-                'Copy them here — leave blank if unknown.',
+                'Your bill has a table of the last 12 months with units. Copy them here — leave blank if unknown.'.tr,
                 style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             ),
@@ -99,9 +99,9 @@ class _PastBillsScreenState extends State<PastBillsScreen> {
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             textInputAction:
                                 i == _months.length - 1 ? TextInputAction.done : TextInputAction.next,
-                            decoration: const InputDecoration(
-                              hintText: 'Units',
-                              suffixText: 'units',
+                            decoration: InputDecoration(
+                              hintText: 'Units'.tr,
+                              suffixText: 'units'.tr,
                               isDense: true,
                             ),
                           ),
@@ -114,7 +114,7 @@ class _PastBillsScreenState extends State<PastBillsScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: LoadingButton(label: 'Save', loading: _saving, onPressed: _save),
+              child: LoadingButton(label: 'Save'.tr, loading: _saving, onPressed: _save),
             ),
           ],
         ),

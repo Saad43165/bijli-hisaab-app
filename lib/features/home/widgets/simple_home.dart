@@ -304,7 +304,7 @@ class _QuickReadingCardState extends State<QuickReadingCard> {
                     style: theme.textTheme.headlineSmall?.copyWith(letterSpacing: 1.5),
                     decoration: InputDecoration(
                       hintText: last == null ? 'e.g. 12450' : '> ${Fmt.whole(last.value)}',
-                      suffixText: 'kWh',
+                      suffixText: 'kWh'.tr,
                       errorText: _error,
                       errorMaxLines: 2,
                     ),

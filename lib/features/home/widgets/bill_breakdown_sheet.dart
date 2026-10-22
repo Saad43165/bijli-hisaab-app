@@ -7,6 +7,7 @@ import '../../../services/tariff_calculator.dart';
 import '../../../services/usage_forecaster.dart';
 import '../../../state/app_state.dart';
 import '../../settings/tariff_screen.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Bottom sheet with the line-by-line bill estimate.
 class BillBreakdownSheet extends StatefulWidget {
@@ -69,10 +70,10 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Bill estimate', style: theme.textTheme.titleLarge),
+          Text('Bill estimate'.tr, style: theme.textTheme.titleLarge),
           const SizedBox(height: 4),
           Text(
-            e.isTou ? 'Time-of-use rates (5 kW and above)' : '${e.appliedClass.label} rates · ${s.protectionReason}',
+            e.isTou ? 'Time-of-use rates (5 kW and above)'.tr : '${e.appliedClass.label} rates · ${s.protectionReason}',
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 14),
@@ -112,7 +113,7 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
                 note: '${Fmt.whole(e.exportUnits)} units @ '
                     '${Fmt.rate(meter?.meterType == MeterType.netMetering ? tariff.solar.netMeteringRate : tariff.solar.netBillingRate)}'),
           const Divider(height: 24),
-          line(e.total < 0 ? 'Credit to you' : 'Total', e.total.abs(),
+          line(e.total < 0 ? 'Credit to you'.tr : 'Total'.tr, e.total.abs(),
               bold: true,
               note: e.units == 0 || e.exportCredit > 0 ? null : 'About ${Fmt.rate(e.effectiveRate)} per unit, all-in'),
           const SizedBox(height: 10),
@@ -129,7 +130,7 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
               nav.push(MaterialPageRoute<void>(builder: (_) => const TariffScreen()));
             },
             icon: const Icon(Icons.tune_rounded),
-            label: const Text('See all rates'),
+            label: Text('See all rates'.tr),
           ),
         ],
       ),

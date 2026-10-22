@@ -16,6 +16,7 @@ import '../../../shared/widgets/art.dart';
 import '../../../shared/widgets/dialogs.dart';
 import '../../../shared/widgets/status_pill.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Preview of this month's usage as a picture, shared to WhatsApp etc.
 class ShareSummarySheet extends StatefulWidget {
@@ -68,10 +69,10 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
     final meter = state.activeMeter;
     final theme = Theme.of(context);
     if (s == null || !s.hasData || meter == null) {
-      return const SafeArea(
+      return SafeArea(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Text('Add two readings this month to share your usage.'),
+          child: Text('Add two readings this month to share your usage.'.tr),
         ),
       );
     }
@@ -81,9 +82,9 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Share this month', style: theme.textTheme.titleLarge),
+            Text('Share this month'.tr, style: theme.textTheme.titleLarge),
             const SizedBox(height: 4),
-            Text('Send a picture of your usage to family or your landlord.', style: theme.textTheme.bodySmall),
+            Text('Send a picture of your usage to family or your landlord.'.tr, style: theme.textTheme.bodySmall),
             const SizedBox(height: 16),
             Center(
               child: FittedBox(
@@ -104,7 +105,7 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
                   ? const SizedBox(
                       width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy))
                   : const Icon(Icons.share_rounded),
-              label: const Text('Share picture'),
+              label: Text('Share picture'.tr),
             ),
           ],
         ),
@@ -161,7 +162,7 @@ class SummaryPicture extends StatelessWidget {
             children: [
               const ArtImage(Art.brandBolt, size: 30),
               const SizedBox(width: 8),
-              Text('Bijli Hisaab', style: theme.textTheme.titleMedium?.copyWith(color: Colors.white)),
+              Text('Bijli Hisaab'.tr, style: theme.textTheme.titleMedium?.copyWith(color: Colors.white)),
               const Spacer(),
               StatusPill(status: s.status, onDark: true),
             ],
@@ -188,7 +189,7 @@ class SummaryPicture extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  target == null ? 'units used' : 'of $target units',
+                  target == null ? 'units used'.tr : 'of $target units',
                   style: theme.textTheme.titleMedium?.copyWith(color: muted),
                 ),
               ),
@@ -236,7 +237,7 @@ class SummaryPicture extends StatelessWidget {
             ),
           const SizedBox(height: 12),
           Text(
-            'Estimate with NEPRA rates, FCA and GST',
+            'Estimate with NEPRA rates, FCA and GST'.tr,
             style: theme.textTheme.bodySmall?.copyWith(color: muted, fontSize: 10.5),
           ),
         ],

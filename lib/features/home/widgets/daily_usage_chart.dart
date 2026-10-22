@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../services/usage_forecaster.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Average units/day between consecutive readings.
 class DailyUsageChart extends StatelessWidget {
@@ -31,7 +32,7 @@ class DailyUsageChart extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 4),
-            child: Text('UNITS PER DAY', style: theme.textTheme.labelSmall),
+            child: Text('UNITS PER DAY'.tr, style: theme.textTheme.labelSmall),
           ),
           const SizedBox(height: 16),
           SizedBox(

@@ -7,6 +7,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../services/tariff_calculator.dart';
 import '../../../services/usage_forecaster.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "Slab ladder": the slabs as coloured segments with the per-unit rate of
 /// each, a solid marker for units used and a hollow one for the projection.
@@ -55,7 +56,7 @@ class SlabMeterCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('SLAB LADDER', style: theme.textTheme.labelSmall),
+              Text('SLAB LADDER'.tr, style: theme.textTheme.labelSmall),
               const Spacer(),
               Text(
                 '${summary.consumerClass.label} rates',
@@ -180,7 +181,7 @@ class SlabMeterCard extends StatelessWidget {
           Text(
             summary.isProtected
                 ? 'Rates shown per unit. Above $threshold units you lose protected rates.'
-                : 'Rate per unit for the whole month once you enter that slab.',
+                : 'Rate per unit for the whole month once you enter that slab.'.tr,
             style: theme.textTheme.bodySmall,
           ),
         ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/companies.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/company_badge.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Form field that opens a searchable list of electricity companies.
 class CompanyPickerField extends StatelessWidget {
@@ -29,8 +30,8 @@ class CompanyPickerField extends StatelessWidget {
       onTap: () => _open(context),
       borderRadius: BorderRadius.circular(14),
       child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Electricity company',
+        decoration: InputDecoration(
+          labelText: 'Electricity company'.tr,
           contentPadding: EdgeInsets.fromLTRB(12, 14, 12, 14),
         ),
         child: Row(
@@ -86,15 +87,15 @@ class _CompanySheetState extends State<_CompanySheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Who sends your bill?', style: theme.textTheme.titleLarge),
+                Text('Who sends your bill?'.tr, style: theme.textTheme.titleLarge),
                 const SizedBox(height: 4),
-                Text('The company name is printed at the top of your bill.',
+                Text('The company name is printed at the top of your bill.'.tr,
                     style: theme.textTheme.bodySmall),
                 const SizedBox(height: 12),
                 TextField(
                   onChanged: (v) => setState(() => _q = v),
-                  decoration: const InputDecoration(
-                    hintText: 'Search city or company',
+                  decoration: InputDecoration(
+                    hintText: 'Search city or company'.tr,
                     prefixIcon: Icon(Icons.search_rounded),
                     isDense: true,
                   ),

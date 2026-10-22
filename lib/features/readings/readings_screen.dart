@@ -11,6 +11,7 @@ import '../../shared/widgets/status_pill.dart';
 import '../../state/app_state.dart';
 import '../../shared/widgets/art.dart';
 import 'add_reading_screen.dart';
+import '../../core/l10n/l10n.dart';
 
 class ReadingsScreen extends StatelessWidget {
   const ReadingsScreen({super.key});
@@ -21,9 +22,9 @@ class ReadingsScreen extends StatelessWidget {
 
   static Future<bool> _confirmDelete(BuildContext context, MeterReading r) => confirmDialog(
         context,
-        title: 'Delete reading?',
+        title: 'Delete reading?'.tr,
         message: '${Fmt.whole(r.value)} on ${Fmt.day(r.date)} will be removed.',
-        confirmLabel: 'Delete',
+        confirmLabel: 'Delete'.tr,
       );
 
   @override
@@ -37,16 +38,16 @@ class ReadingsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _add(context),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add reading', style: TextStyle(fontWeight: FontWeight.w800)),
+        label: Text('Add reading'.tr, style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: readings.isEmpty
           ? Center(
               child: SingleChildScrollView(
                 child: EmptyState(
                   art: Art.stopwatch,
-                  title: 'No readings yet',
-                  message: 'Note the number on your meter every few days to track this month\'s units.',
-                  actionLabel: 'Add reading',
+                  title: 'No readings yet'.tr,
+                  message: 'Note the number on your meter every few days to track this month\'s units.'.tr,
+                  actionLabel: 'Add reading'.tr,
                   onAction: () => _add(context),
                 ),
               ),

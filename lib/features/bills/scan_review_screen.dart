@@ -18,6 +18,7 @@ import '../../shared/widgets/info_banner.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
 import 'widgets/scanned_page_viewer.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Shows the scanned pages with boxes around what was read, each value with
 /// how sure we are, warnings from cross-checks, and lets the user fix,
@@ -275,7 +276,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
       }
       if (!mounted) return;
       HapticFeedback.mediumImpact();
-      showSnack(context, 'Bill saved');
+      showSnack(context, 'Bill saved'.tr);
       Navigator.pop(context);
     } catch (e) {
       if (mounted) showSnack(context, 'Could not save bill: $e');
@@ -297,14 +298,14 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Check scanned bill'),
+        title: Text('Check scanned bill'.tr),
         actions: [
           TextButton.icon(
             onPressed: _rescanning || _saving ? null : _rescan,
             icon: _rescanning
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.add_a_photo_outlined, size: 20),
-            label: const Text('Scan again'),
+            label: Text('Scan again'.tr),
           ),
         ],
       ),
@@ -343,7 +344,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
               ],
               const SizedBox(height: 16),
               _FieldCard(
-                label: 'Bill month',
+                label: 'Bill month'.tr,
                 field: _a.month,
                 selected: _selected == BillField.month,
                 onTap: () => _select(BillField.month),
@@ -364,7 +365,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                 ),
               ),
               _FieldCard(
-                label: 'Units consumed',
+                label: 'Units consumed'.tr,
                 field: _a.units,
                 selected: _selected == BillField.units,
                 onTap: () => _select(BillField.units),
@@ -373,7 +374,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [digits],
                   onTap: () => _select(BillField.units),
-                  decoration: const InputDecoration(isDense: true, suffixText: 'units', hintText: 'e.g. 214'),
+                  decoration: InputDecoration(isDense: true, suffixText: 'units'.tr, hintText: 'e.g. 214'),
                   validator: (v) {
                     final n = Fmt.parseNumber(v);
                     if (n == null || n < 0) return 'Enter units from the bill';
@@ -383,7 +384,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                 ),
               ),
               _FieldCard(
-                label: 'Payable within due date',
+                label: 'Payable within due date'.tr,
                 field: _a.amount,
                 selected: _selected == BillField.amount,
                 onTap: () => _select(BillField.amount),
@@ -392,11 +393,11 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [digits],
                   onTap: () => _select(BillField.amount),
-                  decoration: const InputDecoration(isDense: true, prefixText: 'Rs  ', hintText: 'Optional'),
+                  decoration: InputDecoration(isDense: true, prefixText: 'Rs  ', hintText: 'Optional'.tr),
                 ),
               ),
               _FieldCard(
-                label: 'Due date',
+                label: 'Due date'.tr,
                 field: _a.dueDate,
                 selected: _selected == BillField.dueDate,
                 onTap: () => _select(BillField.dueDate),
@@ -410,11 +411,11 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                     minimumSize: const Size.fromHeight(46),
                   ),
                   icon: const Icon(Icons.event_rounded, size: 18),
-                  label: Text(_due == null ? 'Optional' : Fmt.day(_due!)),
+                  label: Text(_due == null ? 'Optional'.tr : Fmt.day(_due!)),
                 ),
               ),
               _FieldCard(
-                label: 'Present reading',
+                label: 'Present reading'.tr,
                 field: _a.presentReading,
                 selected: _selected == BillField.presentReading,
                 onTap: () => _select(BillField.presentReading),
@@ -427,25 +428,25 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [digits],
                   onTap: () => _select(BillField.presentReading),
-                  decoration: const InputDecoration(isDense: true, hintText: 'Optional · e.g. 12450'),
+                  decoration: InputDecoration(isDense: true, hintText: 'Optional · e.g. 12450'.tr),
                 ),
               ),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _saveReading,
                 onChanged: (v) => setState(() => _saveReading = v ?? true),
-                title: const Text('Also save present reading as a meter reading'),
+                title: Text('Also save present reading as a meter reading'.tr),
                 subtitle: Text('Dated ${Fmt.day(readingDate)} (your reading day)'),
               ),
               const SizedBox(height: 8),
-              LoadingButton(label: 'Save bill', icon: Icons.check_rounded, loading: _saving, onPressed: _save),
+              LoadingButton(label: 'Save bill'.tr, icon: Icons.check_rounded, loading: _saving, onPressed: _save),
               const SizedBox(height: 12),
               Theme(
                 data: theme.copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
                   tilePadding: const EdgeInsets.symmetric(horizontal: 4),
                   leading: const ArtImage(Art.search, size: 26),
-                  title: Text('What the scanner read', style: theme.textTheme.titleSmall),
+                  title: Text('What the scanner read'.tr, style: theme.textTheme.titleSmall),
                   subtitle: Text('${_a.pageCount} ${_a.pageCount == 1 ? 'page' : 'pages'} · tap to see raw text',
                       style: theme.textTheme.bodySmall),
                   children: [
@@ -453,7 +454,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                       padding: const EdgeInsets.all(12),
                       elevated: false,
                       child: SelectableText(
-                        _a.rawText.trim().isEmpty ? 'No text found.' : _a.rawText.trim(),
+                        _a.rawText.trim().isEmpty ? 'No text found.'.tr : _a.rawText.trim(),
                         style: const TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.4),
                       ),
                     ),
@@ -462,10 +463,10 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                       child: TextButton.icon(
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _a.rawText));
-                          showSnack(context, 'Copied — paste it to report a misread bill');
+                          showSnack(context, 'Copied — paste it to report a misread bill'.tr);
                         },
                         icon: const Icon(Icons.copy_rounded, size: 16),
-                        label: const Text('Copy text'),
+                        label: Text('Copy text'.tr),
                       ),
                     ),
                   ],
@@ -494,7 +495,7 @@ class _SummaryRow extends StatelessWidget {
     final String title;
     if (found == 0) {
       art = Art.warning;
-      title = 'Couldn\'t read values — please type them';
+      title = 'Couldn\'t read values — please type them'.tr;
     } else if (check > 0) {
       art = Art.search;
       title = 'Found $found of 5 · $check to check';
@@ -518,9 +519,9 @@ class _SummaryRow extends StatelessWidget {
                   spacing: 12,
                   runSpacing: 4,
                   children: [
-                    _Legend(color: p.safe, text: 'Sure'),
-                    const _Legend(color: AppColors.amberDeep, text: 'Likely'),
-                    _Legend(color: p.danger, text: 'Check'),
+                    _Legend(color: p.safe, text: 'Sure'.tr),
+                    _Legend(color: AppColors.amberDeep, text: 'Likely'.tr),
+                    _Legend(color: p.danger, text: 'Check'.tr),
                   ],
                 ),
               ],

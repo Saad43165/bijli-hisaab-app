@@ -8,6 +8,7 @@ import '../../data/models/bill.dart';
 import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Add a bill by hand, or edit a saved one. (Scanned bills use
 /// ScanReviewScreen.)
@@ -97,7 +98,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
     try {
       await state.saveBill(bill, original: widget.existing, addReadingFromBill: _saveReading);
       if (!mounted) return;
-      showSnack(context, _isEdit ? 'Bill updated' : 'Bill saved');
+      showSnack(context, _isEdit ? 'Bill updated'.tr : 'Bill saved'.tr);
       Navigator.pop(context);
     } catch (e) {
       if (mounted) showSnack(context, 'Could not save bill: $e');
@@ -112,7 +113,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
     final state = context.read<AppState>();
     final ok = await confirmDialog(
       context,
-      title: 'Delete bill?',
+      title: 'Delete bill?'.tr,
       message: '${Fmt.monthKeyLabel(bill!.month)} (${bill.units} units) will be removed.',
     );
     if (!ok) return;
@@ -129,13 +130,13 @@ class _BillFormScreenState extends State<BillFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Edit bill' : 'Add bill'),
+        title: Text(_isEdit ? 'Edit bill'.tr : 'Add bill'.tr),
         actions: [
           if (_isEdit)
             IconButton(
               onPressed: _delete,
               icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: 'Delete',
+              tooltip: 'Delete'.tr,
             ),
         ],
       ),
@@ -161,7 +162,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 controller: _units,
                 keyboardType: TextInputType.number,
                 inputFormatters: [digits],
-                decoration: const InputDecoration(hintText: 'e.g. 214', suffixText: 'units'),
+                decoration: InputDecoration(hintText: 'e.g. 214', suffixText: 'units'.tr),
                 validator: (v) {
                   final n = Fmt.parseNumber(v);
                   if (n == null || n < 0) return 'Enter units from the bill';
@@ -176,10 +177,10 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [digits],
                 decoration: InputDecoration(
-                  hintText: 'Optional · e.g. 3,299',
+                  hintText: 'Optional · e.g. 3,299'.tr,
                   prefixIcon: Padding(
                     padding: const EdgeInsets.only(left: 16, right: 8),
-                    child: Text('Rs', style: Theme.of(context).textTheme.titleMedium),
+                    child: Text('Rs'.tr, style: Theme.of(context).textTheme.titleMedium),
                   ),
                   prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                 ),
@@ -193,12 +194,12 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 child: InputDecorator(
                   isEmpty: _dueDate == null,
                   decoration: InputDecoration(
-                    hintText: 'Optional · choose date',
+                    hintText: 'Optional · choose date'.tr,
                     prefixIcon: const Icon(Icons.event_rounded),
                     suffixIcon: _dueDate == null
                         ? null
                         : IconButton(
-                            tooltip: 'Clear',
+                            tooltip: 'Clear'.tr,
                             icon: const Icon(Icons.close_rounded),
                             onPressed: () => setState(() => _dueDate = null),
                           ),
@@ -213,17 +214,17 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 controller: _present,
                 keyboardType: TextInputType.number,
                 inputFormatters: [digits],
-                decoration: const InputDecoration(hintText: 'Optional · e.g. 12450'),
+                decoration: InputDecoration(hintText: 'Optional · e.g. 12450'.tr),
               ),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _saveReading,
                 onChanged: (v) => setState(() => _saveReading = v ?? true),
-                title: const Text('Also save it as a meter reading'),
+                title: Text('Also save it as a meter reading'.tr),
                 subtitle: Text('Dated ${Fmt.day(readingDate)} (your reading day)'),
               ),
               const SizedBox(height: 20),
-              LoadingButton(label: _isEdit ? 'Save changes' : 'Save bill', loading: _saving, onPressed: _save),
+              LoadingButton(label: _isEdit ? 'Save changes'.tr : 'Save bill'.tr, loading: _saving, onPressed: _save),
             ],
           ),
         ),

@@ -16,6 +16,7 @@ import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
 import '../../shared/widgets/art.dart';
 import 'tariff_edit_screen.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Shows the rates in use, where they came from, and the auto-update switch.
 class TariffScreen extends StatelessWidget {
@@ -26,11 +27,11 @@ class TariffScreen extends StatelessWidget {
     final r = await state.checkForRateUpdates(force: true);
     if (!context.mounted) return;
     showSnack(context, switch (r.status) {
-      TariffCheckStatus.updated => 'New rates downloaded',
-      TariffCheckStatus.upToDate => 'You have the latest rates',
-      TariffCheckStatus.notConfigured => 'Online rates are not set up in this build',
+      TariffCheckStatus.updated => 'New rates downloaded'.tr,
+      TariffCheckStatus.upToDate => 'You have the latest rates'.tr,
+      TariffCheckStatus.notConfigured => 'Online rates are not set up in this build'.tr,
       TariffCheckStatus.failed => r.message ?? 'Could not check for new rates',
-      TariffCheckStatus.skipped => 'Already checking…',
+      TariffCheckStatus.skipped => 'Already checking…'.tr,
     });
   }
 
@@ -39,10 +40,9 @@ class TariffScreen extends StatelessWidget {
     if (state.autoUpdateRates && RemoteConfig.isConfigured) {
       final ok = await confirmDialog(
         context,
-        title: 'Edit rates yourself?',
-        message: 'Automatic updates will be turned off while you use your own rates. '
-            'You can switch back any time.',
-        confirmLabel: 'Edit',
+        title: 'Edit rates yourself?'.tr,
+        message: 'Automatic updates will be turned off while you use your own rates. You can switch back any time.'.tr,
+        confirmLabel: 'Edit'.tr,
         destructive: false,
       );
       if (!ok || !context.mounted) return;
@@ -56,7 +56,7 @@ class TariffScreen extends StatelessWidget {
     final state = context.read<AppState>();
     await state.resetTariff();
     await state.setAutoUpdateRates(true);
-    if (context.mounted) showSnack(context, 'Using official rates again');
+    if (context.mounted) showSnack(context, 'Using official rates again'.tr);
   }
 
   @override
@@ -68,12 +68,12 @@ class TariffScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Electricity rates'),
+        title: Text('Electricity rates'.tr),
         actions: [
           IconButton(
             onPressed: () => _edit(context),
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit rates',
+            tooltip: 'Edit rates'.tr,
           ),
         ],
       ),
@@ -83,64 +83,63 @@ class TariffScreen extends StatelessWidget {
           if (state.tariffOrigin == TariffOrigin.custom) ...[
             InfoBanner(
               icon: Icons.edit_note_rounded,
-              title: 'Using your own rates',
-              message: 'Automatic updates are off, so estimates won\'t follow new NEPRA rates.',
-              actionLabel: 'Use official rates',
+              title: 'Using your own rates'.tr,
+              message: 'Automatic updates are off, so estimates won\'t follow new NEPRA rates.'.tr,
+              actionLabel: 'Use official rates'.tr,
               onAction: () => _useOfficial(context),
             ),
             const SizedBox(height: 12),
           ],
           _StatusCard(onCheck: () => _checkNow(context)),
-          const SectionHeader('This month'),
+          SectionHeader('This month'.tr),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               children: [
-                _Row(label: 'Fuel charges adjustment', note: t.fcaLabel, value: _signed(t.fcaPerUnit)),
-                _Row(label: 'Quarterly adjustment', note: t.qtaLabel, value: _signed(t.qtaPerUnit)),
+                _Row(label: 'Fuel charges adjustment'.tr, note: t.fcaLabel, value: _signed(t.fcaPerUnit)),
+                _Row(label: 'Quarterly adjustment'.tr, note: t.qtaLabel, value: _signed(t.qtaPerUnit)),
                 _Row(
-                  label: 'FC / debt surcharge',
+                  label: 'FC / debt surcharge'.tr,
                   note: 'Normal consumers · protected exempt',
                   value: Fmt.rate(t.unprotectedCategory.fcSurchargePerUnit),
                 ),
-                _Row(label: 'GST', note: 'On energy, fixed, surcharge, FCA and QTA', value: '${Fmt.oneDp(t.gstPercent)}%'),
+                _Row(label: 'GST'.tr, note: 'On energy, fixed, surcharge, FCA and QTA', value: '${Fmt.oneDp(t.gstPercent)}%'),
                 _Row(
-                  label: 'Electricity duty · TV fee',
+                  label: 'Electricity duty · TV fee'.tr,
                   note: 'Removed from bills since July 2025',
-                  value: t.tvFee == 0 && t.dutyFor(state.activeMeter?.province ?? '') == 0 ? 'None' : 'Applied',
+                  value: t.tvFee == 0 && t.dutyFor(state.activeMeter?.province ?? '') == 0 ? 'None'.tr : 'Applied'.tr,
                   last: true,
                 ),
               ],
             ),
           ),
           if (t.lifelineCategory != null) ...[
-            const SectionHeader('Lifeline (≤1 kW, ≤100 units)'),
+            SectionHeader('Lifeline (≤1 kW, ≤100 units)'.tr),
             _SlabTable(category: t.lifelineCategory!, color: p.safe),
           ],
-          const SectionHeader('Protected (≤200 units for 6 months)'),
+          SectionHeader('Protected (≤200 units for 6 months)'.tr),
           _SlabTable(category: t.protectedCategory, color: AppColors.amberDeep),
-          const SectionHeader('Normal (unprotected)'),
+          SectionHeader('Normal (unprotected)'.tr),
           _SlabTable(category: t.unprotectedCategory, color: p.danger),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               t.unprotectedCategory.billingMode == BillingMode.whole
-                  ? 'Normal consumers pay the rate of the slab they reach on every unit — '
-                      '201 units costs far more than 200.'
+                  ? 'Normal consumers pay the rate of the slab they reach on every unit — 201 units costs far more than 200.'.tr
                   : t.unprotectedCategory.billingMode.label,
               style: theme.textTheme.bodySmall,
             ),
           ),
-          const SectionHeader('Time of use (5 kW and above)'),
+          SectionHeader('Time of use (5 kW and above)'.tr),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               children: [
-                _Row(label: 'Peak hours', note: '4 evening hours, set by season', value: Fmt.rate(t.tou.peakRate)),
-                _Row(label: 'Off-peak hours', note: 'All other hours', value: Fmt.rate(t.tou.offPeakRate)),
+                _Row(label: 'Peak hours'.tr, note: '4 evening hours, set by season', value: Fmt.rate(t.tou.peakRate)),
+                _Row(label: 'Off-peak hours'.tr, note: 'All other hours', value: Fmt.rate(t.tou.offPeakRate)),
                 _Row(
-                  label: 'Fixed charge',
+                  label: 'Fixed charge'.tr,
                   note: 'Per kW on ${(t.tou.fixedLoadShare * 100).round()}% of sanctioned load',
                   value: Fmt.rs(t.tou.fixedPerKw),
                   last: true,
@@ -148,18 +147,18 @@ class TariffScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SectionHeader('Solar'),
+          SectionHeader('Solar'.tr),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               children: [
                 _Row(
-                  label: 'Net billing (from Feb 2026)',
+                  label: 'Net billing (from Feb 2026)'.tr,
                   note: 'Paid for every exported unit',
                   value: Fmt.rate(t.solar.netBillingRate),
                 ),
                 _Row(
-                  label: 'Net metering (older agreements)',
+                  label: 'Net metering (older agreements)'.tr,
                   note: 'Paid for surplus units after netting',
                   value: Fmt.rate(t.solar.netMeteringRate),
                   last: true,
@@ -167,7 +166,7 @@ class TariffScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SectionHeader('Sources'),
+          SectionHeader('Sources'.tr),
           AppCard(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -179,7 +178,7 @@ class TariffScreen extends StatelessWidget {
                   InkWell(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: s.url));
-                      showSnack(context, 'Link copied');
+                      showSnack(context, 'Link copied'.tr);
                     },
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,12 +255,11 @@ class _StatusCard extends StatelessWidget {
             // shows off and disabled instead of a misleading "on".
             value: configured && state.autoUpdateRates,
             onChanged: configured ? state.setAutoUpdateRates : null,
-            title: Text('Update rates automatically', style: theme.textTheme.titleSmall),
+            title: Text('Update rates automatically'.tr, style: theme.textTheme.titleSmall),
             subtitle: Text(
               configured
-                  ? 'Downloads new FCA, quarterly and slab rates when NEPRA changes them'
-                  : 'Not available in this version. Rates change with app updates, '
-                      'or tap the pencil to enter them yourself.',
+                  ? 'Downloads new FCA, quarterly and slab rates when NEPRA changes them'.tr
+                  : 'Not available in this version. Rates change with app updates, or tap the pencil to enter them yourself.'.tr,
             ),
           ),
           const Divider(height: 16),
@@ -275,7 +273,7 @@ class _StatusCard extends StatelessWidget {
                 icon: state.checkingRates
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Check now'),
+                label: Text('Check now'.tr),
               ),
             ],
           ),
@@ -336,9 +334,9 @@ class _SlabTable extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(flex: 4, child: Text('UNITS', style: head)),
-              Expanded(flex: 3, child: Text('PER UNIT', style: head, textAlign: TextAlign.right)),
-              Expanded(flex: 3, child: Text('FIXED / kW', style: head, textAlign: TextAlign.right)),
+              Expanded(flex: 4, child: Text('UNITS'.tr, style: head)),
+              Expanded(flex: 3, child: Text('PER UNIT'.tr, style: head, textAlign: TextAlign.right)),
+              Expanded(flex: 3, child: Text('FIXED / kW'.tr, style: head, textAlign: TextAlign.right)),
             ],
           ),
           const SizedBox(height: 6),

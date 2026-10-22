@@ -7,6 +7,7 @@ import '../../../data/models/appliance.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../state/app_state.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "What if I used the AC 2 hours less a day?" — units and rupees saved on
 /// the whole bill, including a drop to a cheaper slab.
@@ -54,7 +55,7 @@ class _WhatIfCardState extends State<WhatIfCard> {
             children: [
               const ArtTile(Art.moneyBag, size: 40),
               const SizedBox(width: 12),
-              Expanded(child: Text('What if…', style: theme.textTheme.titleMedium)),
+              Expanded(child: Text('What if…'.tr, style: theme.textTheme.titleMedium)),
             ],
           ),
           const SizedBox(height: 12),
@@ -85,7 +86,7 @@ class _WhatIfCardState extends State<WhatIfCard> {
             TextSpan(
               style: theme.textTheme.bodyLarge,
               children: [
-                const TextSpan(text: 'Use it '),
+                TextSpan(text: 'Use it '.tr),
                 TextSpan(
                   text: '${_hours(hoursLess)} less',
                   style: const TextStyle(fontWeight: FontWeight.w800),
@@ -115,7 +116,7 @@ class _WhatIfCardState extends State<WhatIfCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('YOU SAVE', style: theme.textTheme.labelSmall?.copyWith(color: p.safe)),
+                      Text('YOU SAVE'.tr, style: theme.textTheme.labelSmall?.copyWith(color: p.safe)),
                       Text(
                         '${Fmt.rs(savedRs)} a month',
                         style: theme.textTheme.headlineSmall?.copyWith(color: p.safe),
