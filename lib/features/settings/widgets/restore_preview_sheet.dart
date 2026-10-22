@@ -60,7 +60,7 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Restore this backup?'.tr, style: theme.textTheme.titleLarge),
-                    Text('Saved $when', style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
+                    Text('Saved {0}'.trf({'0': when}), style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
                   ],
                 ),
               ),
@@ -69,7 +69,7 @@ class _RestorePreviewSheetState extends State<RestorePreviewSheet> {
           const SizedBox(height: 16),
           Row(
             children: [
-              _Count(value: s.meters, label: s.meters == 1 ? 'meter' : 'meters'),
+              _Count(value: s.meters, label: s.meters == 1 ? 'meter'.tr : 'meters'.tr),
               _Count(value: s.readings, label: 'readings'.tr),
               _Count(value: s.bills, label: 'bills'.tr),
               _Count(value: s.appliances, label: 'appliances'.tr),

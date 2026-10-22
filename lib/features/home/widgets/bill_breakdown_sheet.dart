@@ -73,14 +73,14 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
           Text('Bill estimate'.tr, style: theme.textTheme.titleLarge),
           const SizedBox(height: 4),
           Text(
-            e.isTou ? 'Time-of-use rates (5 kW and above)'.tr : '${e.appliedClass.label} rates · ${s.protectionReason}',
+            e.isTou ? 'Time-of-use rates (5 kW and above)'.tr : '{0} rates · {1}'.trf({'0': e.appliedClass.label, '1': s.protectionReason}),
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 14),
           SegmentedButton<bool>(
             segments: [
-              ButtonSegment(value: true, label: Text('Month end · ${Fmt.whole(s.projectedUnits)}')),
-              ButtonSegment(value: false, label: Text('So far · ${Fmt.whole(s.unitsUsed)}')),
+              ButtonSegment(value: true, label: Text('Month end · {0}'.trf({'0': Fmt.whole(s.projectedUnits)}))),
+              ButtonSegment(value: false, label: Text('So far · {0}'.trf({'0': Fmt.whole(s.unitsUsed)}))),
             ],
             selected: {_projected},
             showSelectedIcon: false,
@@ -89,20 +89,19 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
           const SizedBox(height: 8),
           if (e.isTou) ...[
             line('Peak units', e.peakUnits! * tariff.tou.peakRate,
-                note: '${Fmt.whole(e.peakUnits!)} units @ ${Fmt.rate(tariff.tou.peakRate)}'),
+                note: '{0} units @ {1}'.trf({'0': Fmt.whole(e.peakUnits!), '1': Fmt.rate(tariff.tou.peakRate)})),
             line('Off-peak units', e.offPeakUnits * tariff.tou.offPeakRate,
-                note: '${Fmt.whole(e.offPeakUnits)} units @ ${Fmt.rate(tariff.tou.offPeakRate)}'),
+                note: '{0} units @ {1}'.trf({'0': Fmt.whole(e.offPeakUnits), '1': Fmt.rate(tariff.tou.offPeakRate)})),
           ] else
             line('Energy charges', e.energy,
-                note: '${Fmt.whole(e.units)} units · slab ${e.slab.label} @ ${Fmt.rate(e.slab.rate)}'),
+                note: '{0} units · slab {1} @ {2}'.trf({'0': Fmt.whole(e.units), '1': e.slab.label, '2': Fmt.rate(e.slab.rate)})),
           if (e.fixed > 0)
             line('Fixed charges', e.fixed,
                 note: e.isTou
-                    ? '${Fmt.whole(tariff.tou.fixedPerKw)} per kW × ${(tariff.tou.fixedLoadShare * 100).round()}% '
-                        'of ${Fmt.oneDp(load)} kW sanctioned load'
-                    : '${Fmt.whole(e.slab.fixedPerKw)} per kW × ${Fmt.oneDp(load)} kW sanctioned load'),
+                    ? '{0} per kW × {1}% of {2} kW sanctioned load'.trf({'0': Fmt.whole(tariff.tou.fixedPerKw), '1': (tariff.tou.fixedLoadShare * 100).round(), '2': Fmt.oneDp(load)})
+                    : '{0} per kW × {1} kW sanctioned load'.trf({'0': Fmt.whole(e.slab.fixedPerKw), '1': Fmt.oneDp(load)})),
           if (e.fcSurcharge > 0)
-            line('FC surcharge', e.fcSurcharge, note: '${Fmt.rate(tariff.categoryOf(e.appliedClass).fcSurchargePerUnit)} per unit'),
+            line('FC surcharge', e.fcSurcharge, note: '{0} per unit'.trf({'0': Fmt.rate(tariff.categoryOf(e.appliedClass).fcSurchargePerUnit)})),
           if (e.fca != 0) line('Fuel charges adjustment', e.fca, note: tariff.fcaLabel),
           if (e.qta != 0) line('Quarterly adjustment', e.qta, note: tariff.qtaLabel),
           if (e.electricityDuty > 0) line('Electricity duty', e.electricityDuty),
@@ -110,16 +109,14 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
           if (e.tvFee > 0) line('TV fee', e.tvFee),
           if (e.exportCredit > 0)
             line('Solar credit', -e.exportCredit,
-                note: '${Fmt.whole(e.exportUnits)} units @ '
-                    '${Fmt.rate(meter?.meterType == MeterType.netMetering ? tariff.solar.netMeteringRate : tariff.solar.netBillingRate)}'),
+                note: '{0} units @ {1}'.trf({'0': Fmt.whole(e.exportUnits), '1': Fmt.rate(meter?.meterType == MeterType.netMetering ? tariff.solar.netMeteringRate : tariff.solar.netBillingRate)})),
           const Divider(height: 24),
           line(e.total < 0 ? 'Credit to you'.tr : 'Total'.tr, e.total.abs(),
               bold: true,
-              note: e.units == 0 || e.exportCredit > 0 ? null : 'About ${Fmt.rate(e.effectiveRate)} per unit, all-in'),
+              note: e.units == 0 || e.exportCredit > 0 ? null : 'About {0} per unit, all-in'.trf({'0': Fmt.rate(e.effectiveRate)})),
           const SizedBox(height: 10),
           Text(
-            'Estimate using NEPRA rates updated ${Fmt.isoLabel(tariff.updatedAt)}. Arrears, income tax for '
-            'non-filers and other items on your actual bill may differ.',
+            'Estimate using NEPRA rates updated {0}. Arrears, income tax for non-filers and other items on your actual bill may differ.'.trf({'0': Fmt.isoLabel(tariff.updatedAt)}),
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 14),

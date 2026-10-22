@@ -43,7 +43,7 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
       showSnack(context, 'Meter saved'.tr);
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save: $e');
+      if (mounted) showSnack(context, 'Could not save: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -54,7 +54,7 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
     final nav = Navigator.of(context);
     final ok = await confirmDialog(
       context,
-      title: 'Delete ${meter.name}?',
+      title: 'Delete {0}?'.trf({'0': meter.name}),
       message: 'All readings, bills and appliances for this meter will be deleted.'.tr,
     );
     if (!ok) return;

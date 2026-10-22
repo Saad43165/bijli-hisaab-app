@@ -102,11 +102,11 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
       await state.saveAppliance(appliance);
       if (!mounted) return;
       Navigator.pop(context);
-      showSnack(context, base == null ? '${appliance.name} added' : 'Saved'.tr);
+      showSnack(context, base == null ? '{0} added'.trf({'0': appliance.name}) : 'Saved'.tr);
     } catch (e) {
       if (mounted) {
         setState(() => _saving = false);
-        showSnack(context, 'Could not save: $e');
+        showSnack(context, 'Could not save: {0}'.trf({'0': e}));
       }
     }
   }
@@ -117,7 +117,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
     final state = context.read<AppState>();
     final ok = await confirmDialog(
       context,
-      title: 'Remove ${a.name}?',
+      title: 'Remove {0}?'.trf({'0': a.name}),
       message: 'It will be removed from your estimate.'.tr,
       confirmLabel: 'Remove'.tr,
     );
@@ -182,7 +182,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                   if (byCategory[c] case final list?) ...[
                     Padding(
                       padding: const EdgeInsets.only(top: 6, bottom: 8),
-                      child: Text(ApplianceCatalog.categoryLabels[c]!.toUpperCase(), style: theme.textTheme.labelSmall),
+                      child: Text(ApplianceCatalog.categoryLabels[c]!.tr.toUpperCase(), style: theme.textTheme.labelSmall),
                     ),
                     Wrap(
                       spacing: 8,
@@ -191,7 +191,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                         for (final p in list)
                           ActionChip(
                             avatar: ArtImage(Art.forAppliance(p.name, p.category), size: 20),
-                            label: Text(p.name),
+                            label: Text(p.name.tr),
                             onPressed: () => _applyPreset(p),
                           ),
                       ],
@@ -210,7 +210,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                     if (_query.trim().isNotEmpty) _name.text = _query.trim();
                   }),
                   icon: const Icon(Icons.edit_rounded),
-                  label: Text(q.isEmpty ? 'Something else — type it in'.tr : 'Add "${_query.trim()}" yourself'),
+                  label: Text(q.isEmpty ? 'Something else — type it in'.tr : 'Add "{0}" yourself'.trf({'0': _query.trim()})),
                 ),
               ],
             ),
@@ -351,8 +351,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'An inverter AC uses about half: roughly ${Fmt.units(units * 0.47)} less, '
-                      '${Fmt.rs(units * 0.47 * rate)} a month.',
+                      'An inverter AC uses about half: roughly {0} less, {1} a month.'.trf({'0': Fmt.units(units * 0.47), '1': Fmt.rs(units * 0.47 * rate)}),
                       style: theme.textTheme.bodySmall?.copyWith(color: p.safe, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -374,7 +373,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
 
   static String _hoursLabel(double h) {
     if (h <= 0) return '0 h';
-    if (h < 1) return '${(h * 60).round()} min';
+    if (h < 1) return '{0} min'.trf({'0': (h * 60).round()});
     final t = h == h.roundToDouble() ? h.toInt().toString() : h.toStringAsFixed(1);
     return '$t h';
   }

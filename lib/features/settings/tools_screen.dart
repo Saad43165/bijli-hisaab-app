@@ -255,8 +255,7 @@ class ToolsScreen extends StatelessWidget {
                   leading: const Icon(Icons.update_rounded),
                   title: Text('Electricity rates'.tr),
                   subtitle: Text(
-                    '${state.tariffOrigin.label} · updated ${Fmt.isoLabel(state.tariff.updatedAt)}'
-                    '${state.autoUpdateRates && RemoteConfig.isConfigured ? ' · auto'.tr : ''}',
+                    '{0} · updated {1}{2}'.trf({'0': state.tariffOrigin.label, '1': Fmt.isoLabel(state.tariff.updatedAt), '2': state.autoUpdateRates && RemoteConfig.isConfigured ? ' · auto'.tr : ''}),
                   ),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => _push(context, const TariffScreen()),

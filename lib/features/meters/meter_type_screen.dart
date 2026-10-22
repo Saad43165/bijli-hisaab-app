@@ -46,7 +46,7 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
       });
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save: $e');
+      if (mounted) showSnack(context, 'Could not save: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -65,7 +65,7 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
             Text(
-              'What kind of meter does "${meter?.name ?? 'your home'}" have?',
+              'What kind of meter does "{0}" have?'.trf({'0': meter?.name ?? 'your home'}),
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 4),

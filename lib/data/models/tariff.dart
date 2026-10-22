@@ -1,3 +1,5 @@
+import '../../core/l10n/l10n.dart';
+
 /// How energy charges are computed once units are known.
 enum BillingMode {
   /// Every unit is billed at the rate of the slab the total falls in.
@@ -9,10 +11,12 @@ enum BillingMode {
   /// Each slab's units at that slab's rate (fully incremental).
   incremental('incremental', 'Incremental (each slab at its rate)');
 
-  const BillingMode(this.json, this.label);
+  const BillingMode(this.json, this._label);
 
   final String json;
-  final String label;
+  final String _label;
+
+  String get label => _label.tr;
 
   static BillingMode fromJson(String? v) =>
       BillingMode.values.firstWhere((e) => e.json == v, orElse: () => BillingMode.whole);
@@ -24,9 +28,11 @@ enum ConsumerClass {
   protected('Protected'),
   unprotected('Unprotected');
 
-  const ConsumerClass(this.label);
+  const ConsumerClass(this._label);
 
-  final String label;
+  final String _label;
+
+  String get label => _label.tr;
 
   /// Lifeline consumers also qualify for protected rates up to 200 units.
   bool get hasProtection => this != ConsumerClass.unprotected;
@@ -50,7 +56,7 @@ class Slab {
 
   int get width => to == null ? 0 : to! - from + 1;
 
-  String get label => to == null ? 'Above ${from - 1}' : '$from–$to';
+  String get label => to == null ? 'Above {0}'.trf({'0': from - 1}) : '$from–$to';
 
   Slab copyWith({double? rate, double? fixedPerKw}) =>
       Slab(from: from, to: to, rate: rate ?? this.rate, fixedPerKw: fixedPerKw ?? this.fixedPerKw);

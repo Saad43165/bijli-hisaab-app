@@ -78,7 +78,7 @@ class _ScanningOverlayState extends State<ScanningOverlay> with SingleTickerProv
             const SizedBox(height: 6),
             Text(
               widget.pages > 1
-                  ? '${widget.pages} pages · finding units, amount and dates'
+                  ? '{0} pages · finding units, amount and dates'.trf({'0': widget.pages})
                   : 'Finding units, amount and dates'.tr,
               style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
             ),

@@ -39,7 +39,7 @@ class BillTile extends StatelessWidget {
     if (d != null) {
       final days = DateX.daysBetween(DateX.today(), d);
       if (days >= 0 && days <= 10) {
-        due = days == 0 ? 'Due today'.tr : 'Due in $days ${days == 1 ? 'day' : 'days'}';
+        due = days == 0 ? 'Due today'.tr : 'Due in {0} {1}'.trf({'0': days, '1': days == 1 ? 'day'.tr : 'days'.tr});
         dueColor = days <= 2 ? p.danger : p.warn;
       } else if (days < 0 && days > -20) {
         due = 'Due date passed';
@@ -102,7 +102,7 @@ class BillTile extends StatelessWidget {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('Slab ${AppConstants.slabBand(bill.units)}', style: theme.textTheme.bodySmall),
+                    Text('Slab {0}'.trf({'0': AppConstants.slabBand(bill.units)}), style: theme.textTheme.bodySmall),
                     if (bill.source == 'scan') TagBadge('Scanned', color: theme.colorScheme.onSurfaceVariant),
                     if (due != null) TagBadge(due, color: dueColor),
                   ],

@@ -167,7 +167,7 @@ class HistoryScreen extends StatelessWidget {
                   ),
                 for (final entry in years.entries) ...[
                   SectionHeader(
-                    '${entry.key} · ${entry.value.length} ${entry.value.length == 1 ? 'bill' : 'bills'}'
+                    '${entry.key} · ${entry.value.length} ${entry.value.length == 1 ? 'bill'.tr : 'bills'.tr}'
                     '${_paid(entry.value)}',
                     padding: const EdgeInsets.fromLTRB(4, 8, 4, 10),
                   ),
@@ -188,7 +188,7 @@ class HistoryScreen extends StatelessWidget {
 
   static String _paid(List<Bill> list) {
     final total = list.fold<double>(0, (s, b) => s + b.amount);
-    return total > 0 ? ' · ${Fmt.rs(total)} paid' : '';
+    return total > 0 ? ' · {0} paid'.trf({'0': Fmt.rs(total)}) : '';
   }
 
   /// The bill just before [b] (bills are newest first).
@@ -236,7 +236,7 @@ class _YearHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('LAST ${bills.length} ${bills.length == 1 ? 'BILL'.tr : 'BILLS'}',
+          Text('LAST {0} {1}'.trf({'0': bills.length, '1': bills.length == 1 ? 'BILL'.tr : 'BILLS'}),
               style: theme.textTheme.labelSmall?.copyWith(color: h.muted)),
           const SizedBox(height: 6),
           Row(

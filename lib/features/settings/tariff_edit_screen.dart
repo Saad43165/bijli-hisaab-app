@@ -158,7 +158,7 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                   children: [
                     Text(t.name, style: theme.textTheme.titleMedium),
                     const SizedBox(height: 4),
-                    Text('Effective ${t.effectiveFrom}', style: theme.textTheme.bodySmall),
+                    Text('Effective {0}'.trf({'0': t.effectiveFrom}), style: theme.textTheme.bodySmall),
                     const SizedBox(height: 8),
                     Text(t.sourceNote, style: theme.textTheme.bodySmall),
                   ],
@@ -182,7 +182,7 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                       allowNegative: true,
                     ),
                     _NumberRow(label: 'GST'.tr, suffix: '%', controller: _gst),
-                    _NumberRow(label: 'Electricity duty ($_province)', suffix: '%', controller: _duty),
+                    _NumberRow(label: 'Electricity duty ({0})'.trf({'0': _province}), suffix: '%', controller: _duty),
                     _NumberRow(label: 'TV fee'.tr, prefix: 'Rs', controller: _tv),
                   ],
                 ),
@@ -274,8 +274,8 @@ class _CategoryEditor extends StatelessWidget {
         children: [
           for (var i = 0; i < slabs.length; i++)
             _NumberRow(
-              label: '${slabs[i].label} units',
-              helper: slabs[i].fixedPerKw > 0 ? 'Fixed Rs ${slabs[i].fixedPerKw.toInt()}/kW' : null,
+              label: '{0} units'.trf({'0': slabs[i].label}),
+              helper: slabs[i].fixedPerKw > 0 ? 'Fixed Rs {0}/kW'.trf({'0': slabs[i].fixedPerKw.toInt()}) : null,
               prefix: 'Rs',
               controller: rates[i],
             ),

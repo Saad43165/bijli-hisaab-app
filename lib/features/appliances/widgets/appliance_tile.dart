@@ -46,10 +46,10 @@ class ApplianceTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a.name, style: theme.textTheme.titleSmall, overflow: TextOverflow.ellipsis),
+                    Text(a.name.tr, style: theme.textTheme.titleSmall, overflow: TextOverflow.ellipsis),
                     SizedBox(height: 2),
                     Text(
-                      '$qty${a.watts} W · ${_hours(a.hoursPerDay)} a day',
+                      '{0}{1} W · {2} a day'.trf({'0': qty, '1': a.watts, '2': _hours(a.hoursPerDay)}),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -113,7 +113,7 @@ class ApplianceTile extends StatelessWidget {
   }
 
   static String _hours(double h) {
-    if (h < 1) return '${(h * 60).round()} min';
+    if (h < 1) return '{0} min'.trf({'0': (h * 60).round()});
     return '${h == h.roundToDouble() ? h.toInt() : h.toStringAsFixed(1)} h';
   }
 }

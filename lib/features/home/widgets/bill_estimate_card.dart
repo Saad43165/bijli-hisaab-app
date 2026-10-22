@@ -77,7 +77,7 @@ class BillEstimateCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'NEPRA rates of ${Fmt.isoLabel(ratesDate)} · includes FCA, QTA and GST',
+                  'NEPRA rates of {0} · includes FCA, QTA and GST'.trf({'0': Fmt.isoLabel(ratesDate)}),
                   style: theme.textTheme.bodySmall,
                 ),
               ),

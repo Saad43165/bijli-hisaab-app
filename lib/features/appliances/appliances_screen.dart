@@ -26,7 +26,7 @@ class AppliancesScreen extends StatelessWidget {
     final state = context.read<AppState>();
     final ok = await confirmDialog(
       context,
-      title: 'Remove ${a.name}?',
+      title: 'Remove {0}?'.trf({'0': a.name}),
       message: 'It will be removed from your estimate.'.tr,
       confirmLabel: 'Remove'.tr,
     );
@@ -103,7 +103,7 @@ class AppliancesScreen extends StatelessWidget {
                   WhatIfCard(appliances: [for (final a in items) if (a.hoursPerDay >= 0.5 && a.id != null) a]),
                 ],
                 SectionHeader(
-                  'Your appliances (${items.length})',
+                  'Your appliances ({0})'.trf({'0': items.length}),
                   padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
                 ),
                 for (var i = 0; i < items.length; i++) ...[
@@ -120,7 +120,7 @@ class AppliancesScreen extends StatelessWidget {
                 ],
                 const SizedBox(height: 4),
                 Text(
-                  'Costs use ${Fmt.rate(rate)} per unit — the rate of your slab, before taxes.',
+                  'Costs use {0} per unit — the rate of your slab, before taxes.'.trf({'0': Fmt.rate(rate)}),
                   style: theme.textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -188,7 +188,7 @@ class _SummaryCard extends StatelessWidget {
           if (bill != null) ...[
             const SizedBox(height: 4),
             Text(
-              'A bill of about ${Fmt.rs(bill.total)} with taxes',
+              'A bill of about {0} with taxes'.trf({'0': Fmt.rs(bill.total)}),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: h.dark ? AppColors.amber : AppColors.navy,
                 fontWeight: FontWeight.w700,
@@ -200,10 +200,10 @@ class _SummaryCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Your meter: ~${Fmt.whole(metered)} units ($source)',
+                  child: Text('Your meter: ~{0} units ({1})'.trf({'0': Fmt.whole(metered), '1': source}),
                       style: theme.textTheme.bodySmall?.copyWith(color: muted)),
                 ),
-                Text('${(coverage * 100).round()}% explained',
+                Text('{0}% explained'.trf({'0': (coverage * 100).round()}),
                     style: theme.textTheme.labelLarge?.copyWith(color: h.fg)),
               ],
             ),
@@ -257,12 +257,11 @@ class _InsightCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${top.name} is $share% of your use', style: theme.textTheme.titleSmall),
+                Text('{0} is {1}% of your use'.trf({'0': top.name.tr, '1': share}), style: theme.textTheme.titleSmall),
                 const SizedBox(height: 2),
                 Text(
                   canSave
-                      ? 'Using it 1 hour less a day saves about ${Fmt.units(hourUnits)} '
-                          'and ${Fmt.rs(hourUnits * rate)} a month.'
+                      ? 'Using it 1 hour less a day saves about {0} and {1} a month.'.trf({'0': Fmt.units(hourUnits), '1': Fmt.rs(hourUnits * rate)})
                       : 'It\'s your biggest user — check its hours per day are right.'.tr,
                   style: theme.textTheme.bodyMedium,
                 ),

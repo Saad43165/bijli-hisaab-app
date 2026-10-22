@@ -90,7 +90,7 @@ class _BillCalculatorCardState extends State<BillCalculatorCard> {
                 children: [
                   Text(Fmt.rs(e.total), style: theme.textTheme.headlineSmall?.copyWith(color: AppColors.amberDeep)),
                   Text(
-                    '${e.isTou ? 'TOU'.tr : 'Slab ${e.slabLabel}'} · ${Fmt.rate(e.effectiveRate)}/unit',
+                    '{0} · {1}/unit'.trf({'0': e.isTou ? 'TOU'.tr : 'Slab ${e.slabLabel}', '1': Fmt.rate(e.effectiveRate)}),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
@@ -102,7 +102,7 @@ class _BillCalculatorCardState extends State<BillCalculatorCard> {
             min: 0,
             max: _max,
             divisions: (_max / 5).round(),
-            label: '$u units',
+            label: '{0} units'.trf({'0': u}),
             onChanged: (v) => setState(() => _units = v),
           ),
           Wrap(
@@ -137,8 +137,7 @@ class _BillCalculatorCardState extends State<BillCalculatorCard> {
           ],
           const SizedBox(height: 6),
           Text(
-            'For ${state.company.shortCode}, ${Fmt.oneDp(state.activeMeter?.sanctionedLoadKw ?? 0)} kW, '
-            'with taxes and this month\'s adjustments.',
+            'For {0}, {1} kW, with taxes and this month\'s adjustments.'.trf({'0': state.company.shortCode, '1': Fmt.oneDp(state.activeMeter?.sanctionedLoadKw ?? 0)}),
             style: theme.textTheme.bodySmall,
           ),
         ],

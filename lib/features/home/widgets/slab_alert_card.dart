@@ -25,22 +25,20 @@ class SlabAlertCard extends StatelessWidget {
     final String body;
     switch (summary.status) {
       case UsageStatus.safe:
-        title = 'On track to stay under $target';
-        body = 'You can use up to ${Fmt.oneDp(budget)} units a day for the next $days days.';
+        title = 'On track to stay under {0}'.trf({'0': target});
+        body = 'You can use up to {0} units a day for the next {1} days.'.trf({'0': Fmt.oneDp(budget), '1': days});
       case UsageStatus.warn:
-        title = 'Close to $target units';
-        body = 'Keep it under ${Fmt.oneDp(budget)} units a day for $days days to stay in this slab.';
+        title = 'Close to {0} units'.trf({'0': target});
+        body = 'Keep it under {0} units a day for {1} days to stay in this slab.'.trf({'0': Fmt.oneDp(budget), '1': days});
       case UsageStatus.danger:
-        title = 'Heading for ${Fmt.whole(summary.projectedUnits)} units';
+        title = 'Heading for {0} units'.trf({'0': Fmt.whole(summary.projectedUnits)});
         final extra = summary.extraCostIfCrossed > 0
-            ? ' Crossing $target adds about ${Fmt.rs(summary.extraCostIfCrossed)}.'
+            ? ' Crossing {0} adds about {1}.'.trf({'0': target, '1': Fmt.rs(summary.extraCostIfCrossed)})
             : '';
-        body = 'Use at most ${Fmt.oneDp(budget)} units a day for $days days to stay under $target '
-            '(now ${Fmt.oneDp(summary.dailyRate)} a day).$extra';
+        body = 'Use at most {0} units a day for {1} days to stay under {2} (now {3} a day).{4}'.trf({'0': Fmt.oneDp(budget), '1': days, '2': target, '3': Fmt.oneDp(summary.dailyRate), '4': extra});
       case UsageStatus.overLimits:
         title = 'You\'re in the highest slab'.tr;
-        body = 'Every extra unit costs ${Fmt.rate(summary.estimateProjected.slab.rate)} before taxes. '
-            'Check Appliances to see what uses the most.';
+        body = 'Every extra unit costs {0} before taxes. Check Appliances to see what uses the most.'.trf({'0': Fmt.rate(summary.estimateProjected.slab.rate)});
       case UsageStatus.noData:
         title = 'Add readings to see your slab'.tr;
         body = '';
@@ -80,8 +78,7 @@ class SlabAlertCard extends StatelessWidget {
           if (summary.alternativeLimit != null) ...[
             const SizedBox(height: 12),
             Text(
-              'Realistic goal: stay under ${summary.alternativeLimit} units '
-              '(max ${Fmt.oneDp(summary.alternativeBudget ?? 0)} a day).',
+              'Realistic goal: stay under {0} units (max {1} a day).'.trf({'0': summary.alternativeLimit, '1': Fmt.oneDp(summary.alternativeBudget ?? 0)}),
               style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ],
@@ -96,7 +93,7 @@ class SlabAlertCard extends StatelessWidget {
               ),
               child: Text(
                 summary.protectionAtRisk
-                    ? 'Going above ${summary.protectedThreshold} units ends your protected rates for the next 6 bills.'
+                    ? 'Going above {0} units ends your protected rates for the next 6 bills.'.trf({'0': summary.protectedThreshold})
                     : 'Going above 100 units ends lifeline rates for this bill.'.tr,
                 style: TextStyle(color: style.color, fontWeight: FontWeight.w700),
               ),
@@ -139,7 +136,7 @@ class _BudgetBar extends StatelessWidget {
               SizedBox(
                 width: 56,
                 child: Text(
-                  '${Fmt.oneDp(v)}/day',
+                  '{0}/day'.trf({'0': Fmt.oneDp(v)}),
                   textAlign: TextAlign.right,
                   style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface),
                 ),

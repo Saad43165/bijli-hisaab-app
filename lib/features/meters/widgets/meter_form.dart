@@ -162,12 +162,12 @@ class MeterFormState extends State<MeterForm> {
         ..showSnackBar(SnackBar(
           content: Text(filled.isEmpty
               ? 'Couldn\'t read the bill. Try again in good light, or fill it in yourself.'.tr
-              : 'Filled in: ${filled.join(', ')}. Please check them.'),
+              : 'Filled in: {0}. Please check them.'.trf({'0': filled.join(', ')})),
         ));
     } on ScanCancelled {
       // Backed out — nothing to do.
     } catch (e) {
-      messenger?.showSnackBar(SnackBar(content: Text('Couldn\'t read the bill: $e')));
+      messenger?.showSnackBar(SnackBar(content: Text('Couldn\'t read the bill: {0}'.trf({'0': e}))));
     } finally {
       if (mounted) setState(() => _scanning = false);
     }
@@ -317,8 +317,7 @@ class MeterFormState extends State<MeterForm> {
                         if (v == null || v.trim().isEmpty) return 'Enter city';
                         final owner = Cities.companyOf(v);
                         if (owner != null && owner != _disco) {
-                          return '${v.trim()} is in ${PowerCompanies.of(owner).shortCode}\'s area — '
-                              'change the company above';
+                          return '{0} is in {1}\'s area — change the company above'.trf({'0': v.trim(), '1': PowerCompanies.of(owner).shortCode});
                         }
                         return null;
                       },
@@ -377,7 +376,7 @@ class MeterFormState extends State<MeterForm> {
           SegmentedButton<String>(
             segments: [
               for (final t in AppConstants.connectionTypes)
-                ButtonSegment(value: t, label: Text(AppConstants.connectionTypeLabels[t]!)),
+                ButtonSegment(value: t, label: Text(AppConstants.connectionTypeLabels[t]!.tr)),
             ],
             selected: {_connectionType},
             showSelectedIcon: false,
@@ -521,7 +520,7 @@ class MeterFormState extends State<MeterForm> {
               helperMaxLines: 3,
             ),
             items: [
-              for (var d = 1; d <= 31; d++) DropdownMenuItem(value: d, child: Text('Day $d')),
+              for (var d = 1; d <= 31; d++) DropdownMenuItem(value: d, child: Text('Day {0}'.trf({'0': d}))),
             ],
             validator: (v) => v == null ? 'Choose the day from "Reading date" on your bill'.tr : null,
             onChanged: (v) => setState(() => _readingDay = v ?? _readingDay),

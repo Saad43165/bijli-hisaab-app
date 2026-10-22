@@ -140,7 +140,7 @@ class TariffScreen extends StatelessWidget {
                 _Row(label: 'Off-peak hours'.tr, note: 'All other hours', value: Fmt.rate(t.tou.offPeakRate)),
                 _Row(
                   label: 'Fixed charge'.tr,
-                  note: 'Per kW on ${(t.tou.fixedLoadShare * 100).round()}% of sanctioned load',
+                  note: 'Per kW on {0}% of sanctioned load'.trf({'0': (t.tou.fixedLoadShare * 100).round()}),
                   value: Fmt.rs(t.tou.fixedPerKw),
                   last: true,
                 ),
@@ -238,9 +238,9 @@ class _StatusCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Rates updated ${Fmt.isoLabel(t.updatedAt)}', style: theme.textTheme.titleMedium),
+                    Text('Rates updated {0}'.trf({'0': Fmt.isoLabel(t.updatedAt)}), style: theme.textTheme.titleMedium),
                     Text(
-                      '${state.tariffOrigin.label} · NEPRA tariff from ${Fmt.isoLabel(t.effectiveFrom)}',
+                      '{0} · NEPRA tariff from {1}'.trf({'0': state.tariffOrigin.label, '1': Fmt.isoLabel(t.effectiveFrom)}),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],

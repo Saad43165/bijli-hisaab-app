@@ -59,7 +59,7 @@ class SlabMeterCard extends StatelessWidget {
               Text('SLAB LADDER'.tr, style: theme.textTheme.labelSmall),
               const Spacer(),
               Text(
-                '${summary.consumerClass.label} rates',
+                '{0} rates'.trf({'0': summary.consumerClass.label}),
                 style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
@@ -173,14 +173,14 @@ class SlabMeterCard extends StatelessWidget {
             spacing: 16,
             runSpacing: 6,
             children: [
-              _Key(solid: true, text: 'Now ${Fmt.whole(used)} units'),
-              if (projected > used) _Key(solid: false, text: 'Month end ~${Fmt.whole(projected)}'),
+              _Key(solid: true, text: 'Now {0} units'.trf({'0': Fmt.whole(used)})),
+              if (projected > used) _Key(solid: false, text: 'Month end ~{0}'.trf({'0': Fmt.whole(projected)})),
             ],
           ),
           const SizedBox(height: 6),
           Text(
             summary.isProtected
-                ? 'Rates shown per unit. Above $threshold units you lose protected rates.'
+                ? 'Rates shown per unit. Above {0} units you lose protected rates.'.trf({'0': threshold})
                 : 'Rate per unit for the whole month once you enter that slab.'.tr,
             style: theme.textTheme.bodySmall,
           ),

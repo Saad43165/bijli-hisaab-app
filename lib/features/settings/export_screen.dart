@@ -40,7 +40,7 @@ class _ExportScreenState extends State<ExportScreen> {
       final result = await state.exportForPowerBi();
       if (mounted) setState(() => _last = result);
     } catch (e) {
-      if (mounted) showSnack(context, 'Export failed: $e');
+      if (mounted) showSnack(context, 'Export failed: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -81,7 +81,7 @@ class _ExportScreenState extends State<ExportScreen> {
                       trailing: _last == null
                           ? null
                           : Text(
-                              '${_last!.rowCounts[name.replaceAll('.csv', '')] ?? 0} rows',
+                              '{0} rows'.trf({'0': _last!.rowCounts[name.replaceAll('.csv', '')] ?? 0}),
                               style: theme.textTheme.bodySmall,
                             ),
                     ),
@@ -97,8 +97,7 @@ class _ExportScreenState extends State<ExportScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Anonymous ID: ${state.installId}\n'
-                      'No names, phone numbers, bill reference numbers or addresses are included.',
+                      'Anonymous ID: {0}\nNo names, phone numbers, bill reference numbers or addresses are included.'.trf({'0': state.installId}),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),

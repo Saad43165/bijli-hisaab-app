@@ -45,7 +45,7 @@ class TouSplitCard extends StatelessWidget {
                   children: [
                     Text('PEAK / OFF-PEAK'.tr, style: theme.textTheme.labelSmall),
                     Text(
-                      known ? '${(share * 100).round()}% of your use is in peak hours' : 'Peak share not known yet'.tr,
+                      known ? '{0}% of your use is in peak hours'.trf({'0': (share * 100).round()}) : 'Peak share not known yet'.tr,
                       style: theme.textTheme.titleMedium,
                     ),
                   ],
@@ -72,14 +72,14 @@ class TouSplitCard extends StatelessWidget {
               Expanded(
                 child: _Part(
                   color: p.danger,
-                  label: 'Peak · ${Fmt.rate(rates.peakRate)}',
+                  label: 'Peak · {0}'.trf({'0': Fmt.rate(rates.peakRate)}),
                   value: '~${Fmt.whole(peakUnits)} units',
                 ),
               ),
               Expanded(
                 child: _Part(
                   color: p.safe,
-                  label: 'Off-peak · ${Fmt.rate(rates.offPeakRate)}',
+                  label: 'Off-peak · {0}'.trf({'0': Fmt.rate(rates.offPeakRate)}),
                   value: '~${Fmt.whole(e.offPeakUnits)} units',
                 ),
               ),
@@ -89,17 +89,14 @@ class TouSplitCard extends StatelessWidget {
           Text(
             known
                 ? (shift > 0
-                    ? 'Move $shift units out of peak hours this month (motor, iron, washing machine) '
-                        'and save about ${Fmt.rs(shift * saving)} before taxes.'
+                    ? 'Move {0} units out of peak hours this month (motor, iron, washing machine) and save about {1} before taxes.'.trf({'0': shift, '1': Fmt.rs(shift * saving)})
                     : 'Almost all your use is off-peak — well done.'.tr)
-                : 'Add the peak and off-peak readings to see your real split. Until then we assume '
-                    '${(UsageForecaster.defaultPeakShare * 100).round()}%.',
+                : 'Add the peak and off-peak readings to see your real split. Until then we assume {0}%.'.trf({'0': (UsageForecaster.defaultPeakShare * 100).round()}),
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 6),
           Text(
-            'Peak hours are 4 evening hours set by your company for the season (e.g. 6–10 pm). '
-            'Each peak unit costs ${Fmt.rate(saving)} more.',
+            'Peak hours are 4 evening hours set by your company for the season (e.g. 6–10 pm). Each peak unit costs {0} more.'.trf({'0': Fmt.rate(saving)}),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -139,7 +136,7 @@ class SolarCard extends StatelessWidget {
                     Text(netMetering ? 'SOLAR · NET METERING'.tr : 'SOLAR · NET BILLING'.tr,
                         style: theme.textTheme.labelSmall),
                     Text(
-                      '${Fmt.whole(summary.exportSoFar)} units sent to the grid so far',
+                      '{0} units sent to the grid so far'.trf({'0': Fmt.whole(summary.exportSoFar)}),
                       style: theme.textTheme.titleMedium,
                     ),
                   ],
@@ -169,10 +166,8 @@ class SolarCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             netMetering
-                ? 'Exported units cancel out imported units; you pay for the difference. A surplus is '
-                    'paid at ${Fmt.rate(rate)} per unit. Slab warnings use your net units.'
-                : 'Imported units are billed at normal slab rates; every exported unit is bought back at '
-                    '${Fmt.rate(rate)}. Using solar power yourself saves more than exporting it.',
+                ? 'Exported units cancel out imported units; you pay for the difference. A surplus is paid at {0} per unit. Slab warnings use your net units.'.trf({'0': Fmt.rate(rate)})
+                : 'Imported units are billed at normal slab rates; every exported unit is bought back at {0}. Using solar power yourself saves more than exporting it.'.trf({'0': Fmt.rate(rate)}),
             style: theme.textTheme.bodySmall,
           ),
         ],

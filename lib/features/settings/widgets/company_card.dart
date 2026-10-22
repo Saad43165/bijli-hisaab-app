@@ -19,7 +19,7 @@ class CompanyCard extends StatelessWidget {
 
   Future<void> _open(BuildContext context, Uri uri) async {
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && context.mounted) showSnack(context, 'Could not open ${uri.toString()}');
+    if (!ok && context.mounted) showSnack(context, 'Could not open {0}'.trf({'0': uri.toString()}));
   }
 
   @override
@@ -69,7 +69,7 @@ class CompanyCard extends StatelessWidget {
                 if (c.helpline != null)
                   _Action(
                     icon: Icons.call_rounded,
-                    label: 'Call ${c.helpline}',
+                    label: 'Call {0}'.trf({'0': c.helpline}),
                     onTap: () => _open(context, Uri(scheme: 'tel', path: c.helpline)),
                   ),
                 if (c.website != null && c.website != c.billUrl)
@@ -82,7 +82,7 @@ class CompanyCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (referenceNo.isEmpty)
-              Text('You\'ll need your ${c.accountLabel.toLowerCase()} from the bill.',
+              Text('You\'ll need your {0} from the bill.'.trf({'0': c.accountLabel.toLowerCase()}),
                   style: theme.textTheme.bodySmall)
             else
               Material(
@@ -92,7 +92,7 @@ class CompanyCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   onTap: () async {
                     await Clipboard.setData(ClipboardData(text: referenceNo.replaceAll(' ', '')));
-                    if (context.mounted) showSnack(context, '${c.accountLabel} copied');
+                    if (context.mounted) showSnack(context, '{0} copied'.trf({'0': c.accountLabel}));
                   },
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),

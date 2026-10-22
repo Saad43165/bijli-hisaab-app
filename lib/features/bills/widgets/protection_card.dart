@@ -5,6 +5,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/bill.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Protected rates need every one of the last N bills at or under the limit
 /// (200 units, 6 months). One dot per month: green under, red over, grey missing.
@@ -35,14 +36,14 @@ class ProtectionCard extends StatelessWidget {
     final (String title, String body, Color color) = over.isNotEmpty
         ? (
             'Not protected right now',
-            '${over.length == 1 ? '${Fmt.month(over.last.monthDate)} was' : '${over.length} bills were'} above $limit '
+            '${over.length == 1 ? '{0} was'.trf({'0': Fmt.month(over.last.monthDate)}) : '{0} bills were'.trf({'0': over.length})} above $limit '
                 'units. Keep every bill at $limit or less for $months months in a row to get protected rates back.',
             p.danger,
           )
         : missing > 0
             ? (
                 'On the way to protected rates',
-                'No bill above $limit units so far. Add the missing ${missing == 1 ? 'month' : '$missing months'} '
+                'No bill above $limit units so far. Add the missing ${missing == 1 ? 'month' : '{0} months'.trf({'0': missing})} '
                     'to confirm — protected rates are much cheaper.',
                 AppColors.amberDeep,
               )
@@ -65,7 +66,7 @@ class ProtectionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('PROTECTED RATES · LAST $months BILLS', style: theme.textTheme.labelSmall),
+                    Text('PROTECTED RATES · LAST {0} BILLS'.trf({'0': months}), style: theme.textTheme.labelSmall),
                     Text(title, style: theme.textTheme.titleMedium?.copyWith(color: color)),
                   ],
                 ),

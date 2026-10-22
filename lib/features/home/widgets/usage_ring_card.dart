@@ -82,7 +82,7 @@ class UsageRingCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      target == null ? 'units' : 'of $target units',
+                      target == null ? 'units' : 'of {0} units'.trf({'0': target}),
                       style: theme.textTheme.bodyMedium?.copyWith(color: onNavyMuted),
                     ),
                   ],
@@ -99,7 +99,7 @@ class UsageRingCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _Stat(h: h, label: 'DAY'.tr, value: '${summary.dayOfCycle}/${summary.daysTotal}', caption: '${summary.daysLeft} left'),
+                _Stat(h: h, label: 'DAY'.tr, value: '${summary.dayOfCycle}/${summary.daysTotal}', caption: '{0} left'.trf({'0': summary.daysLeft})),
                 _Divider(color: h.track),
                 _Stat(h: h, label: 'PER DAY'.tr, value: Fmt.oneDp(summary.dailyRate), caption: 'units avg'.tr),
                 _Divider(color: h.track),
@@ -120,8 +120,7 @@ class UsageRingCard extends StatelessWidget {
                 Icon(Icons.speed_rounded, size: 15, color: onNavyMuted),
                 const SizedBox(width: 6),
                 Text(
-                  'Last reading ${Fmt.whole(summary.latestReadingValue ?? 0)} · '
-                  '${Fmt.dayShort(summary.latestReadingDate!)}',
+                  'Last reading {0} · {1}'.trf({'0': Fmt.whole(summary.latestReadingValue ?? 0), '1': Fmt.dayShort(summary.latestReadingDate!)}),
                   style: theme.textTheme.bodySmall?.copyWith(color: onNavyMuted),
                 ),
               ],

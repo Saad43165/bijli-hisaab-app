@@ -59,12 +59,12 @@ class LastBillCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('LAST BILL · ${Fmt.month(b.monthDate).toUpperCase()}', style: theme.textTheme.labelSmall),
+                Text('LAST BILL · {0}'.trf({'0': Fmt.month(b.monthDate).toUpperCase()}), style: theme.textTheme.labelSmall),
                 const SizedBox(height: 2),
                 Text.rich(
                   TextSpan(
                     children: [
-                      TextSpan(text: '${Fmt.whole(b.units)} units', style: theme.textTheme.titleMedium),
+                      TextSpan(text: '{0} units'.trf({'0': Fmt.whole(b.units)}), style: theme.textTheme.titleMedium),
                       if (b.amount > 0)
                         TextSpan(
                           text: '  ·  ${Fmt.rs(b.amount)}',
@@ -74,7 +74,7 @@ class LastBillCard extends StatelessWidget {
                   ),
                 ),
                 if (b.dueDate != null)
-                  Text('Due ${Fmt.day(b.dueDate!)}', style: theme.textTheme.bodySmall),
+                  Text('Due {0}'.trf({'0': Fmt.day(b.dueDate!)}), style: theme.textTheme.bodySmall),
               ],
             ),
           ),

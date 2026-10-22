@@ -101,7 +101,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
       showSnack(context, _isEdit ? 'Bill updated'.tr : 'Bill saved'.tr);
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save bill: $e');
+      if (mounted) showSnack(context, 'Could not save bill: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -114,7 +114,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
     final ok = await confirmDialog(
       context,
       title: 'Delete bill?'.tr,
-      message: '${Fmt.monthKeyLabel(bill!.month)} (${bill.units} units) will be removed.',
+      message: '{0} ({1} units) will be removed.'.trf({'0': Fmt.monthKeyLabel(bill!.month), '1': bill.units}),
     );
     if (!ok) return;
     await state.deleteBill(bill.id!);
@@ -221,7 +221,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 value: _saveReading,
                 onChanged: (v) => setState(() => _saveReading = v ?? true),
                 title: Text('Also save it as a meter reading'.tr),
-                subtitle: Text('Dated ${Fmt.day(readingDate)} (your reading day)'),
+                subtitle: Text('Dated {0} (your reading day)'.trf({'0': Fmt.day(readingDate)})),
               ),
               const SizedBox(height: 20),
               LoadingButton(label: _isEdit ? 'Save changes'.tr : 'Save bill'.tr, loading: _saving, onPressed: _save),

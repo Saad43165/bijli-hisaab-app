@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
@@ -14,6 +15,7 @@ Future<void> main() async {
 
   final settings = await SettingsService.create();
   L10n.setLanguage(settings.language);
+  await initializeDateFormatting();
   await NotificationService.instance.init();
 
   final state = AppState(settings: settings);

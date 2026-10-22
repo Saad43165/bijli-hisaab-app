@@ -54,10 +54,10 @@ class _PastBillsScreenState extends State<PastBillsScreen> {
     try {
       await context.read<AppState>().saveHistory(values);
       if (!mounted) return;
-      showSnack(context, 'Saved ${values.length} months');
+      showSnack(context, 'Saved {0} months'.trf({'0': values.length}));
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save: $e');
+      if (mounted) showSnack(context, 'Could not save: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

@@ -46,7 +46,7 @@ class MetersScreen extends StatelessWidget {
                         Text(m.name, style: theme.textTheme.titleMedium),
                         const SizedBox(height: 2),
                         Text(
-                          '${PowerCompanies.of(m.disco).shortCode} · ${m.city} · reading day ${m.readingDay}',
+                          '{0} · {1} · reading day {2}'.trf({'0': PowerCompanies.of(m.disco).shortCode, '1': m.city, '2': m.readingDay}),
                           style: theme.textTheme.bodySmall,
                         ),
                       ],

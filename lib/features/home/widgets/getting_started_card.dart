@@ -68,7 +68,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
       HapticFeedback.mediumImpact();
       if (mounted) showSnack(context, 'Reading saved'.tr);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save: $e');
+      if (mounted) showSnack(context, 'Could not save: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -99,12 +99,11 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
       body = 'Type the number on the meter display (kWh). We\'ll track your units from here.'.tr;
     } else if (readToday) {
       title = 'Today\'s reading is saved'.tr;
-      body = 'Started at ${Fmt.whole(last.value)}. Come back in a day or two and add another reading — '
-          'then you\'ll see your units, month-end forecast and slab warning here.';
+      body = 'Started at {0}. Come back in a day or two and add another reading — then you\'ll see your units, month-end forecast and slab warning here.'.trf({'0': Fmt.whole(last.value)});
     } else {
       final days = DateX.daysBetween(last.date, today);
       title = 'Add today\'s reading to see your units'.tr;
-      body = 'Last reading ${Fmt.whole(last.value)}, $days ${days == 1 ? 'day' : 'days'} ago.';
+      body = 'Last reading {0}, {1} {2} ago.'.trf({'0': Fmt.whole(last.value), '1': days, '2': days == 1 ? 'day'.tr : 'days'.tr});
     }
 
     return AppCard(
@@ -117,8 +116,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
             children: [
               Expanded(
                 child: Text(
-                  'THIS MONTH · ${Fmt.dayShort(s.cycleStart)} – '
-                  '${Fmt.dayShort(s.cycleEnd.subtract(const Duration(days: 1)))}',
+                  'THIS MONTH · {0} – {1}'.trf({'0': Fmt.dayShort(s.cycleStart), '1': Fmt.dayShort(s.cycleEnd.subtract(const Duration(days: 1)))}),
                   style: theme.textTheme.labelSmall?.copyWith(color: muted),
                 ),
               ),
@@ -129,7 +127,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '${s.daysLeft} days left',
+                  '{0} days left'.trf({'0': s.daysLeft}),
                   style: theme.textTheme.labelMedium?.copyWith(color: h.fg, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -157,7 +155,7 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
                     style: theme.textTheme.headlineSmall?.copyWith(color: h.fg, letterSpacing: 1.5),
                     cursorColor: h.accent,
                     decoration: InputDecoration(
-                      hintText: last == null ? 'e.g. 12450' : 'more than ${Fmt.whole(last.value)}',
+                      hintText: last == null ? 'e.g. 12450' : 'more than {0}'.trf({'0': Fmt.whole(last.value)}),
                       hintStyle: theme.textTheme.titleMedium?.copyWith(color: muted.withValues(alpha: 0.6)),
                       filled: true,
                       fillColor: h.dark ? h.faint : Colors.white.withValues(alpha: 0.75),

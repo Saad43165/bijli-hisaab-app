@@ -150,7 +150,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
     try {
       await f();
     } catch (e) {
-      debugPrint('Camera option not supported: $e');
+      debugPrint('Camera option not supported: {0}'.trf({'0': e}));
     }
   }
 
@@ -200,7 +200,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       final file = await c.takePicture();
       await _analyse(file.path, framed: true);
     } on CameraException catch (e) {
-      _showHint('Couldn\'t take the photo (${e.description ?? e.code}). Try again.');
+      _showHint('Couldn\'t take the photo ({0}). Try again.'.trf({'0': e.description ?? e.code}));
     } finally {
       if (mounted) setState(() => _reading = false);
     }
@@ -247,7 +247,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       Navigator.of(context).pop(MeterScanOutcome(imagePath: path, result: result));
     } catch (e) {
       _showHint('Couldn\'t read the photo. Try again.');
-      debugPrint('Meter OCR failed: $e');
+      debugPrint('Meter OCR failed: {0}'.trf({'0': e}));
     }
   }
 

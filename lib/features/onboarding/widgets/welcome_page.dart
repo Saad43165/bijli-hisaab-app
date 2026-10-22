@@ -91,7 +91,7 @@ class WelcomePage extends StatelessWidget {
                         children: [
                           TextSpan(text: 'Did you know? '.tr),
                           TextSpan(
-                            text: '201 units costs $slabFact more than 200',
+                            text: '201 units costs {0} more than 200'.trf({'0': slabFact}),
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                           TextSpan(text: ' — one unit can change your whole bill. We warn you in time.'.tr),

@@ -50,13 +50,11 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'image/png')],
-          text: '$meterName: ${Fmt.whole(s.unitsUsed)} units so far this month, heading for '
-              '${Fmt.whole(s.projectedUnits)}. Estimated bill ${Fmt.rs(s.estimateProjected.total)}. '
-              '— Bijli Hisaab',
+          text: '{0}: {1} units so far this month, heading for {2}. Estimated bill {3}. — Bijli Hisaab'.trf({'0': meterName, '1': Fmt.whole(s.unitsUsed), '2': Fmt.whole(s.projectedUnits), '3': Fmt.rs(s.estimateProjected.total)}),
         ),
       );
     } catch (e) {
-      if (mounted) showSnack(context, 'Couldn\'t share: $e');
+      if (mounted) showSnack(context, 'Couldn\'t share: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
@@ -173,8 +171,7 @@ class SummaryPicture extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(color: muted),
           ),
           Text(
-            '${Fmt.dayShort(s.cycleStart)} – ${Fmt.dayShort(s.cycleEnd.subtract(const Duration(days: 1)))}'
-            ' · day ${s.dayOfCycle} of ${s.daysTotal}',
+            '{0} – {1} · day {2} of {3}'.trf({'0': Fmt.dayShort(s.cycleStart), '1': Fmt.dayShort(s.cycleEnd.subtract(const Duration(days: 1))), '2': s.dayOfCycle, '3': s.daysTotal}),
             style: theme.textTheme.bodySmall?.copyWith(color: muted),
           ),
           const SizedBox(height: 18),
@@ -189,7 +186,7 @@ class SummaryPicture extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  target == null ? 'units used'.tr : 'of $target units',
+                  target == null ? 'units used'.tr : 'of {0} units'.trf({'0': target}),
                   style: theme.textTheme.titleMedium?.copyWith(color: muted),
                 ),
               ),
@@ -231,7 +228,7 @@ class SummaryPicture extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Stay under $target: max ${Fmt.oneDp(s.safeDailyBudget!)} units a day for ${s.daysLeft} days',
+                'Stay under {0}: max {1} units a day for {2} days'.trf({'0': target, '1': Fmt.oneDp(s.safeDailyBudget!), '2': s.daysLeft}),
                 style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
               ),
             ),

@@ -43,7 +43,7 @@ class _WhatIfCardState extends State<WhatIfCard> {
     final after = state.estimateFor(base - savedUnits);
     final savedRs = before == null || after == null ? 0.0 : before.total - after.total;
     final String? slabDrop = before != null && after != null && after.slab.label != before.slab.label
-        ? 'Drops you from the ${before.slab.label} slab to ${after.slab.label} — every unit gets cheaper.'
+        ? 'Drops you from the {0} slab to {1} — every unit gets cheaper.'.trf({'0': before.slab.label, '1': after.slab.label})
         : null;
 
     return AppCard(
@@ -69,7 +69,7 @@ class _WhatIfCardState extends State<WhatIfCard> {
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
                       avatar: ArtImage(Art.forAppliance(x.name, x.category), size: 18),
-                      label: Text(x.name),
+                      label: Text(x.name.tr),
                       selected: x.id == a.id,
                       showCheckmark: false,
                       onSelected: (_) => setState(() {
@@ -88,10 +88,10 @@ class _WhatIfCardState extends State<WhatIfCard> {
               children: [
                 TextSpan(text: 'Use it '.tr),
                 TextSpan(
-                  text: '${_hours(hoursLess)} less',
+                  text: '{0} less'.trf({'0': _hours(hoursLess)}),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
-                TextSpan(text: ' a day (now ${_hours(a.hoursPerDay)})'),
+                TextSpan(text: ' a day (now {0})'.trf({'0': _hours(a.hoursPerDay)})),
               ],
             ),
           ),
@@ -118,12 +118,11 @@ class _WhatIfCardState extends State<WhatIfCard> {
                     children: [
                       Text('YOU SAVE'.tr, style: theme.textTheme.labelSmall?.copyWith(color: p.safe)),
                       Text(
-                        '${Fmt.rs(savedRs)} a month',
+                        '{0} a month'.trf({'0': Fmt.rs(savedRs)}),
                         style: theme.textTheme.headlineSmall?.copyWith(color: p.safe),
                       ),
                       Text(
-                        '$savedUnits units · bill ${before == null ? '' : Fmt.rs(before.total)} → '
-                        '${after == null ? '' : Fmt.rs(after.total)}',
+                        '{0} units · bill {1} → {2}'.trf({'0': savedUnits, '1': before == null ? '' : Fmt.rs(before.total), '2': after == null ? '' : Fmt.rs(after.total)}),
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -149,7 +148,7 @@ class _WhatIfCardState extends State<WhatIfCard> {
           ],
           const SizedBox(height: 6),
           Text(
-            'Based on about ${Fmt.whole(base)} units a month, with taxes and slab rates.',
+            'Based on about {0} units a month, with taxes and slab rates.'.trf({'0': Fmt.whole(base)}),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -160,6 +159,6 @@ class _WhatIfCardState extends State<WhatIfCard> {
   static String _hours(double h) {
     final whole = h == h.roundToDouble();
     final v = whole ? h.toInt().toString() : h.toStringAsFixed(1);
-    return '$v ${h == 1 ? 'hour' : 'hours'}';
+    return '$v ${h == 1 ? 'hour'.tr : 'hours'.tr}';
   }
 }

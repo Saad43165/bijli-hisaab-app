@@ -44,7 +44,7 @@ class _BackupScreenState extends State<BackupScreen> {
     try {
       await context.read<AppState>().shareBackup();
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save the backup: $e');
+      if (mounted) showSnack(context, 'Could not save the backup: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -56,7 +56,7 @@ class _BackupScreenState extends State<BackupScreen> {
       // Any type: backups sent over WhatsApp often lose their .json type.
       file = await FilePicker.pickFile(dialogTitle: 'Choose a Bijli Hisaab backup');
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not open files: $e');
+      if (mounted) showSnack(context, 'Could not open files: {0}'.trf({'0': e}));
       return;
     }
     if (file == null || !mounted) return;
@@ -77,7 +77,7 @@ class _BackupScreenState extends State<BackupScreen> {
       if (mounted) _problem('This file isn\'t a Bijli Hisaab backup.');
       return;
     } catch (e) {
-      if (mounted) _problem('Could not read the file: $e');
+      if (mounted) _problem('Could not read the file: {0}'.trf({'0': e}));
       return;
     }
     if (mounted) await _confirmAndRestore(data);
@@ -108,12 +108,12 @@ class _BackupScreenState extends State<BackupScreen> {
       if (!mounted) return;
       final what = r.total == 0
           ? 'Nothing new — you already had everything in this backup.'.tr
-          : 'Restored ${_list([
-              if (r.meters > 0) '${r.meters} ${r.meters == 1 ? 'meter' : 'meters'}',
+          : 'Restored {0}.'.trf({'0': _list([
+              if (r.meters > 0) '${r.meters} ${r.meters == 1 ? 'meter'.tr : 'meters'.tr}',
               if (r.readings > 0) '${Fmt.whole(r.readings)} readings',
               if (r.bills > 0) '${r.bills} bills',
               if (r.appliances > 0) '${r.appliances} appliances',
-            ])}.';
+            ])});
       showSnack(context, what);
       if (widget.restoreOnly) {
         // Onboarding is finished now; go to the dashboard.
@@ -122,7 +122,7 @@ class _BackupScreenState extends State<BackupScreen> {
         _reloadLocal();
       }
     } catch (e) {
-      if (mounted) _problem('Restore failed, nothing was changed.\n\n$e');
+      if (mounted) _problem('Restore failed, nothing was changed.\n\n{0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -131,7 +131,7 @@ class _BackupScreenState extends State<BackupScreen> {
   static String _list(List<String> parts) => switch (parts.length) {
         0 => 'nothing',
         1 => parts.first,
-        _ => '${parts.sublist(0, parts.length - 1).join(', ')} and ${parts.last}',
+        _ => '{0} and {1}'.trf({'0': parts.sublist(0, parts.length - 1).join(', '), '1': parts.last}),
       };
 
   void _problem(String message) {
@@ -226,8 +226,7 @@ class _BackupScreenState extends State<BackupScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          '${state.meters.length} ${state.meters.length == 1 ? 'meter' : 'meters'} with readings, '
-                          'bills, appliances and settings — one small file.',
+                          '{0} {1} with readings, bills, appliances and settings — one small file.'.trf({'0': state.meters.length, '1': state.meters.length == 1 ? 'meter'.tr : 'meters'.tr}),
                           style: theme.textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 6),
@@ -303,8 +302,7 @@ class _BackupScreenState extends State<BackupScreen> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
                             child: Text(
-                              'Weekly copies (last ${BackupService.keepAuto}) and a copy before each restore or reset. '
-                              'They are deleted if you uninstall the app — save a backup file too.',
+                              'Weekly copies (last {0}) and a copy before each restore or reset. They are deleted if you uninstall the app — save a backup file too.'.trf({'0': BackupService.keepAuto}),
                               style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
                             ),
                           ),
@@ -362,7 +360,7 @@ class _LocalTile extends StatelessWidget {
       leading: ArtTile(art, size: 40),
       title: Text('$label · ${DateFormat('d MMM, h:mm a').format(s.createdAt)}'),
       subtitle: Text(
-        '${s.meters} ${s.meters == 1 ? 'meter' : 'meters'} · ${Fmt.whole(s.readings)} readings · ${s.bills} bills',
+        '{0} {1} · {2} readings · {3} bills'.trf({'0': s.meters, '1': s.meters == 1 ? 'meter'.tr : 'meters'.tr, '2': Fmt.whole(s.readings), '3': s.bills}),
       ),
       trailing: const Icon(Icons.restore_rounded),
       onTap: onTap,

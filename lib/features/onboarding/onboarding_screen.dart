@@ -50,7 +50,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             lastReadingDate: result.readingDate,
           );
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save: $e');
+      if (mounted) showSnack(context, 'Could not save: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

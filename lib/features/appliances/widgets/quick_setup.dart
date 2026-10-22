@@ -73,15 +73,14 @@ class _QuickSetupState extends State<QuickSetup> {
     try {
       await state.addAppliances(list);
       if (!mounted) return;
-      showSnack(context, 'Added ${list.length} ${list.length == 1 ? 'appliance' : 'appliances'} — '
-          'tap one to adjust its hours');
+      showSnack(context, 'Added {0} {1} — tap one to adjust its hours'.trf({'0': list.length, '1': list.length == 1 ? 'appliance'.tr : 'appliances'.tr}));
       if (widget.inSheet) {
         Navigator.pop(context);
       } else if (mounted) {
         setState(() => _counts.clear());
       }
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not add: $e');
+      if (mounted) showSnack(context, 'Could not add: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -106,9 +105,9 @@ class _QuickSetupState extends State<QuickSetup> {
         final p = ApplianceCatalog.preset(names[i])!;
         final n = _counts[p.name] ?? 0;
         return _Counter(
-          name: p.name,
+          name: p.name.tr,
           art: Art.forAppliance(p.name, p.category),
-          detail: '${p.watts} W · ${_hours(p.hoursPerDay)}/day',
+          detail: '{0} W · {1}/day'.trf({'0': p.watts, '1': _hours(p.hoursPerDay)}),
           count: n,
           onAdd: () => _change(p.name, 1),
           onRemove: n == 0 ? null : () => _change(p.name, -1),
@@ -128,8 +127,7 @@ class _QuickSetupState extends State<QuickSetup> {
           : FilledButton(
               key: const ValueKey('add'),
               onPressed: _saving ? null : _add,
-              child: Text('Add $_total ${_total == 1 ? 'item' : 'items'} · '
-                  '~${Fmt.whole(_units)} units, ${Fmt.rs(_units * rate)} a month'),
+              child: Text('Add {0} {1} · ~{2} units, {3} a month'.trf({'0': _total, '1': _total == 1 ? 'item'.tr : 'items'.tr, '2': Fmt.whole(_units), '3': Fmt.rs(_units * rate)})),
             ),
     );
 
@@ -167,7 +165,7 @@ class _QuickSetupState extends State<QuickSetup> {
     );
   }
 
-  static String _hours(double h) => h < 1 ? '${(h * 60).round()} min' : '${Fmt.oneDp(h).replaceAll('.0', '')} h';
+  static String _hours(double h) => h < 1 ? '{0} min'.trf({'0': (h * 60).round()}) : '${Fmt.oneDp(h).replaceAll('.0', '')} h';
 }
 
 class _Counter extends StatelessWidget {

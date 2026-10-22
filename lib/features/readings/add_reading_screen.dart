@@ -133,7 +133,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
     if (before != null && DateX.dateOnly(before.date) != DateX.dateOnly(_date)) {
       final prev = second ? _secondOf(before, t) : _mainOf(before, t);
       if (prev != null && n < prev) {
-        return 'Lower than ${Fmt.whole(prev)} on ${Fmt.dayShort(before.date)}. Check the digits.';
+        return 'Lower than {0} on {1}. Check the digits.'.trf({'0': Fmt.whole(prev), '1': Fmt.dayShort(before.date)});
       }
     }
     return null;
@@ -154,8 +154,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
         final ok = await confirmDialog(
           context,
           title: 'Check this reading'.tr,
-          message: 'That is ${Fmt.whole(perDay)} units a day since your last reading, '
-              'which is unusually high. Save anyway?',
+          message: 'That is {0} units a day since your last reading, which is unusually high. Save anyway?'.trf({'0': Fmt.whole(perDay)}),
           confirmLabel: 'Save'.tr,
           destructive: false,
         );
@@ -177,7 +176,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
       showSnack(context, 'Reading saved'.tr);
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save reading: $e');
+      if (mounted) showSnack(context, 'Could not save reading: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -291,7 +290,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
               OutlinedButton.icon(
                 onPressed: _pickDate,
                 icon: const Icon(Icons.event_rounded),
-                label: Text(_date == DateX.today() ? 'Today, ${Fmt.day(_date)}' : Fmt.day(_date)),
+                label: Text(_date == DateX.today() ? 'Today, {0}'.trf({'0': Fmt.day(_date)}) : Fmt.day(_date)),
               ),
               if (last != null) ...[
                 const SizedBox(height: 20),
@@ -303,7 +302,7 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Last reading: ${Fmt.whole(last.value)} on ${Fmt.day(last.date)}',
+                          'Last reading: {0} on {1}'.trf({'0': Fmt.whole(last.value), '1': Fmt.day(last.date)}),
                         ),
                       ),
                     ],
@@ -337,8 +336,7 @@ class _DeltaPreview extends StatelessWidget {
       final days = DateX.daysBetween(before.date, date);
       final units = v - before.value;
       if (units >= 0 && days > 0) {
-        text = '+${Fmt.whole(units)} units in $days ${days == 1 ? 'day' : 'days'} · '
-            '${Fmt.oneDp(units / days)} a day';
+        text = '+{0} units in {1} {2} · {3} a day'.trf({'0': Fmt.whole(units), '1': days, '2': days == 1 ? 'day'.tr : 'days'.tr, '3': Fmt.oneDp(units / days)});
       }
     }
     return AnimatedSize(

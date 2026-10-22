@@ -116,7 +116,7 @@ class _CompanySheetState extends State<_CompanySheet> {
                   title: Text(c.code == c.fullName ? c.code : '${c.code} — ${c.fullName}',
                       style: theme.textTheme.titleSmall),
                   subtitle: Text(
-                    c.usesNepraTariff ? c.region : '${c.region} · own tariff',
+                    c.usesNepraTariff ? c.region : '{0} · own tariff'.trf({'0': c.region}),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

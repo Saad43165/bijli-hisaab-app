@@ -1,3 +1,5 @@
+import '../../core/l10n/l10n.dart';
+
 /// How we decide whether a meter is billed at protected rates.
 enum ProtectedSetting {
   /// User says their bill shows "Protected".
@@ -20,7 +22,7 @@ enum ProtectedSetting {
         ProtectedSetting.unprotected => 'Not protected',
         ProtectedSetting.auto => 'Not sure (auto)',
         ProtectedSetting.lifeline => 'Lifeline',
-      };
+      }.tr;
 }
 
 /// What the meter measures.
@@ -49,7 +51,7 @@ enum MeterType {
         MeterType.tou => 'Peak / off-peak',
         MeterType.netMetering => 'Solar · net metering',
         MeterType.netBilling => 'Solar · net billing',
-      };
+      }.tr;
 }
 
 class Meter {

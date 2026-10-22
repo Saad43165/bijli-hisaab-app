@@ -57,7 +57,7 @@ class _ScanBillScreenState extends State<ScanBillScreen> {
     } on ScanCancelled {
       // User backed out — nothing to do.
     } catch (e) {
-      if (mounted) showSnack(context, 'Couldn\'t read the bill: $e');
+      if (mounted) showSnack(context, 'Couldn\'t read the bill: {0}'.trf({'0': e}));
     } finally {
       if (mounted) {
         setState(() {
@@ -215,7 +215,7 @@ class _Step extends StatelessWidget {
         children: [
           ArtImage(art, size: 40),
           const SizedBox(height: 8),
-          Text('Step $n', style: theme.textTheme.labelSmall),
+          Text('Step {0}'.trf({'0': n}), style: theme.textTheme.labelSmall),
           const SizedBox(height: 2),
           Text(text, textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(height: 1.3)),
         ],

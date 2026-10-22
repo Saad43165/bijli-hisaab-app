@@ -72,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
       if (!state.company.usesNepraTariff)
         spaced(InfoBanner(
           icon: Icons.info_outline_rounded,
-          title: '${state.company.shortCode} has its own tariff',
+          title: '{0} has its own tariff'.trf({'0': state.company.shortCode}),
           message: 'Units and slab warnings are accurate. For the bill amount, enter your area\'s rates in Tools → Rates → edit.'.tr,
         )),
       if (showStartHere && hasData)

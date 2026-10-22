@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/utils/formatters.dart';
 import '../usage_forecaster.dart';
+import '../../core/l10n/l10n.dart';
 
 enum ReminderType {
   /// 3 days and 1 day before the meter reading day.
@@ -30,14 +31,14 @@ enum ReminderType {
         closeToSlab => 'Close to a slab',
         billDue => 'Bill due date',
         noReading => 'No recent reading',
-      };
+      }.tr;
 
   String get description => switch (this) {
         readingDay => '3 days and 1 day before your meter is read',
         closeToSlab => 'Evenings in the last 10 days, only when you\'re near a limit',
         billDue => '2 days before and on the due date',
         noReading => 'After 6 days without a reading',
-      };
+      }.tr;
 }
 
 class PlannedReminder {
@@ -175,7 +176,7 @@ class ReminderPlanner {
           body = 'Add a reading to check where you are.';
         } else {
           final budget = left / daysLeft;
-          title = '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left in this bill';
+          title = '$daysLeft ${daysLeft == 1 ? 'day'.tr : 'days'.tr} left in this bill';
           body = 'Use max ${Fmt.oneDp(budget)} units a day to stay under $limit.';
         }
         final before = out.length;

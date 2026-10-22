@@ -171,11 +171,11 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
         _applyAnalysis();
       });
       HapticFeedback.lightImpact();
-      showSnack(context, 'Added ${result.imagePaths.length == 1 ? 'page' : 'pages'} — kept the best values');
+      showSnack(context, 'Added {0} — kept the best values'.trf({'0': result.imagePaths.length == 1 ? 'page'.tr : 'pages'.tr}));
     } on ScanCancelled {
       // nothing
     } catch (e) {
-      if (mounted) showSnack(context, 'Couldn\'t read that scan: $e');
+      if (mounted) showSnack(context, 'Couldn\'t read that scan: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _rescanning = false);
     }
@@ -199,7 +199,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
         _applyAnalysis();
       });
     } catch (e) {
-      if (mounted) showSnack(context, 'Couldn\'t rotate the page: $e');
+      if (mounted) showSnack(context, 'Couldn\'t rotate the page: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _rescanning = false);
     }
@@ -279,7 +279,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
       showSnack(context, 'Bill saved'.tr);
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) showSnack(context, 'Could not save bill: $e');
+      if (mounted) showSnack(context, 'Could not save bill: {0}'.trf({'0': e}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -333,9 +333,8 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                 InfoBanner(
                   icon: Icons.swap_horiz_rounded,
                   color: p.danger,
-                  title: 'This looks like a ${PowerCompanies.of(_a.disco!).shortCode} bill',
-                  message: '"${meter.name}" is set to ${PowerCompanies.of(meter.disco).shortCode}. '
-                      'Switch meter first if this bill is for another connection.',
+                  title: 'This looks like a {0} bill'.trf({'0': PowerCompanies.of(_a.disco!).shortCode}),
+                  message: '"{0}" is set to {1}. Switch meter first if this bill is for another connection.'.trf({'0': meter.name, '1': PowerCompanies.of(meter.disco).shortCode}),
                 ),
               ],
               for (final w in _a.warnings) ...[
@@ -421,8 +420,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                 onTap: () => _select(BillField.presentReading),
                 extra: _a.previousReading == null
                     ? null
-                    : 'Previous reading ${_a.previousReading!.value.round()}'
-                        '${_a.multiplier != null && _a.multiplier!.value != 1 ? ' · MF ${_a.multiplier!.value.round()}' : ''}',
+                    : 'Previous reading {0}{1}'.trf({'0': _a.previousReading!.value.round(), '1': _a.multiplier != null && _a.multiplier!.value != 1 ? ' · MF ${_a.multiplier!.value.round()}' : ''}),
                 child: TextFormField(
                   controller: _present,
                   keyboardType: TextInputType.number,
@@ -436,7 +434,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                 value: _saveReading,
                 onChanged: (v) => setState(() => _saveReading = v ?? true),
                 title: Text('Also save present reading as a meter reading'.tr),
-                subtitle: Text('Dated ${Fmt.day(readingDate)} (your reading day)'),
+                subtitle: Text('Dated {0} (your reading day)'.trf({'0': Fmt.day(readingDate)})),
               ),
               const SizedBox(height: 8),
               LoadingButton(label: 'Save bill'.tr, icon: Icons.check_rounded, loading: _saving, onPressed: _save),
@@ -447,7 +445,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                   tilePadding: const EdgeInsets.symmetric(horizontal: 4),
                   leading: const ArtImage(Art.search, size: 26),
                   title: Text('What the scanner read'.tr, style: theme.textTheme.titleSmall),
-                  subtitle: Text('${_a.pageCount} ${_a.pageCount == 1 ? 'page' : 'pages'} · tap to see raw text',
+                  subtitle: Text('{0} {1} · tap to see raw text'.trf({'0': _a.pageCount, '1': _a.pageCount == 1 ? 'page'.tr : 'pages'.tr}),
                       style: theme.textTheme.bodySmall),
                   children: [
                     AppCard(
@@ -498,10 +496,10 @@ class _SummaryRow extends StatelessWidget {
       title = 'Couldn\'t read values — please type them'.tr;
     } else if (check > 0) {
       art = Art.search;
-      title = 'Found $found of 5 · $check to check';
+      title = 'Found {0} of 5 · {1} to check'.trf({'0': found, '1': check});
     } else {
       art = Art.check;
-      title = 'Found $found of 5 values';
+      title = 'Found {0} of 5 values'.trf({'0': found});
     }
     return AppCard(
       padding: const EdgeInsets.all(14),

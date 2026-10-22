@@ -95,7 +95,7 @@ class _ScannedPageViewerState extends State<ScannedPageViewer> {
           appBar: AppBar(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            title: Text('Page ${index + 1} of ${widget.imagePaths.length}'),
+            title: Text('Page {0} of {1}'.trf({'0': index + 1, '1': widget.imagePaths.length})),
           ),
           body: InteractiveViewer(
             maxScale: 6,

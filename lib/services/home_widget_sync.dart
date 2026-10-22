@@ -3,6 +3,7 @@ import 'package:home_widget/home_widget.dart';
 
 import '../core/utils/formatters.dart';
 import 'usage_forecaster.dart';
+import '../core/l10n/l10n.dart';
 
 /// Writes this month's numbers for the Android home-screen widget
 /// (android/.../UsageWidgetProvider.kt) and asks it to redraw.
@@ -33,7 +34,7 @@ class HomeWidgetSync {
         'line': hasReading ? 'Add another reading to see this month' : 'Tap to add today\'s reading',
       };
     }
-    final days = '${s.daysLeft} ${s.daysLeft == 1 ? 'day' : 'days'} left';
+    final days = '${s.daysLeft} ${s.daysLeft == 1 ? 'day'.tr : 'days'.tr} left';
     final target = s.targetLimit;
     final budget = s.safeDailyBudget;
     final String line;

@@ -68,7 +68,7 @@ class ApplianceDonut extends StatelessWidget {
               for (var i = 0; i < top.length; i++)
                 _LegendRow(
                   color: colorAt(i),
-                  label: top[i].name,
+                  label: top[i].name.tr,
                   percent: totalUnits == 0 ? 0 : top[i].monthlyUnits / totalUnits,
                 ),
               if (rest > 0)

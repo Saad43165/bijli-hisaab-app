@@ -23,7 +23,7 @@ class ReadingsScreen extends StatelessWidget {
   static Future<bool> _confirmDelete(BuildContext context, MeterReading r) => confirmDialog(
         context,
         title: 'Delete reading?'.tr,
-        message: '${Fmt.whole(r.value)} on ${Fmt.day(r.date)} will be removed.',
+        message: '{0} on {1} will be removed.'.trf({'0': Fmt.whole(r.value), '1': Fmt.day(r.date)}),
         confirmLabel: 'Delete'.tr,
       );
 
@@ -34,7 +34,7 @@ class ReadingsScreen extends StatelessWidget {
     final readings = state.readings.reversed.toList(); // newest first
 
     return Scaffold(
-      appBar: AppBar(title: Text('Readings · ${state.activeMeter?.name ?? ''}')),
+      appBar: AppBar(title: Text('Readings · {0}'.trf({'0': state.activeMeter?.name ?? ''}))),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _add(context),
         icon: const Icon(Icons.add_rounded),
@@ -63,8 +63,7 @@ class ReadingsScreen extends StatelessWidget {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          '${readings.length} ${readings.length == 1 ? 'reading' : 'readings'} · '
-                          'swipe left or long-press to delete',
+                          '{0} {1} · swipe left or long-press to delete'.trf({'0': readings.length, '1': readings.length == 1 ? 'reading'.tr : 'readings'.tr}),
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
@@ -127,7 +126,7 @@ class _ReadingRow extends StatelessWidget {
       final days = DateX.daysBetween(o.date, r.date);
       final units = r.value - o.value;
       if (days > 0) {
-        delta = '+${Fmt.whole(units)} in $days ${days == 1 ? 'day' : 'days'} · ${Fmt.oneDp(units / days)}/day';
+        delta = '+{0} in {1} {2} · {3}/day'.trf({'0': Fmt.whole(units), '1': days, '2': days == 1 ? 'day'.tr : 'days'.tr, '3': Fmt.oneDp(units / days)});
       }
     }
 

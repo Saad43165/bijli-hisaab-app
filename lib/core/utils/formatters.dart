@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import '../l10n/l10n.dart';
+
 /// Number, money and date formatting helpers (Pakistani conventions).
 class Fmt {
   Fmt._();
@@ -8,10 +10,13 @@ class Fmt {
   static final NumberFormat _oneDp = NumberFormat('#,##0.0', 'en_US');
   static final NumberFormat _twoDp = NumberFormat('#,##0.00', 'en_US');
 
-  static final DateFormat _day = DateFormat('d MMM yyyy');
-  static final DateFormat _dayShort = DateFormat('d MMM');
-  static final DateFormat _month = DateFormat('MMM yyyy');
-  static final DateFormat _monthShort = DateFormat('MMM');
+  // Display formats follow the app language (Urdu month names in Urdu).
+  static String get _loc => L10n.isUrdu ? 'ur' : 'en';
+  static DateFormat get _day => DateFormat(L10n.isUrdu ? 'd MMMM yyyy' : 'd MMM yyyy', _loc);
+  static DateFormat get _dayShort => DateFormat(L10n.isUrdu ? 'd MMMM' : 'd MMM', _loc);
+  static DateFormat get _month => DateFormat(L10n.isUrdu ? 'MMMM yyyy' : 'MMM yyyy', _loc);
+  static DateFormat get _monthShort => DateFormat(L10n.isUrdu ? 'MMMM' : 'MMM', _loc);
+  static DateFormat weekday() => DateFormat('EEEE', _loc);
   static final DateFormat _monthKey = DateFormat('yyyy-MM');
   static final DateFormat _isoDate = DateFormat('yyyy-MM-dd');
 
@@ -26,7 +31,7 @@ class Fmt {
   static String twoDp(num value) => _twoDp.format(value);
 
   /// "214 units"
-  static String units(num value) => '${_whole.format(value.round())} units';
+  static String units(num value) => '${_whole.format(value.round())} ${'units'.tr}';
 
   static String day(DateTime d) => _day.format(d);
   static String dayShort(DateTime d) => _dayShort.format(d);

@@ -18,9 +18,9 @@ extension Tr on String {
   String get tr => L10n.isUrdu ? (urdu[this] ?? this) : this;
 
   /// With placeholders: `'{n} days left'.trf({'n': 5})`.
-  String trf(Map<String, Object> args) {
+  String trf(Map<String, Object?> args) {
     var s = tr;
-    args.forEach((k, v) => s = s.replaceAll('{$k}', '$v'));
+    args.forEach((k, v) => s = s.replaceAll('{$k}', '${v ?? ''}'));
     return s;
   }
 }
