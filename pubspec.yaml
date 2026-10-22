@@ -1,0 +1,86 @@
+name: bijli_bachao
+description: "Track electricity units, predict your bill and stay under the slab limit."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  provider: ^6.1.5
+
+  # Local storage
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.3
+
+  # Charts
+  fl_chart: ^1.1.1
+
+  # Formatting
+  intl: ^0.20.2
+
+  # Bill scanning (camera/gallery + on-device OCR)
+  image_picker: ^1.2.0
+  google_mlkit_text_recognition: ^0.17.0
+  google_mlkit_document_scanner: ^0.6.0
+
+  # Live camera for reading the meter (torch, zoom, tap-to-focus)
+  camera: ^0.12.1
+
+  # Slab alerts and reading reminders
+  flutter_local_notifications: ^22.3.0
+  timezone: ^0.11.0
+
+  # Sharing CSV exports for Power BI
+  share_plus: ^13.0.0
+
+  # Opening a backup file to restore
+  file_picker: ^13.0.0
+
+  # Downloading the latest tariff rates
+  http: ^1.5.0
+
+  # Opening the company's bill page / helpline
+  url_launcher: ^6.3.3
+  home_widget: ^0.10.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/config/
+    - assets/images/
+    - assets/images/3d/
+    - assets/images/companies/
+
+  fonts:
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
+          weight: 800
+    - family: NotoNastaliqUrdu
+      fonts:
+        - asset: assets/fonts/NotoNastaliqUrdu-Regular.ttf

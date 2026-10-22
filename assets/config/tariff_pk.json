@@ -1,0 +1,146 @@
+{
+  "schema_version": 2,
+  "version": 2026102201,
+  "id": "nepra-a1-2026-10",
+  "name": "NEPRA uniform residential tariff (A-1, below 5 kW)",
+  "effective_from": "2026-02-12",
+  "updated_at": "2026-10-22",
+  "source_note": "Slab and fixed charges: NEPRA decision TRF-100 (11 Feb 2026) notified as S.R.O. 279(I)/2026, same for all WAPDA DISCOs and K-Electric. FCA and QTA are also applied uniformly to K-Electric (federal policy, 2026); use company_overrides if a company ever differs. FCA and QTA change every month or quarter. Electricity duty and PTV fee were removed from bills in July 2025. TOU (5 kW and above): Rs 46.85 peak / Rs 34.53 off-peak, fixed Rs 675/kW on 50% of sanctioned load (S.R.O. 279(I)/2026). Solar: NEPRA Prosumer Regulations 2026 — new agreements are net billed with exports bought at Rs 8.13/unit; existing net-metering agreements keep Rs 25.32/unit.",
+  "sources": [
+    {
+      "title": "NEPRA decision: rationalization of tariff, XWDISCOs and K-Electric (11-02-2026)",
+      "url": "https://nepra.org.pk/tariff/Tariff/Ex-WAPDA%20DISCOS/2026/TRF-100%20XWDISCOS%20AND%20KE%20RATIONALIZATION%20OF%20TARIFF%2011-02-2026%202935-57.pdf"
+    },
+    {
+      "title": "S.R.O. 279(I)/2026 (12-02-2026)",
+      "url": "https://nepra.org.pk/tariff/Tariff/Notifications/2026/02%20Feb/S.R.O.%20279%281%292026%20dated%2012-02-2026.pdf"
+    },
+    {
+      "title": "S.R.O. 1501(I)/2026 — quarterly adjustment, Q2 CY2026 (07-09-2026)",
+      "url": "https://nepra.org.pk/tariff/Tariff/Notifications/2026/09%20Sep/SRO%201501%28I%29-2026%20Dated%2007-09-2026.pdf"
+    }
+  ],
+  "protected_threshold_units": 200,
+  "protected_months": 6,
+  "gst_percent": 18,
+  "tv_fee": 0,
+  "adjustments": {
+    "fca_per_unit": 1.1086,
+    "fca_label": "FCA for Aug 2026 (on Oct 2026 bills)",
+    "qta_per_unit": 0.5194,
+    "qta_label": "QTA Q2 CY2026 (Sep–Nov 2026 bills)"
+  },
+  "electricity_duty_percent": {
+    "Punjab": 0,
+    "Sindh": 0,
+    "ICT": 0,
+    "KP": 0,
+    "Balochistan": 0,
+    "AJK": 0,
+    "GB": 0
+  },
+  "lifeline": {
+    "billing_mode": "whole",
+    "fc_surcharge_per_unit": 0,
+    "applies_adjustments": false,
+    "slabs": [
+      {
+        "from": 1,
+        "to": 50,
+        "rate": 3.95,
+        "fixed_per_kw": 0
+      },
+      {
+        "from": 51,
+        "to": 100,
+        "rate": 7.74,
+        "fixed_per_kw": 0
+      }
+    ]
+  },
+  "protected": {
+    "billing_mode": "previous_slab",
+    "fc_surcharge_per_unit": 0,
+    "applies_adjustments": true,
+    "slabs": [
+      {
+        "from": 1,
+        "to": 100,
+        "rate": 10.54,
+        "fixed_per_kw": 200
+      },
+      {
+        "from": 101,
+        "to": 200,
+        "rate": 13.01,
+        "fixed_per_kw": 300
+      }
+    ]
+  },
+  "unprotected": {
+    "billing_mode": "whole",
+    "fc_surcharge_per_unit": 3.23,
+    "applies_adjustments": true,
+    "slabs": [
+      {
+        "from": 1,
+        "to": 100,
+        "rate": 22.44,
+        "fixed_per_kw": 275
+      },
+      {
+        "from": 101,
+        "to": 200,
+        "rate": 28.91,
+        "fixed_per_kw": 300
+      },
+      {
+        "from": 201,
+        "to": 300,
+        "rate": 33.1,
+        "fixed_per_kw": 350
+      },
+      {
+        "from": 301,
+        "to": 400,
+        "rate": 36.46,
+        "fixed_per_kw": 400
+      },
+      {
+        "from": 401,
+        "to": 500,
+        "rate": 38.95,
+        "fixed_per_kw": 500
+      },
+      {
+        "from": 501,
+        "to": 600,
+        "rate": 40.22,
+        "fixed_per_kw": 675
+      },
+      {
+        "from": 601,
+        "to": 700,
+        "rate": 41.85,
+        "fixed_per_kw": 675
+      },
+      {
+        "from": 701,
+        "to": null,
+        "rate": 47.2,
+        "fixed_per_kw": 675
+      }
+    ]
+  },
+  "company_overrides": {},
+  "tou": {
+    "peak_rate": 46.85,
+    "off_peak_rate": 34.53,
+    "fixed_per_kw": 675,
+    "fixed_load_share": 0.5
+  },
+  "solar": {
+    "net_metering_rate": 25.32,
+    "net_billing_rate": 8.13
+  }
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: what Android's automatic backup to the user's Google Drive
+     (and the phone-to-phone transfer when setting up a new phone) includes.
+     Meters, readings, bills and appliances live in the SQLite database;
+     settings in shared prefs; weekly safety copies in files/. Scanned bill
+     photos are temporary and stay out (they're in the cache, which is never
+     backed up). -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+    </device-transfer>
+</data-extraction-rules>

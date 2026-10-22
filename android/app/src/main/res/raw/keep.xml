@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep resources referenced only from Dart code so release shrinking doesn't remove them -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_bolt,@drawable/splash_bolt" />

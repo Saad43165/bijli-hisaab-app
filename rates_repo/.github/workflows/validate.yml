@@ -1,0 +1,32 @@
+name: Validate tariff
+
+on:
+  push:
+    paths: [tariff_pk.json]
+  pull_request:
+    paths: [tariff_pk.json]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check tariff_pk.json
+        run: |
+          PREV=""
+          if git cat-file -e HEAD~1:tariff_pk.json 2>/dev/null; then
+            PREV=$(git show HEAD~1:tariff_pk.json | python -c "import json,sys; print(json.load(sys.stdin).get('version', 0))" || true)
+          fi
+          if [ -n "$PREV" ] && [ "${{ github.event_name }}" = "push" ]; then
+            python scripts/validate_tariff.py tariff_pk.json --previous-version "$PREV"
+          else
+            python scripts/validate_tariff.py tariff_pk.json
+          fi
