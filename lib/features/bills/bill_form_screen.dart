@@ -71,7 +71,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
       initialDate: _dueDate ?? now,
       firstDate: DateTime(now.year - 2),
       lastDate: DateTime(now.year + 1, 12, 31),
-      helpText: 'Due date',
+      helpText: 'Due date'.tr,
     );
     if (picked != null) setState(() => _dueDate = picked);
   }
@@ -146,7 +146,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              _FieldLabel('Bill month'),
+              _FieldLabel('Bill month'.tr),
               DropdownButtonFormField<String>(
                 initialValue: _month,
                 menuMaxHeight: 360,
@@ -157,7 +157,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 onChanged: (v) => setState(() => _month = v ?? _month),
               ),
               const SizedBox(height: 16),
-              _FieldLabel('Units consumed'),
+              _FieldLabel('Units consumed'.tr),
               TextFormField(
                 controller: _units,
                 keyboardType: TextInputType.number,
@@ -171,7 +171,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              _FieldLabel('Payable within due date'),
+              _FieldLabel('Payable within due date'.tr),
               TextFormField(
                 controller: _amount,
                 keyboardType: TextInputType.number,
@@ -179,14 +179,14 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 decoration: InputDecoration(
                   hintText: 'Optional · e.g. 3,299'.tr,
                   prefixIcon: Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 8),
+                    padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                     child: Text('Rs'.tr, style: Theme.of(context).textTheme.titleMedium),
                   ),
                   prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                 ),
               ),
               const SizedBox(height: 16),
-              _FieldLabel('Due date'),
+              _FieldLabel('Due date'.tr),
               // Looks like the text fields around it, opens a date picker.
               InkWell(
                 onTap: _pickDueDate,
@@ -209,7 +209,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _FieldLabel('Present reading'),
+              _FieldLabel('Present reading'.tr),
               TextFormField(
                 controller: _present,
                 keyboardType: TextInputType.number,

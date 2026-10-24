@@ -56,7 +56,7 @@ class _Fallback extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: radius,
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
+          begin: AlignmentDirectional.topStart,
           end: Alignment.bottomRight,
           colors: [Color.lerp(c, Colors.white, 0.12)!, Color.lerp(c, Colors.black, 0.18)!],
         ),

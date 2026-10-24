@@ -53,6 +53,8 @@ dependencies:
   # Opening the company's bill page / helpline
   url_launcher: ^6.3.3
   home_widget: ^0.10.0
+  webview_flutter: ^4.14.1
+  speech_to_text: ^7.5.0
 
 dev_dependencies:
   flutter_test:

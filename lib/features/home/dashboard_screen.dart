@@ -6,15 +6,12 @@ import '../../core/l10n/l10n.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/fade_slide_in.dart';
 import '../../state/app_state.dart';
-import '../meters/meter_type_screen.dart';
 import '../../shared/widgets/info_banner.dart';
 import '../../shared/widgets/section_header.dart';
 import '../bills/scan_bill_screen.dart';
 import '../readings/add_reading_screen.dart';
 import '../readings/readings_screen.dart';
 import '../settings/reminders_screen.dart';
-import '../settings/tariff_screen.dart';
-import 'widgets/bill_calculator_card.dart';
 import 'widgets/bill_estimate_card.dart';
 import '../../shared/widgets/art.dart';
 import 'widgets/daily_usage_chart.dart';
@@ -26,10 +23,16 @@ import 'widgets/quick_actions_row.dart';
 import 'widgets/share_summary_sheet.dart';
 import 'widgets/simple_home.dart';
 import 'widgets/slab_alert_card.dart';
-import 'widgets/start_here_card.dart';
 import 'widgets/slab_meter_card.dart';
 import 'widgets/tip_card.dart';
 import 'widgets/usage_ring_card.dart';
+import '../bills/online_bill_screen.dart';
+import 'calculators_screen.dart';
+import 'widgets/advice_card.dart';
+import 'widgets/bill_overview_card.dart';
+import 'widgets/rate_news_card.dart';
+import '../bills/widgets/protection_card.dart';
+import '../assistant/assistant_button.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, required this.onOpenTab});
@@ -56,11 +59,26 @@ class DashboardScreen extends StatelessWidget {
     final now = DateTime.now();
     final hasData = summary?.hasData ?? false;
 
-    final showStartHere = meter != null && StartHereCard.visible(state);
+
+    void openBill() => OnlineBillScreen.open(context, state.company, meter?.referenceNo ?? '');
+    final overview = BillOverviewCard(
+      onOpenHistory: () => onOpenTab(1),
+      onViewBill: state.company.billUrl == null ? null : openBill,
+    );
 
     // Each entry is one block on the screen, spaced 14 apart.
     Widget spaced(Widget w) => Padding(padding: const EdgeInsets.only(bottom: 14), child: w);
+    final billBanner = state.billNotice == null
+        ? null
+        : InfoBanner(
+            icon: Icons.receipt_long_rounded,
+            leadingArt: Art.receipt,
+            title: 'Your new bill is out'.tr,
+            message: state.billNotice!,
+            onClose: state.dismissBillNotice,
+          );
     final cards = <Widget>[
+      if (billBanner != null) spaced(billBanner),
       if (state.ratesNotice != null)
         spaced(InfoBanner(
           icon: Icons.auto_awesome_rounded,
@@ -75,13 +93,8 @@ class DashboardScreen extends StatelessWidget {
           title: '{0} has its own tariff'.trf({'0': state.company.shortCode}),
           message: 'Units and slab warnings are accurate. For the bill amount, enter your area\'s rates in Tools → Rates → edit.'.tr,
         )),
-      if (showStartHere && hasData)
-        spaced(StartHereCard(
-          onReading: () => _push(context, const AddReadingScreen()),
-          onBill: () => _push(context, const ScanBillScreen()),
-          onAppliances: () => onOpenTab(2),
-          onMeterType: () => _push(context, const MeterTypeScreen()),
-        )),
+      if (state.bills.isNotEmpty) spaced(overview),
+      if (state.bills.isNotEmpty) spaced(const AdviceCard()),
       if (summary != null && hasData) ...[
         spaced(UsageRingCard(summary: summary)),
         spaced(summary.isTou
@@ -98,16 +111,16 @@ class DashboardScreen extends StatelessWidget {
           onAddReading: () => _push(context, const AddReadingScreen()),
           onScanBill: () => _push(context, const ScanBillScreen()),
         )),
-        if (showStartHere)
-          spaced(StartHereCard(
-            onReading: () => _push(context, const AddReadingScreen()),
-            onBill: () => _push(context, const ScanBillScreen()),
-            onAppliances: () => onOpenTab(2),
-            onMeterType: () => _push(context, const MeterTypeScreen()),
+        if (state.bills.isNotEmpty)
+          spaced(ProtectionCard(
+            bills: state.bills,
+            months: state.tariff.protectedMonths,
+            limit: state.tariff.protectedThresholdUnits,
           )),
-        spaced(const BillCalculatorCard()),
       ],
-      if (hasData || state.bills.isNotEmpty)
+      if (RateNewsCard.hasContent(state.effectiveTariff))
+        spaced(RateNewsCard(tariff: state.effectiveTariff, summary: summary)),
+      if (state.bills.isEmpty)
         spaced(LastBillCard(
           bill: state.bills.firstOrNull,
           onOpen: () => onOpenTab(1),
@@ -118,12 +131,14 @@ class DashboardScreen extends StatelessWidget {
       QuickActionsRow(
         actions: [
           QuickAction(art: Art.camera, label: 'Scan bill'.tr, onTap: () => _push(context, const ScanBillScreen())),
-          if (hasData)
+          if (state.company.billUrl != null)
+            QuickAction(art: Art.receipt, label: 'Bill online'.tr, onTap: openBill)
+          else if (hasData)
             QuickAction(art: Art.clipboard, label: 'Readings'.tr, onTap: () => _push(context, const ReadingsScreen()))
           else
             QuickAction(art: Art.bell, label: 'Reminders'.tr, onTap: () => _push(context, const RemindersScreen())),
+          QuickAction(art: Art.moneyBag, label: 'Calculators'.tr, onTap: () => _push(context, const CalculatorsScreen())),
           QuickAction(art: Art.plug, label: 'Appliances'.tr, onTap: () => onOpenTab(2)),
-          QuickAction(art: Art.chartUp, label: 'Rates'.tr, onTap: () => _push(context, const TariffScreen())),
         ],
       ),
       SectionHeader('Tip of the day'.tr, padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
@@ -133,6 +148,9 @@ class DashboardScreen extends StatelessWidget {
     // Simple Home: just this month's units, the bill and adding a reading.
     final simple = state.simpleHome;
     final simpleCards = <Widget>[
+      if (billBanner != null) spaced(billBanner),
+      if (state.bills.isNotEmpty) spaced(overview),
+      if (state.bills.isNotEmpty) spaced(const AdviceCard()),
       if (summary != null && hasData)
         spaced(SimpleHome(summary: summary, onAddReading: () => _push(context, const AddReadingScreen())))
       else if (summary != null)
@@ -142,12 +160,18 @@ class DashboardScreen extends StatelessWidget {
           onAddReading: () => _push(context, const AddReadingScreen()),
           onScanBill: () => _push(context, const ScanBillScreen()),
         )),
-      if (showStartHere)
-        spaced(StartHereCard(
-          onReading: () => _push(context, const AddReadingScreen()),
-          onBill: () => _push(context, const ScanBillScreen()),
-          onAppliances: () => onOpenTab(2),
-          onMeterType: () => _push(context, const MeterTypeScreen()),
+      if (state.bills.isEmpty)
+        spaced(LastBillCard(
+          bill: state.bills.firstOrNull,
+          onOpen: () => onOpenTab(1),
+          onScan: () => _push(context, const ScanBillScreen()),
+        )),
+      if (state.company.billUrl != null && state.bills.isEmpty)
+        spaced(OutlinedButton.icon(
+          onPressed: openBill,
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          icon: const Icon(Icons.receipt_long_rounded),
+          label: Text('Check your {0} bill online'.trf({'0': state.company.shortCode})),
         )),
       Center(
         child: TextButton.icon(
@@ -176,20 +200,15 @@ class DashboardScreen extends StatelessWidget {
               onPressed: () => ShareSummarySheet.show(context),
               icon: const Icon(Icons.ios_share_rounded),
             ),
-          IconButton(
-            tooltip: 'Reminders'.tr,
-            onPressed: () => _push(context, const RemindersScreen()),
-            icon: const Icon(Icons.notifications_none_rounded),
-          ),
-          const SizedBox(width: 8),
+          const AssistantButton(),
+          const SizedBox(width: 12),
         ],
       ),
-      // Until tracking starts, the hero card carries the "Add reading" button.
       floatingActionButton: hasData
           ? FloatingActionButton.extended(
               onPressed: () => _push(context, const AddReadingScreen()),
               icon: const Icon(Icons.add_rounded),
-              label: Text('Add reading'.tr, style: TextStyle(fontWeight: FontWeight.w800)),
+              label: Text('Add reading'.tr, style: const TextStyle(fontWeight: FontWeight.w800)),
             )
           : null,
       body: meter == null || summary == null
@@ -202,7 +221,7 @@ class DashboardScreen extends StatelessWidget {
                 await state.checkForRateUpdates(force: true);
               },
               child: ListView(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, hasData ? 104 : 28),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 104),
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 2, 4, 14),

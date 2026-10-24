@@ -109,9 +109,9 @@ class NotificationService {
       for (final r in reminders) {
         final w = r.when;
         final details = switch (r.type) {
-          ReminderType.closeToSlab => _alertChannel,
+          ReminderType.closeToSlab || ReminderType.peakHours => _alertChannel,
           ReminderType.billDue => _billChannel,
-          ReminderType.readingDay || ReminderType.noReading => _reminderChannel,
+          ReminderType.readingDay || ReminderType.noReading || ReminderType.weeklySummary => _reminderChannel,
         };
         await _plugin.zonedSchedule(
           id: r.id,

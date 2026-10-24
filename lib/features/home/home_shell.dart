@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/l10n/l10n.dart';
+import '../../core/navigation/app_nav.dart';
 import '../../shared/widgets/app_nav_bar.dart';
 import '../appliances/appliances_screen.dart';
 import '../bills/history_screen.dart';
@@ -15,16 +16,29 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _index = 0;
+  int get _index => AppNav.tab.value;
 
   /// Tabs are built the first time they're opened, not all at start-up, and
   /// hidden tabs don't run animations.
   final Set<int> _opened = {0};
 
-  void _select(int i) => setState(() {
-        _index = i;
-        _opened.add(i);
-      });
+  void _select(int i) => AppNav.tab.value = i;
+
+  /// Tabs can also be switched by the assistant (AppNav.goTab).
+  void _onTab() => setState(() => _opened.add(_index));
+
+  @override
+  void initState() {
+    super.initState();
+    AppNav.tab.value = 0;
+    AppNav.tab.addListener(_onTab);
+  }
+
+  @override
+  void dispose() {
+    AppNav.tab.removeListener(_onTab);
+    super.dispose();
+  }
 
   Widget _tab(int i, Widget Function() build) => TickerMode(
         enabled: i == _index,

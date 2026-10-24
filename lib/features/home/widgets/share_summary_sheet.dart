@@ -35,6 +35,7 @@ class ShareSummarySheet extends StatefulWidget {
 class _ShareSummarySheetState extends State<ShareSummarySheet> {
   final _boundary = GlobalKey();
   bool _sharing = false;
+  bool _light = false;
 
   Future<void> _share(CycleSummary s, String meterName) async {
     setState(() => _sharing = true);
@@ -83,7 +84,18 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
             Text('Share this month'.tr, style: theme.textTheme.titleLarge),
             const SizedBox(height: 4),
             Text('Send a picture of your usage to family or your landlord.'.tr, style: theme.textTheme.bodySmall),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            Center(
+              child: SegmentedButton<bool>(
+                segments: [
+                  ButtonSegment(value: false, icon: const Icon(Icons.dark_mode_rounded), label: Text('Dark'.tr)),
+                  ButtonSegment(value: true, icon: const Icon(Icons.light_mode_rounded), label: Text('Light'.tr)),
+                ],
+                selected: {_light},
+                onSelectionChanged: (v) => setState(() => _light = v.first),
+              ),
+            ),
+            const SizedBox(height: 12),
             Center(
               child: FittedBox(
                 child: RepaintBoundary(
@@ -92,6 +104,7 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
                     summary: s,
                     meterName: meter.name,
                     company: PowerCompanies.of(meter.disco).shortCode,
+                    light: _light,
                   ),
                 ),
               ),
@@ -114,7 +127,16 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
 
 /// The picture itself: 360×450 logical pixels (1080×1350 when shared).
 class SummaryPicture extends StatelessWidget {
-  const SummaryPicture({super.key, required this.summary, required this.meterName, required this.company});
+  const SummaryPicture({
+    super.key,
+    required this.summary,
+    required this.meterName,
+    required this.company,
+    this.light = false,
+  });
+
+  /// White and amber instead of the dark navy card.
+  final bool light;
 
   final CycleSummary summary;
   final String meterName;
@@ -124,8 +146,10 @@ class SummaryPicture extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = summary;
     final theme = Theme.of(context);
-    final style = StatusStyle.of(context, s.status).onNavy();
-    final muted = Colors.white.withValues(alpha: 0.65);
+    final base = StatusStyle.of(context, s.status);
+    final style = light ? base : base.onNavy();
+    final fg = light ? AppColors.navy : Colors.white;
+    final muted = fg.withValues(alpha: light ? 0.6 : 0.65);
     final target = s.targetLimit;
     final progress = target == null || target == 0 ? 1.0 : (s.unitsUsed / target).clamp(0.0, 1.0);
     final projectedFrac = target == null || target == 0 ? 1.0 : (s.projectedUnits / target).clamp(0.0, 1.0);
@@ -137,7 +161,7 @@ class SummaryPicture extends StatelessWidget {
             children: [
               Text(label, style: theme.textTheme.labelSmall?.copyWith(color: muted, fontSize: 10)),
               const SizedBox(height: 2),
-              Text(value, style: theme.textTheme.titleMedium?.copyWith(color: color ?? Colors.white)),
+              Text(value, style: theme.textTheme.titleMedium?.copyWith(color: color ?? fg)),
             ],
           ),
         );
@@ -146,11 +170,13 @@ class SummaryPicture extends StatelessWidget {
       width: 360,
       height: 450,
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1B2F4E), AppColors.navy],
+          colors: light
+              ? const [Color(0xFFFFF4CC), Color(0xFFFFFFFF)]
+              : const [Color(0xFF1B2F4E), AppColors.navy],
         ),
       ),
       child: Column(
@@ -160,9 +186,9 @@ class SummaryPicture extends StatelessWidget {
             children: [
               const ArtImage(Art.brandBolt, size: 30),
               const SizedBox(width: 8),
-              Text('Bijli Hisaab'.tr, style: theme.textTheme.titleMedium?.copyWith(color: Colors.white)),
+              Text('Bijli Hisaab'.tr, style: theme.textTheme.titleMedium?.copyWith(color: fg)),
               const Spacer(),
-              StatusPill(status: s.status, onDark: true),
+              StatusPill(status: s.status, onDark: !light),
             ],
           ),
           const SizedBox(height: 22),
@@ -180,7 +206,7 @@ class SummaryPicture extends StatelessWidget {
             children: [
               Text(
                 Fmt.whole(s.unitsUsed),
-                style: theme.textTheme.displaySmall?.copyWith(color: Colors.white, fontSize: 64, height: 1),
+                style: theme.textTheme.displaySmall?.copyWith(color: fg, fontSize: 64, height: 1),
               ),
               const SizedBox(width: 8),
               Padding(
@@ -199,7 +225,7 @@ class SummaryPicture extends StatelessWidget {
               height: 12,
               child: Stack(
                 children: [
-                  Container(color: Colors.white.withValues(alpha: 0.10)),
+                  Container(color: fg.withValues(alpha: light ? 0.08 : 0.10)),
                   FractionallySizedBox(
                     widthFactor: projectedFrac,
                     child: Container(color: barColor.withValues(alpha: 0.30)),
@@ -212,10 +238,10 @@ class SummaryPicture extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              stat('PER DAY', Fmt.oneDp(s.dailyRate)),
-              stat('MONTH END', '~${Fmt.whole(s.projectedUnits)}',
+              stat('PER DAY'.tr, Fmt.oneDp(s.dailyRate)),
+              stat('MONTH END'.tr, '~${Fmt.whole(s.projectedUnits)}',
                   color: s.status == UsageStatus.safe ? null : style.color),
-              stat('EST. BILL', Fmt.rs(s.estimateProjected.total)),
+              stat('EST. BILL'.tr, Fmt.rs(s.estimateProjected.total)),
             ],
           ),
           const Spacer(),
@@ -224,12 +250,12 @@ class SummaryPicture extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.07),
+                color: fg.withValues(alpha: light ? 0.06 : 0.07),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 'Stay under {0}: max {1} units a day for {2} days'.trf({'0': target, '1': Fmt.oneDp(s.safeDailyBudget!), '2': s.daysLeft}),
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodyMedium?.copyWith(color: fg, fontWeight: FontWeight.w600),
               ),
             ),
           const SizedBox(height: 12),

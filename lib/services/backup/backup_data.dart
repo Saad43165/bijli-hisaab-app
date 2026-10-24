@@ -79,6 +79,8 @@ class BackupData {
     'reminder_reading_day',
     'reminder_slab',
     'reminder_due_date',
+    'reminder_weekly',
+    'reminder_peak',
     'reminder_no_reading',
   };
 

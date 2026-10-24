@@ -4,6 +4,15 @@ class AppConstants {
 
   static const String appName = 'Bijli Hisaab';
   static const String appNameUrdu = 'بجلی حساب';
+
+  /// Who made the app (About screen).
+  static const String creatorName = 'Saad Ikram';
+  static const String creatorEmail = 'saadnaz43165@gmail.com';
+  static const String creatorSite = 'https://portfolio-saad-mu.vercel.app/';
+
+  /// Shown wherever people might think this is a government app.
+  static const String unofficialNotice =
+      'Bijli Hisaab is an independent app. It is not an official app of the Government of Pakistan, NEPRA, WAPDA, PITC, K-Electric or any electricity company.';
   static const String tariffAsset = 'assets/config/tariff_pk.json';
 
   static const List<String> provinces = [

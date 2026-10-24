@@ -103,7 +103,7 @@ class SlabMeterCard extends StatelessWidget {
                               Expanded(
                                 flex: bounds[i + 1] - bounds[i],
                                 child: Container(
-                                  margin: EdgeInsets.only(right: i < bounds.length - 2 ? 2 : 0),
+                                  margin: EdgeInsetsDirectional.only(end: i < bounds.length - 2 ? 2 : 0),
                                   color: colorFor(context, bounds[i + 1], threshold)
                                       .withValues(alpha: bounds[i] < used ? 0.95 : 0.28),
                                 ),
@@ -153,9 +153,9 @@ class SlabMeterCard extends StatelessWidget {
                         child: Text(
                           '$b',
                           textAlign: b == 0
-                              ? TextAlign.left
+                              ? TextAlign.start
                               : b == scaleMax
-                                  ? TextAlign.right
+                                  ? TextAlign.end
                                   : TextAlign.center,
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontSize: 11,

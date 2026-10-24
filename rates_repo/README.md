@@ -1,6 +1,6 @@
-# Bijli Bachao — published rates
+# Bijli Hisaab — published rates
 
-This repo holds `tariff_pk.json`, the electricity rates every Bijli Bachao app downloads. Change this file and all installed apps update within about 12 hours. No new app release needed.
+This repo holds `tariff_pk.json`, the electricity rates every Bijli Hisaab app downloads. Change this file and all installed apps update within about 12 hours. No new app release needed.
 
 ## Monthly update (5 minutes)
 NEPRA announces the **FCA** around the 5th–10th of each month and the **QTA** every quarter. When the "Watch NEPRA" workflow opens an issue (or you see it in the news):
@@ -44,3 +44,13 @@ When NEPRA issues a new base tariff (new SRO for slab rates), update the `slabs`
 | `billing_mode` | `whole`, `previous_slab` or `incremental` |
 | `fc_surcharge_per_unit` | FC / debt servicing surcharge, Rs/unit |
 | `applies_adjustments` | Whether FCA and QTA apply to that category (false for lifeline) |
+
+## Rate news on Home (optional)
+Add a short message that appears on every app's Home screen in the "Rate news" card, in English and Urdu:
+```json
+"news": {
+  "en": "FCA for October is +Rs 1.11/unit on November bills.",
+  "ur": "نومبر کے بلوں پر اکتوبر کا FCA +1.11 روپے فی یونٹ ہے۔"
+}
+```
+Remove the `news` block (or leave the text empty) to hide it. Remember to increase `version`.

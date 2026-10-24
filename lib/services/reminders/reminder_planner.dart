@@ -16,27 +16,39 @@ enum ReminderType {
   billDue,
 
   /// When no reading has been added for 6 days.
-  noReading;
+  noReading,
+
+  /// Sunday evening: units and bill of the week.
+  weeklySummary,
+
+  /// TOU meters: 30 minutes before peak hours start.
+  peakHours;
 
   String get settingKey => switch (this) {
         readingDay => 'reminder_reading_day',
         closeToSlab => 'reminder_slab',
         billDue => 'reminder_due_date',
         noReading => 'reminder_no_reading',
+        weeklySummary => 'reminder_weekly',
+        peakHours => 'reminder_peak',
       };
 
   String get label => switch (this) {
-        readingDay => 'Meter reading day'.tr,
-        closeToSlab => 'Close to a slab'.tr,
-        billDue => 'Bill due date'.tr,
-        noReading => 'No recent reading'.tr,
+        readingDay => 'Meter reading day',
+        closeToSlab => 'Close to a slab',
+        billDue => 'Bill due date',
+        noReading => 'No recent reading',
+        weeklySummary => 'Weekly summary',
+        peakHours => 'Peak hours (TOU meters)',
       }.tr;
 
   String get description => switch (this) {
         readingDay => '3 days and 1 day before your meter is read',
-        closeToSlab => 'Evenings in the last 10 days, only when you\'re near a limit'.tr,
+        closeToSlab => 'Evenings in the last 10 days, only when you\'re near a limit',
         billDue => '2 days before and on the due date',
-        noReading => 'After 6 days without a reading'.tr,
+        noReading => 'After 6 days without a reading',
+        weeklySummary => 'Sunday evening: your units and bill this week',
+        peakHours => '30 minutes before expensive peak hours start',
       }.tr;
 }
 
@@ -74,6 +86,7 @@ class ReminderInputs {
     this.billAmount,
     this.billDueDate,
     this.billMonth,
+    this.isTou = false,
   });
 
   final DateTime now;
@@ -87,6 +100,10 @@ class ReminderInputs {
   final double? billAmount;
   final DateTime? billDueDate;
   final String? billMonth;
+
+  /// Time-of-use meter: warn before peak hours.
+  final bool isTou;
+
 }
 
 /// Decides which reminders to schedule. Pure Dart, unit-tested; see
@@ -96,7 +113,11 @@ class ReminderPlanner {
   const ReminderPlanner();
 
   static const int idBase = 3000;
-  static const int idCount = 40;
+  static const int idCount = 50;
+
+  /// Peak-hour alerts for this many days ahead (ids 40–46).
+  static const int peakDaysAhead = 7;
+
 
   /// All ids the planner may use (for cancelling).
   static Iterable<int> get allIds => Iterable.generate(idCount, (i) => idBase + i);
@@ -119,8 +140,10 @@ class ReminderPlanner {
     final s = i.summary;
     final suffix = i.meterName == null ? '' : ' (${i.meterName})';
 
-    void add(int slot, ReminderType type, DateTime day, int hour, String title, String body, {int minute = 0}) {
-      final when = _quiet(DateTime(day.year, day.month, day.day, hour, minute));
+    void add(int slot, ReminderType type, DateTime day, int hour, String title, String body,
+        {int minute = 0, bool quiet = true}) {
+      final at = DateTime(day.year, day.month, day.day, hour, minute);
+      final when = quiet ? _quiet(at) : at;
       // At least a minute ahead, or it fires instantly / is dropped by Android.
       if (!when.isAfter(now.add(const Duration(minutes: 1)))) return;
       out.add(PlannedReminder(id: idBase + slot, type: type, when: when, title: title, body: '$body$suffix'));
@@ -234,9 +257,51 @@ class ReminderPlanner {
       }
     }
 
+    // ------------------------------------------------- 5. weekly summary
+    if (i.enabled.contains(ReminderType.weeklySummary) && s != null && s.hasData) {
+      final sunday = today.add(Duration(days: (DateTime.sunday - today.weekday) % 7));
+      final week = s.dailyRate * 7;
+      add(
+        31,
+        ReminderType.weeklySummary,
+        sunday,
+        _slabHour,
+        'Your week: about {0} units'.trf({'0': Fmt.whole(week)}),
+        '{0} units a day. This bill so far {1} units, heading for {2} ({3}).'.trf({
+          '0': Fmt.oneDp(s.dailyRate),
+          '1': Fmt.whole(s.unitsUsed),
+          '2': Fmt.whole(s.projectedUnits),
+          '3': Fmt.rs(s.estimateProjected.total),
+        }),
+      );
+    }
+
+    // ------------------------------------------------- 6. peak hours (TOU)
+    if (i.enabled.contains(ReminderType.peakHours) && i.isTou) {
+      for (var k = 0; k < peakDaysAhead; k++) {
+        final day = today.add(Duration(days: k));
+        final start = peakStartHour(day);
+        add(
+          40 + k,
+          ReminderType.peakHours,
+          day,
+          start - 1,
+          'Peak hours in 30 minutes'.tr,
+          'From {0} to {1} every unit costs more. Run the motor, iron or washing machine now.'.trf({
+            '0': _clock(start * 60),
+            '1': _clock((start + 4) * 60),
+          }),
+          minute: 30,
+        );
+      }
+    }
+
     out.sort((a, b) => a.when.compareTo(b.when));
     return out;
   }
+
+  /// "4:00 pm" / Urdu "4:00 شام".
+  static String _clock(int minutes) => Fmt.clock(minutes ~/ 60 % 24, minutes % 60);
 
   static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -258,3 +323,12 @@ class ReminderPlanner {
     };
   }
 }
+
+/// NEPRA peak hours for time-of-use meters: 4 evening hours that move with
+/// the season. Returns the start hour (peak runs start..start+4).
+int peakStartHour(DateTime d) => switch (d.month) {
+      12 || 1 || 2 => 17,
+      3 || 4 || 5 => 18,
+      6 || 7 || 8 => 19,
+      _ => 18,
+    };

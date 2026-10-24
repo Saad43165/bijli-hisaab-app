@@ -11,6 +11,7 @@ import 'shared/widgets/urdu_text.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'state/app_state.dart';
 import './core/l10n/l10n.dart';
+import 'core/navigation/app_nav.dart';
 
 class BijliBachaoApp extends StatelessWidget {
   const BijliBachaoApp({super.key});
@@ -29,6 +30,7 @@ class BijliBachaoApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: context.select<AppState, ThemeMode>((s) => s.themeMode),
+      navigatorKey: AppNav.navigatorKey,
       home: const _RootGate(),
     );
   }

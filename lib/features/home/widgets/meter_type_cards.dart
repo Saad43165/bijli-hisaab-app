@@ -158,7 +158,7 @@ class SolarCard extends StatelessWidget {
                 child: _Part(
                   color: p.safe,
                   label: 'Credit on the bill'.tr,
-                  value: e.exportCredit > 0 ? '−${Fmt.rs(e.exportCredit)}' : 'Rs 0',
+                  value: e.exportCredit > 0 ? '−${Fmt.rs(e.exportCredit)}' : 'Rs 0'.tr,
                 ),
               ),
             ],

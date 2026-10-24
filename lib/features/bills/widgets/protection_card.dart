@@ -35,21 +35,20 @@ class ProtectionCard extends StatelessWidget {
 
     final (String title, String body, Color color) = over.isNotEmpty
         ? (
-            'Not protected right now',
+            'Not protected right now'.tr,
             '${over.length == 1 ? '{0} was'.trf({'0': Fmt.month(over.last.monthDate)}) : '{0} bills were'.trf({'0': over.length})} above $limit '
                 'units. Keep every bill at $limit or less for $months months in a row to get protected rates back.',
             p.danger,
           )
         : missing > 0
             ? (
-                'On the way to protected rates',
-                'No bill above $limit units so far. Add the missing ${missing == 1 ? 'month' : '{0} months'.trf({'0': missing})} '
-                    'to confirm — protected rates are much cheaper.',
+                'On the way to protected rates'.tr,
+                'No bill above {0} units so far. Add the missing {1} to confirm — protected rates are much cheaper.'.trf({'0': limit, '1': missing == 1 ? 'month' : '{0} months'.trf({'0': missing})}),
                 AppColors.amberDeep,
               )
             : (
-                'You qualify for protected rates',
-                'All of your last $months bills were $limit units or less. Stay under $limit to keep them.',
+                'You qualify for protected rates'.tr,
+                'All of your last {0} bills were {1} units or less. Stay under {2} to keep them.'.trf({'0': months, '1': limit, '2': limit}),
                 p.safe,
               );
 

@@ -1,0 +1,197 @@
+CONSUMER DETAIL
+REFERENCE NO
+حوالہ نمبر
+01 23456 7890123
+CONSUMER ID
+کنزیومر نمبر
+1000000000
+NAME & ADDRESS
+نام و پتہ
+Test Consumer, Street 1, Test Town
+TRANSFORMER
+ٹرانسفارمر
+Test Transformer
+FEEDER
+فیڈر
+000000 Test Feeder
+SUB DIVISION
+سب ڈویژن
+Test Subdivision
+CATEGORY
+قسم
+Unprotected
+STATUS
+حالت میٹر
+TARIFF CATEGORY
+ٹیرف قسم
+Domestic
+SAN LOAD
+لوڈ
+2
+CURR MDI
+ایم ڈی آئی
+TARIFF
+ٹیرف
+A-1A(01)
+⏳ METER INFO
+METER NO
+میٹر نمبر
+S-P 0000000
+MF
+جزو ضرب
+1
+PREVIOUS READING
+سابقہ ریڈنگ
+38118
+PRESENT READING
+موجودہ ریڈنگ
+38209
+UNITS
+یونٹ
+91
+BILL CHARGES BREAKDOWN 
+(RS.)
+Total Electricity Charges
+کل چارجز
+3614
+Subsidies
+رعایت
+681
+Net Electricity Charges
+83.85 %
+نیٹ چارجز
+2933
+Taxes
+16.15 %
+کل ٹیکس
+565
+Current Bill
+موجودہ بل
+3499
+Arrears
+بقایاجات
+0
+Installment
+قسط
+0
+Adjustments
+ایڈجسٹمنٹ
+0
+W.E Credit
+0
+Lock Open Credit
+0
+Total FPA
+438
+Grand Total
+کل واجبات
+3937
+آپکے اس بل میں اگست 26 کے صرف شدہ یونٹس
+330
+ کے ایندھن کی قیمت
+(FPA)
+ کے 
+438
+ روپے بھی شامل ہیں
+ آپ کے موجودہ بجلی کے بل 
+4,180
+ روپے میں حکومتِ پاکستان کی جانب سے
+681
+ روپے کی سبسڈی شامل ہے۔
+ اس سبسڈی کی مجوزہ اہلیت کی تصدیق کے لیے QR کوڈ اسکین کریں اور رجسٹریشن کروائیں۔
+ بصورتِ دیگر آپ کی سبسڈی معطل ہو سکتی ہے۔
+
+BILL HISTORY
+IESCO
+Consumer
+MONTH
+STATUS
+UNITS
+BILL (RS.)
+PAYMENT (RS.)
+Oct25
+284
+11736
+11736
+Nov25
+93
+2601
+2601
+Dec25
+129
+4687
+4687
+Jan26
+171
+6536
+6536
+Feb26
+158
+6316
+6841
+Mar26
+137
+6102
+6102
+MONTH
+STATUS
+UNITS
+BILL (RS.)
+PAYMENT (RS.)
+Apr26
+69
+3064
+3064
+May26
+181
+3399
+3399
+Jun26
+290
+13203
+13203
+Jul26
+350
+16802
+16802
+Aug26
+330
+16088
+16088
+Sep26
+261
+12840
+12840
+Deferred Amount
+مؤخر شدہ رقم
+Outstanding Install.
+بقایا اقساط
+BILL MONTH
+مہینہ بل
+OCT 26
+READING DATE
+تاریخ ریڈنگ
+18 OCT 26
+ISSUE DATE
+تاریخ اجراء
+19 OCT 26
+&#9888; DUE DATE
+مقررہ تاریخ
+02 NOV 26
+PAYABLE WITHIN
+DUE DATE
+مقررہ تاریخ تک واجب الادا
+ 3937
+L.P
+SURCHARGE
+تاخیر ادائیگی سرچارج
+PAYABLE
+AFTER DUE
+DATE
+مقررہ تاریخ کے بعد واجب الادا
+147
+Till 05-NOV-26
+4,084
+293
+After 05-NOV-26
+4,230

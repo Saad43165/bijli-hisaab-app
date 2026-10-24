@@ -37,7 +37,7 @@ class HeroStyle {
   static const HeroStyle _dark = HeroStyle._(
     dark: true,
     gradient: LinearGradient(
-      begin: Alignment.topLeft,
+      begin: AlignmentDirectional.topStart,
       end: Alignment.bottomRight,
       colors: [Color(0xFF15253D), AppColors.navy],
     ),
@@ -51,7 +51,7 @@ class HeroStyle {
   static const HeroStyle _light = HeroStyle._(
     dark: false,
     gradient: LinearGradient(
-      begin: Alignment.topLeft,
+      begin: AlignmentDirectional.topStart,
       end: Alignment.bottomRight,
       colors: [Color(0xFFFFF7DE), Color(0xFFFFE7A6)],
     ),

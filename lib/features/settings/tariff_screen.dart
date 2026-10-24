@@ -30,7 +30,7 @@ class TariffScreen extends StatelessWidget {
       TariffCheckStatus.updated => 'New rates downloaded'.tr,
       TariffCheckStatus.upToDate => 'You have the latest rates'.tr,
       TariffCheckStatus.notConfigured => 'Online rates are not set up in this build'.tr,
-      TariffCheckStatus.failed => r.message ?? 'Could not check for new rates',
+      TariffCheckStatus.failed => r.message ?? 'Could not check for new rates'.tr,
       TariffCheckStatus.skipped => 'Already checking…'.tr,
     });
   }
@@ -100,13 +100,13 @@ class TariffScreen extends StatelessWidget {
                 _Row(label: 'Quarterly adjustment'.tr, note: t.qtaLabel, value: _signed(t.qtaPerUnit)),
                 _Row(
                   label: 'FC / debt surcharge'.tr,
-                  note: 'Normal consumers · protected exempt',
+                  note: 'Normal consumers · protected exempt'.tr,
                   value: Fmt.rate(t.unprotectedCategory.fcSurchargePerUnit),
                 ),
-                _Row(label: 'GST'.tr, note: 'On energy, fixed, surcharge, FCA and QTA', value: '${Fmt.oneDp(t.gstPercent)}%'),
+                _Row(label: 'GST'.tr, note: 'On energy, fixed, surcharge, FCA and QTA'.tr, value: '${Fmt.oneDp(t.gstPercent)}%'),
                 _Row(
                   label: 'Electricity duty · TV fee'.tr,
-                  note: 'Removed from bills since July 2025',
+                  note: 'Removed from bills since July 2025'.tr,
                   value: t.tvFee == 0 && t.dutyFor(state.activeMeter?.province ?? '') == 0 ? 'None'.tr : 'Applied'.tr,
                   last: true,
                 ),
@@ -137,7 +137,7 @@ class TariffScreen extends StatelessWidget {
             child: Column(
               children: [
                 _Row(label: 'Peak hours'.tr, note: '4 evening hours, set by season', value: Fmt.rate(t.tou.peakRate)),
-                _Row(label: 'Off-peak hours'.tr, note: 'All other hours', value: Fmt.rate(t.tou.offPeakRate)),
+                _Row(label: 'Off-peak hours'.tr, note: 'All other hours'.tr, value: Fmt.rate(t.tou.offPeakRate)),
                 _Row(
                   label: 'Fixed charge'.tr,
                   note: 'Per kW on {0}% of sanctioned load'.trf({'0': (t.tou.fixedLoadShare * 100).round()}),
@@ -154,12 +154,12 @@ class TariffScreen extends StatelessWidget {
               children: [
                 _Row(
                   label: 'Net billing (from Feb 2026)'.tr,
-                  note: 'Paid for every exported unit',
+                  note: 'Paid for every exported unit'.tr,
                   value: Fmt.rate(t.solar.netBillingRate),
                 ),
                 _Row(
                   label: 'Net metering (older agreements)'.tr,
-                  note: 'Paid for surplus units after netting',
+                  note: 'Paid for surplus units after netting'.tr,
                   value: Fmt.rate(t.solar.netMeteringRate),
                   last: true,
                 ),
@@ -217,9 +217,9 @@ class _StatusCard extends StatelessWidget {
 
     final String lastLine;
     if (!configured) {
-      lastLine = 'Using the rates built into the app.';
+      lastLine = 'Using the rates built into the app.'.tr;
     } else if (last == null) {
-      lastLine = 'Not checked yet';
+      lastLine = 'Not checked yet'.tr;
     } else {
       lastLine = 'Checked ${DateFormat('d MMM, h:mm a', L10n.language).format(last)}'
           '${state.lastRatesStatus == null ? '' : ' · ${state.lastRatesStatus}'}';
@@ -335,8 +335,8 @@ class _SlabTable extends StatelessWidget {
           Row(
             children: [
               Expanded(flex: 4, child: Text('UNITS'.tr, style: head)),
-              Expanded(flex: 3, child: Text('PER UNIT'.tr, style: head, textAlign: TextAlign.right)),
-              Expanded(flex: 3, child: Text('FIXED / kW'.tr, style: head, textAlign: TextAlign.right)),
+              Expanded(flex: 3, child: Text('PER UNIT'.tr, style: head, textAlign: TextAlign.end)),
+              Expanded(flex: 3, child: Text('FIXED / kW'.tr, style: head, textAlign: TextAlign.end)),
             ],
           ),
           const SizedBox(height: 6),
@@ -363,7 +363,7 @@ class _SlabTable extends StatelessWidget {
                     flex: 3,
                     child: Text(
                       Fmt.rate(s.rate),
-                      textAlign: TextAlign.right,
+                      textAlign: TextAlign.end,
                       style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -371,7 +371,7 @@ class _SlabTable extends StatelessWidget {
                     flex: 3,
                     child: Text(
                       s.fixedPerKw == 0 ? '—' : Fmt.rs(s.fixedPerKw),
-                      textAlign: TextAlign.right,
+                      textAlign: TextAlign.end,
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),

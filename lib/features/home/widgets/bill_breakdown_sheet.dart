@@ -88,27 +88,27 @@ class _BillBreakdownSheetState extends State<BillBreakdownSheet> {
           ),
           const SizedBox(height: 8),
           if (e.isTou) ...[
-            line('Peak units', e.peakUnits! * tariff.tou.peakRate,
+            line('Peak units'.tr, e.peakUnits! * tariff.tou.peakRate,
                 note: '{0} units @ {1}'.trf({'0': Fmt.whole(e.peakUnits!), '1': Fmt.rate(tariff.tou.peakRate)})),
-            line('Off-peak units', e.offPeakUnits * tariff.tou.offPeakRate,
+            line('Off-peak units'.tr, e.offPeakUnits * tariff.tou.offPeakRate,
                 note: '{0} units @ {1}'.trf({'0': Fmt.whole(e.offPeakUnits), '1': Fmt.rate(tariff.tou.offPeakRate)})),
           ] else
-            line('Energy charges', e.energy,
+            line('Energy charges'.tr, e.energy,
                 note: '{0} units · slab {1} @ {2}'.trf({'0': Fmt.whole(e.units), '1': e.slab.label, '2': Fmt.rate(e.slab.rate)})),
           if (e.fixed > 0)
-            line('Fixed charges', e.fixed,
+            line('Fixed charges'.tr, e.fixed,
                 note: e.isTou
                     ? '{0} per kW × {1}% of {2} kW sanctioned load'.trf({'0': Fmt.whole(tariff.tou.fixedPerKw), '1': (tariff.tou.fixedLoadShare * 100).round(), '2': Fmt.oneDp(load)})
                     : '{0} per kW × {1} kW sanctioned load'.trf({'0': Fmt.whole(e.slab.fixedPerKw), '1': Fmt.oneDp(load)})),
           if (e.fcSurcharge > 0)
-            line('FC surcharge', e.fcSurcharge, note: '{0} per unit'.trf({'0': Fmt.rate(tariff.categoryOf(e.appliedClass).fcSurchargePerUnit)})),
-          if (e.fca != 0) line('Fuel charges adjustment', e.fca, note: tariff.fcaLabel),
-          if (e.qta != 0) line('Quarterly adjustment', e.qta, note: tariff.qtaLabel),
-          if (e.electricityDuty > 0) line('Electricity duty', e.electricityDuty),
+            line('FC surcharge'.tr, e.fcSurcharge, note: '{0} per unit'.trf({'0': Fmt.rate(tariff.categoryOf(e.appliedClass).fcSurchargePerUnit)})),
+          if (e.fca != 0) line('Fuel charges adjustment'.tr, e.fca, note: tariff.fcaLabel),
+          if (e.qta != 0) line('Quarterly adjustment'.tr, e.qta, note: tariff.qtaLabel),
+          if (e.electricityDuty > 0) line('Electricity duty'.tr, e.electricityDuty),
           line('GST', e.gst, note: '${Fmt.oneDp(tariff.gstPercent)}%'),
-          if (e.tvFee > 0) line('TV fee', e.tvFee),
+          if (e.tvFee > 0) line('TV fee'.tr, e.tvFee),
           if (e.exportCredit > 0)
-            line('Solar credit', -e.exportCredit,
+            line('Solar credit'.tr, -e.exportCredit,
                 note: '{0} units @ {1}'.trf({'0': Fmt.whole(e.exportUnits), '1': Fmt.rate(meter?.meterType == MeterType.netMetering ? tariff.solar.netMeteringRate : tariff.solar.netBillingRate)})),
           const Divider(height: 24),
           line(e.total < 0 ? 'Credit to you'.tr : 'Total'.tr, e.total.abs(),

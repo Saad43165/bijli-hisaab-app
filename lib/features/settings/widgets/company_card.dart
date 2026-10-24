@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/companies.dart';
+import '../../bills/online_bill_screen.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/company_badge.dart';
 import '../../../shared/widgets/dialogs.dart';
@@ -64,7 +65,7 @@ class CompanyCard extends StatelessWidget {
                   _Action(
                     icon: Icons.receipt_long_rounded,
                     label: 'View bill online'.tr,
-                    onTap: () => _open(context, Uri.parse(c.billUrl!)),
+                    onTap: () => OnlineBillScreen.open(context, c, referenceNo),
                   ),
                 if (c.helpline != null)
                   _Action(

@@ -8,9 +8,11 @@ import '../../data/models/bill.dart';
 import '../../services/year_comparison.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
+import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/fade_slide_in.dart';
 import '../../shared/widgets/hero_style.dart';
 import '../../shared/widgets/section_header.dart';
+import '../../services/online_bill_service.dart';
 import '../../state/app_state.dart';
 import 'bill_form_screen.dart';
 import 'past_bills_screen.dart';
@@ -20,12 +22,31 @@ import 'widgets/monthly_units_chart.dart';
 import 'widgets/protection_card.dart';
 import 'widgets/year_compare_card.dart';
 import '../../core/l10n/l10n.dart';
+import '../assistant/assistant_button.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
   void _push(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+
+  Future<void> _fetchOnline(BuildContext context) async {
+    final state = context.read<AppState>();
+    try {
+      final before = state.bills.length;
+      final bill = await state.fetchOnlineBill();
+      if (!context.mounted) return;
+      final added = state.bills.length - before;
+      showSnack(
+        context,
+        added > 0
+            ? 'Added {0} months from your {1} bill.'.trf({'0': added, '1': Fmt.month(bill.month)})
+            : 'Your history is up to date ({0} bill).'.trf({'0': Fmt.month(bill.month)}),
+      );
+    } on OnlineBillException catch (e) {
+      if (context.mounted) showSnack(context, e.message.tr);
+    }
+  }
 
   Future<void> _addMenu(BuildContext context) async {
     await showModalBottomSheet<void>(
@@ -78,10 +99,10 @@ class HistoryScreen extends StatelessWidget {
           ),
         );
     return [
-      option(Art.camera, 'Scan a bill', 'Units, amount and due date read from a photo', const ScanBillScreen()),
-      option(Art.calendar, 'Add past 12 months',
-          'Copy the units table printed on your bill — the fastest way to fill a year', const PastBillsScreen()),
-      option(Art.memo, 'Type a bill', 'Enter one month by hand', const BillFormScreen()),
+      option(Art.camera, 'Scan a bill'.tr, 'Units, amount and due date read from a photo'.tr, const ScanBillScreen()),
+      option(Art.calendar, 'Add past 12 months'.tr,
+          'Copy the units table printed on your bill — the fastest way to fill a year'.tr, const PastBillsScreen()),
+      option(Art.memo, 'Type a bill'.tr, 'Enter one month by hand'.tr, const BillFormScreen()),
     ];
   }
 
@@ -114,6 +135,15 @@ class HistoryScreen extends StatelessWidget {
         titleTextStyle: theme.textTheme.headlineSmall,
         title: Text('Bill history'.tr),
         actions: [
+          const AssistantButton(),
+          if (state.canFetchOnlineBill)
+            IconButton(
+              tooltip: 'Get bills from the website'.tr,
+              onPressed: state.fetchingBill ? null : () => _fetchOnline(context),
+              icon: state.fetchingBill
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.cloud_download_rounded),
+            ),
           if (bills.isNotEmpty)
             TextButton.icon(
               onPressed: () => _addMenu(context),
@@ -222,7 +252,7 @@ class _YearHero extends StatelessWidget {
               const SizedBox(height: 2),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: Text(value, style: theme.textTheme.titleMedium?.copyWith(color: h.fg)),
               ),
               Text(caption, style: theme.textTheme.bodySmall?.copyWith(color: h.muted, fontSize: 11.5)),

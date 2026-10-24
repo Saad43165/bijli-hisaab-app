@@ -163,7 +163,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       await c.setFlashMode(next ? FlashMode.torch : FlashMode.off);
       setState(() => _torch = next);
     } catch (_) {
-      _showHint('This phone has no flashlight');
+      _showHint('This phone has no flashlight'.tr);
     }
   }
 
@@ -238,7 +238,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       if (!mounted) return;
       if (result.isEmpty) {
         HapticFeedback.heavyImpact();
-        _showHint('Couldn\'t read the numbers. Move closer, fill the frame and avoid glare.');
+        _showHint('Couldn\'t read the numbers. Move closer, fill the frame and avoid glare.'.tr);
         return;
       }
       HapticFeedback.lightImpact();
@@ -246,7 +246,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
       if (!mounted) return;
       Navigator.of(context).pop(MeterScanOutcome(imagePath: path, result: result));
     } catch (e) {
-      _showHint('Couldn\'t read the photo. Try again.');
+      _showHint('Couldn\'t read the photo. Try again.'.tr);
       debugPrint('Meter OCR failed: {0}'.trf({'0': e}));
     }
   }
@@ -284,7 +284,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
           icon: Icons.no_photography_rounded,
           title: 'Camera permission needed'.tr,
           message: 'Allow camera access to scan your meter.\nIf you chose "Don\'t allow", turn it on in Settings → Apps → Bijli Hisaab → Permissions.'.tr,
-          primaryLabel: 'Try again',
+          primaryLabel: 'Try again'.tr,
           onPrimary: _start,
           onGallery: _fromGallery,
         );
@@ -299,8 +299,8 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
         return _Problem(
           icon: Icons.error_outline_rounded,
           title: 'Camera didn\'t start'.tr,
-          message: _error ?? 'Something went wrong.',
-          primaryLabel: 'Try again',
+          message: _error ?? 'Something went wrong.'.tr,
+          primaryLabel: 'Try again'.tr,
           onPrimary: _start,
           onGallery: _fromGallery,
         );
@@ -555,7 +555,7 @@ class _Problem extends StatelessWidget {
                 minimumSize: const Size(220, 50),
               ),
               onPressed: onPrimary,
-              child: Text(primaryLabel ?? 'Try again'),
+              child: Text(primaryLabel ?? 'Try again'.tr),
             ),
             const SizedBox(height: 10),
           ],

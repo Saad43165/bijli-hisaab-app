@@ -38,6 +38,20 @@ class Fmt {
   static String month(DateTime d) => _month.format(d);
   static String monthShort(DateTime d) => _monthShort.format(d);
 
+  /// "4:30 pm"; in Urdu "4:30 شام" (time of day words read better than am/pm).
+  static String clock(int hour, int minute) {
+    final h12 = hour % 12 == 0 ? 12 : hour % 12;
+    final mm = minute.toString().padLeft(2, '0');
+    if (!L10n.isUrdu) return '$h12:$mm ${hour < 12 ? 'am' : 'pm'}';
+    final part = switch (hour) {
+      >= 5 && < 12 => 'صبح',
+      >= 12 && < 16 => 'دوپہر',
+      >= 16 && < 20 => 'شام',
+      _ => 'رات',
+    };
+    return '$h12:$mm $part';
+  }
+
   /// "2026-09" — storage key for bill months.
   static String monthKey(DateTime d) => _monthKey.format(d);
 

@@ -53,9 +53,9 @@ class _GettingStartedCardState extends State<GettingStartedCard> {
     final last = widget.latest;
     String? error;
     if (n == null || n <= 0 || n > 9999999) {
-      error = 'Enter the number on your meter';
+      error = 'Enter the number on your meter'.tr;
     } else if (last != null && n < last.value) {
-      error = 'Lower than your last reading (${Fmt.whole(last.value)})';
+      error = 'Lower than your last reading ({0})'.trf({'0': Fmt.whole(last.value)});
     }
     setState(() => _error = error);
     if (error != null) return;
@@ -236,7 +236,7 @@ class _Link extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton.icon(
       onPressed: onTap,
-      style: TextButton.styleFrom(foregroundColor: h.fg, alignment: Alignment.centerLeft),
+      style: TextButton.styleFrom(foregroundColor: h.fg, alignment: AlignmentDirectional.centerStart),
       icon: Icon(icon, size: 18, color: h.dark ? AppColors.amber : AppColors.amberDeep),
       label: Text(label, overflow: TextOverflow.ellipsis),
     );

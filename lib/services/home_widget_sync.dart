@@ -12,6 +12,9 @@ class HomeWidgetSync {
 
   static const androidName = 'UsageWidgetProvider';
 
+  /// The small 2×1 widget: units and status only.
+  static const smallAndroidName = 'UsageWidgetSmallProvider';
+
   /// What was last sent to the widget.
   static String? _last;
 
@@ -27,19 +30,19 @@ class HomeWidgetSync {
       return {
         'meter': meterLabel,
         'units': '—',
-        'of': 'units this month',
+        'of': 'units this month'.tr,
         'progress': 0,
         'status': '',
         'statusColor': '#F5B700',
         'line': hasReading ? 'Add another reading to see this month'.tr : 'Tap to add today\'s reading'.tr,
       };
     }
-    final days = '${s.daysLeft} ${s.daysLeft == 1 ? 'day'.tr : 'days'.tr} left';
+    final days = '{0} {1} left'.trf({'0': s.daysLeft, '1': s.daysLeft == 1 ? 'day'.tr : 'days'.tr});
     final target = s.targetLimit;
     final budget = s.safeDailyBudget;
     final String line;
     if (s.isTou || target == null) {
-      line = '~${Fmt.whole(s.projectedUnits)} by month end · $days';
+      line = '~{0} by month end · {1}'.trf({'0': Fmt.whole(s.projectedUnits), '1': days});
     } else if (budget != null) {
       line = 'Max {0} units a day · {1}'.trf({'0': Fmt.oneDp(budget), '1': days});
     } else {
@@ -47,7 +50,7 @@ class HomeWidgetSync {
     }
     final (String status, String color) = switch (s.status) {
       UsageStatus.safe => ('On track'.tr, '#34C38F'),
-      UsageStatus.warn => ('Close', '#F5A524'),
+      UsageStatus.warn => ('Close'.tr, '#F5A524'),
       UsageStatus.danger => ('Will cross'.tr, '#F06565'),
       UsageStatus.overLimits => ('Highest slab'.tr, '#F06565'),
       UsageStatus.noData => ('', '#F5B700'),
@@ -55,7 +58,7 @@ class HomeWidgetSync {
     return {
       'meter': meterLabel,
       'units': Fmt.whole(s.unitsUsed),
-      'of': target == null ? 'units this month' : 'of $target units',
+      'of': target == null ? 'units this month'.tr : 'of {0} units'.trf({'0': target}),
       'progress': (s.progress * 100).round(),
       'status': s.isTou ? 'TOU' : status,
       'statusColor': color,
@@ -79,6 +82,7 @@ class HomeWidgetSync {
         await HomeWidget.saveWidgetData(e.key, e.value);
       }
       await HomeWidget.updateWidget(androidName: androidName);
+      await HomeWidget.updateWidget(androidName: smallAndroidName);
     } catch (e) {
       // No widget placed yet, or the plugin isn't available (tests).
       debugPrint('Home widget update skipped: $e');

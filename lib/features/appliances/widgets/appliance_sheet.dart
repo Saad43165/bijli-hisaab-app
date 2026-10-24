@@ -292,7 +292,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                     _QtyStepper(value: _qty, onChanged: (v) => setState(() => _qty = v)),
                     const SizedBox(height: 4),
                     Padding(
-                      padding: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsetsDirectional.only(start: 12),
                       child: Text('How many'.tr, style: theme.textTheme.bodySmall),
                     ),
                   ],
@@ -394,7 +394,7 @@ class _Est extends StatelessWidget {
         Text(label, style: theme.textTheme.bodySmall),
         FittedBox(
           fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: Text(value, style: theme.textTheme.titleSmall),
         ),
       ],

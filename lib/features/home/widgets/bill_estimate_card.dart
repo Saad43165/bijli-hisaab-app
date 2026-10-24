@@ -104,7 +104,7 @@ class _Mini extends StatelessWidget {
         Text(label, style: theme.textTheme.bodySmall),
         FittedBox(
           fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: Text(value, style: theme.textTheme.titleSmall),
         ),
       ],

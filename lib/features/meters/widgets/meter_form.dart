@@ -9,6 +9,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/meter.dart';
 import '../../../services/bill_ocr_service.dart';
 import '../../../services/bill_scan_analyzer.dart';
+import '../../../services/online_bill_service.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../state/app_state.dart';
@@ -16,9 +17,12 @@ import 'company_picker.dart';
 import '../../../core/l10n/l10n.dart';
 
 class MeterFormResult {
-  const MeterFormResult({required this.meter, this.reading, this.readingDate});
+  const MeterFormResult({required this.meter, this.reading, this.readingDate, this.onlineBill});
 
   final Meter meter;
+
+  /// Bill fetched online while filling the form; saved with the meter.
+  final OnlineBill? onlineBill;
   final double? reading;
   final DateTime? readingDate;
 }
@@ -46,6 +50,8 @@ class MeterFormState extends State<MeterForm> {
   late final TextEditingController _reference;
   late MeterType _meterType;
   bool _scanning = false;
+  bool _fetching = false;
+  OnlineBill? _online;
 
   late String _disco;
   late String _province;
@@ -137,7 +143,49 @@ class MeterFormState extends State<MeterForm> {
       meter: meter,
       reading: widget.askForReading ? Fmt.parseNumber(_reading.text) : null,
       readingDate: widget.askForReading ? _readingDate : null,
+      onlineBill: _online,
     );
+  }
+
+  /// Fetches the latest bill from the company's website with the reference
+  /// number and fills in load, reading day, protected status and reading.
+  Future<void> _fetchOnline() async {
+    final state = context.read<AppState>();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    FocusScope.of(context).unfocus();
+    setState(() => _fetching = true);
+    try {
+      final b = await state.previewOnlineBill(PowerCompanies.of(_disco), _reference.text);
+      if (!mounted) return;
+      setState(() {
+        _online = b;
+        _reference.text = b.reference;
+        if (b.sanctionedLoadKw != null && b.sanctionedLoadKw! > 0) _load.text = _trim(b.sanctionedLoadKw!);
+        if (b.readingDate != null) _readingDay = b.readingDate!.day;
+        if (b.protectedCategory != null) {
+          _protected = b.protectedCategory! ? ProtectedSetting.protected : ProtectedSetting.unprotected;
+        }
+        if (widget.askForReading && b.presentReading != null) {
+          _reading.text = b.presentReading!.round().toString();
+          final read = b.readingDate;
+          if (read != null && !read.isAfter(DateTime.now())) _readingDate = read;
+        }
+      });
+      messenger
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text('Found your {0} bill: {1} units, {2}. {3} months of history will be saved.'.trf({
+            '0': Fmt.month(b.month),
+            '1': b.units,
+            '2': Fmt.rs(b.amount),
+            '3': b.history.length + 1,
+          })),
+        ));
+    } on OnlineBillException catch (e) {
+      messenger?.showSnackBar(SnackBar(content: Text(e.message.tr)));
+    } finally {
+      if (mounted) setState(() => _fetching = false);
+    }
   }
 
   /// Scans a bill and fills in what it can: company, reference number,
@@ -294,7 +342,31 @@ class MeterFormState extends State<MeterForm> {
               helperText: 'Printed at the top of your bill. Needed to view or pay the bill online.'.tr,
               helperMaxLines: 2,
             ),
+            onChanged: (_) => setState(() => _online = null),
           ),
+          if (OnlineBillService.supports(PowerCompanies.of(_disco))) ...[
+            const SizedBox(height: 10),
+            _online != null
+                ? Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Bill found — {0} months of history will be added'.trf({'0': _online!.history.length + 1}),
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  )
+                : FilledButton.tonalIcon(
+                    onPressed: _fetching || !OnlineBillService.validReference(_reference.text) ? null : _fetchOnline,
+                    icon: _fetching
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.cloud_download_rounded),
+                    label: Text(_fetching ? 'Getting your bill…'.tr : 'Get my details from my bill online'.tr),
+                  ),
+          ],
           gap,
           Row(
             children: [
@@ -310,11 +382,11 @@ class MeterFormState extends State<MeterForm> {
                       controller: controller,
                       focusNode: focusNode,
                       textCapitalization: TextCapitalization.words,
-                      decoration: InputDecoration(labelText: 'City'.tr, errorMaxLines: 3),
+                      decoration: InputDecoration(labelText: 'City (optional)'.tr, errorMaxLines: 3),
                       // Say "that's LESCO's area" while typing, not only on Save.
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Enter city';
+                        if (v == null || v.trim().isEmpty) return null;
                         final owner = Cities.companyOf(v);
                         if (owner != null && owner != _disco) {
                           return '{0} is in {1}\'s area — change the company above'.trf({'0': v.trim(), '1': PowerCompanies.of(owner).shortCode});
@@ -325,7 +397,7 @@ class MeterFormState extends State<MeterForm> {
                       onFieldSubmitted: (_) => onSubmit(),
                     ),
                     optionsViewBuilder: (context, onSelected, options) => Align(
-                      alignment: Alignment.topLeft,
+                      alignment: AlignmentDirectional.topStart,
                       child: Material(
                         elevation: 6,
                         color: theme.colorScheme.surface,
@@ -484,11 +556,11 @@ class MeterFormState extends State<MeterForm> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final (value, label) in const [
+              for (final (value, label) in [
                 (ProtectedSetting.protected, 'Yes'),
                 (ProtectedSetting.unprotected, 'No'),
                 (ProtectedSetting.lifeline, 'Lifeline'),
-                (ProtectedSetting.auto, 'Not sure'),
+                (ProtectedSetting.auto, 'Not sure'.tr),
               ])
                 ChoiceChip(
                   label: Text(label),
@@ -527,7 +599,7 @@ class MeterFormState extends State<MeterForm> {
           ),
           if (_readingDay == null)
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton(
                 onPressed: () => setState(() => _readingDay = DateTime.now().day),
                 child: Text('Don\'t know? Use today for now'.tr),

@@ -50,12 +50,12 @@ class _ExportScreenState extends State<ExportScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<AppState>();
-    const files = [
-      ('meters.csv', 'DISCO, city, province, connection, load, protected setting'),
-      ('readings.csv', 'Meter readings with dates'),
-      ('bills.csv', 'Monthly units, amount, due date, slab band'),
-      ('appliances.csv', 'Appliances with estimated monthly units'),
-      ('events.csv', 'App usage: opens, readings added, slab warnings'),
+    final files = [
+      ('meters.csv', 'DISCO, city, province, connection, load, protected setting'.tr),
+      ('readings.csv', 'Meter readings with dates'.tr),
+      ('bills.csv', 'Monthly units, amount, due date, slab band'.tr),
+      ('appliances.csv', 'Appliances with estimated monthly units'.tr),
+      ('events.csv', 'App usage: opens, readings added, slab warnings'.tr),
     ];
 
     return Scaffold(

@@ -54,7 +54,7 @@ class _BackupScreenState extends State<BackupScreen> {
     final PlatformFile? file;
     try {
       // Any type: backups sent over WhatsApp often lose their .json type.
-      file = await FilePicker.pickFile(dialogTitle: 'Choose a Bijli Hisaab backup');
+      file = await FilePicker.pickFile(dialogTitle: 'Choose a Bijli Hisaab backup'.tr);
     } catch (e) {
       if (mounted) showSnack(context, 'Could not open files: {0}'.trf({'0': e}));
       return;
@@ -74,7 +74,7 @@ class _BackupScreenState extends State<BackupScreen> {
       if (mounted) _problem(e.message);
       return;
     } on FormatException {
-      if (mounted) _problem('This file isn\'t a Bijli Hisaab backup.');
+      if (mounted) _problem('This file isn\'t a Bijli Hisaab backup.'.tr);
       return;
     } catch (e) {
       if (mounted) _problem('Could not read the file: {0}'.trf({'0': e}));
@@ -88,13 +88,13 @@ class _BackupScreenState extends State<BackupScreen> {
       final data = await context.read<AppState>().readLocalBackup(b);
       if (mounted) await _confirmAndRestore(data);
     } catch (e) {
-      if (mounted) _problem('This copy can\'t be read.');
+      if (mounted) _problem('This copy can\'t be read.'.tr);
     }
   }
 
   Future<void> _confirmAndRestore(BackupData data) async {
     if (data.isEmpty) {
-      _problem('This backup has no meters in it.');
+      _problem('This backup has no meters in it.'.tr);
       return;
     }
     final state = context.read<AppState>();
@@ -351,10 +351,10 @@ class _LocalTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = backup.summary;
     final (art, label) = switch (s.kind) {
-      BackupKind.auto => (Art.calendar, 'Weekly copy'),
-      BackupKind.beforeRestore => (Art.shield, 'Before restore'),
-      BackupKind.beforeReset => (Art.shield, 'Before reset'),
-      BackupKind.manual => (Art.memo, 'Saved backup'),
+      BackupKind.auto => (Art.calendar, 'Weekly copy'.tr),
+      BackupKind.beforeRestore => (Art.shield, 'Before restore'.tr),
+      BackupKind.beforeReset => (Art.shield, 'Before reset'.tr),
+      BackupKind.manual => (Art.memo, 'Saved backup'.tr),
     };
     return ListTile(
       leading: ArtTile(art, size: 40),

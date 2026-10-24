@@ -5,7 +5,7 @@ import '../../core/theme/app_theme.dart';
 /// Urdu in Noto Nastaliq, right-to-left, with the extra line height
 /// Nastaliq needs so ascenders/descenders don't clip.
 class UrduText extends StatelessWidget {
-  const UrduText(this.text, {super.key, this.style, this.textAlign = TextAlign.right});
+  const UrduText(this.text, {super.key, this.style, this.textAlign = TextAlign.end});
 
   final String text;
   final TextStyle? style;

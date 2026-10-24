@@ -134,8 +134,8 @@ class _ReadingRow extends StatelessWidget {
       key: ValueKey(r.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: 24),
         color: theme.colorScheme.error.withValues(alpha: 0.15),
         child: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error),
       ),
@@ -161,8 +161,8 @@ class _ReadingRow extends StatelessWidget {
         ].join('\n')),
         isThreeLine: delta != null || r.peakValue != null || r.exportValue != null,
         trailing: switch (r.source) {
-          'bill' => const TagBadge('From bill'),
-          'photo' => const TagBadge('From photo'),
+          'bill' => TagBadge('From bill'.tr),
+          'photo' => TagBadge('From photo'.tr),
           _ => null,
         },
       ),

@@ -171,13 +171,13 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                   children: [
                     _NumberRow(
                       label: 'Fuel charges adjustment (FCA)'.tr,
-                      helper: 'Rs per unit, from your latest bill. Can be negative.',
+                      helper: 'Rs per unit, from your latest bill. Can be negative.'.tr,
                       controller: _fca,
                       allowNegative: true,
                     ),
                     _NumberRow(
                       label: 'Quarterly adjustment (QTA)'.tr,
-                      helper: 'Rs per unit. Can be negative.',
+                      helper: 'Rs per unit. Can be negative.'.tr,
                       controller: _qta,
                       allowNegative: true,
                     ),
@@ -208,11 +208,11 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _NumberRow(label: 'Peak'.tr, helper: 'Rs per unit', prefix: 'Rs', controller: _touPeak),
-                    _NumberRow(label: 'Off-peak'.tr, helper: 'Rs per unit', prefix: 'Rs', controller: _touOffPeak),
+                    _NumberRow(label: 'Peak'.tr, helper: 'Rs per unit'.tr, prefix: 'Rs', controller: _touPeak),
+                    _NumberRow(label: 'Off-peak'.tr, helper: 'Rs per unit'.tr, prefix: 'Rs', controller: _touOffPeak),
                     _NumberRow(
                       label: 'Fixed charge'.tr,
-                      helper: 'Rs per kW, on ${(t.tou.fixedLoadShare * 100).round()}% of sanctioned load',
+                      helper: 'Rs per kW, on {0}% of sanctioned load'.trf({'0': (t.tou.fixedLoadShare * 100).round()}),
                       prefix: 'Rs',
                       controller: _touFixed,
                     ),
@@ -226,13 +226,13 @@ class _TariffEditScreenState extends State<TariffEditScreen> {
                   children: [
                     _NumberRow(
                       label: 'Net billing buyback'.tr,
-                      helper: 'Rs per exported unit (agreements from Feb 2026)',
+                      helper: 'Rs per exported unit (agreements from Feb 2026)'.tr,
                       prefix: 'Rs',
                       controller: _netBilling,
                     ),
                     _NumberRow(
                       label: 'Net metering surplus'.tr,
-                      helper: 'Rs per surplus unit (older agreements)',
+                      helper: 'Rs per surplus unit (older agreements)'.tr,
                       prefix: 'Rs',
                       controller: _netMetering,
                     ),
@@ -279,7 +279,7 @@ class _CategoryEditor extends StatelessWidget {
               prefix: 'Rs',
               controller: rates[i],
             ),
-          _NumberRow(label: 'FC surcharge'.tr, helper: 'Rs per unit', prefix: 'Rs', controller: fc),
+          _NumberRow(label: 'FC surcharge'.tr, helper: 'Rs per unit'.tr, prefix: 'Rs', controller: fc),
           const SizedBox(height: 4),
           DropdownButtonFormField<BillingMode>(
             key: ValueKey(mode),

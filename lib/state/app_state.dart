@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 
+import '../core/constants/cities.dart';
 import '../core/constants/companies.dart';
 import '../core/l10n/l10n.dart';
 import '../core/utils/date_utils.dart';
 import '../core/utils/formatters.dart';
 import '../data/db/app_database.dart';
+import '../features/assistant/assistant_models.dart';
 import '../data/models/app_event.dart';
 import '../data/models/appliance.dart';
 import '../data/models/bill.dart';
@@ -33,6 +36,7 @@ import '../services/settings_service.dart';
 import '../services/tariff_update_service.dart';
 import '../services/tariff_calculator.dart';
 import '../services/usage_forecaster.dart';
+import '../services/online_bill_service.dart';
 
 /// Single source of truth for the UI. Screens read from it and call its
 /// methods; they never talk to repositories directly.
@@ -218,6 +222,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
+  /// Bill total for [units] as a protected or unprotected consumer (for
+  /// "what would protected rates save me").
+  double? estimateAs(int units, {required bool protectedRates}) {
+    final meter = _activeMeter;
+    if (meter == null || !hasTariff) return null;
+    return calculator
+        .estimate(
+          units < 0 ? 0 : units,
+          consumerClass: protectedRates ? ConsumerClass.protected : ConsumerClass.unprotected,
+          sanctionedLoadKw: meter.sanctionedLoadKw,
+          province: meter.province,
+        )
+        .total;
+  }
+
   /// Cost of one extra unit at the expected month-end usage.
   double get marginalRate {
     if (!hasTariff) return 0;
@@ -257,12 +276,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
     }
     unawaited(checkForRateUpdates());
+    unawaited(autoCheckOnlineBill());
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Checks at most every 12 hours (see RemoteConfig.checkInterval).
-    if (state == AppLifecycleState.resumed) unawaited(checkForRateUpdates());
+    if (state == AppLifecycleState.resumed) {
+      unawaited(checkForRateUpdates());
+      unawaited(autoCheckOnlineBill());
+    }
   }
 
   @override
@@ -331,6 +354,240 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       summary: _summary,
       hasReading: _readings.isNotEmpty,
     ));
+  }
+
+  // ------------------------------------------------------------ online bill
+
+  final OnlineBillService _online = OnlineBillService();
+  bool _fetchingBill = false;
+  String? _billNotice;
+
+  bool get fetchingBill => _fetchingBill;
+
+  /// "New Oct 2026 bill: Rs 3,937, due 2 Nov" after an automatic check.
+  String? get billNotice => _billNotice;
+
+  void dismissBillNotice() {
+    _billNotice = null;
+    notifyListeners();
+  }
+
+  /// The active meter's bill can be fetched from the PITC site.
+  bool get canFetchOnlineBill {
+    final m = _activeMeter;
+    return m != null && OnlineBillService.supports(company) && OnlineBillService.validReference(m.referenceNo);
+  }
+
+  DateTime? get onlineBillChecked {
+    final id = _activeMeter?.id;
+    return id == null ? null : _settings.onlineBillChecked(id);
+  }
+
+  /// Downloads the latest bill for [company] / [reference] without saving it
+  /// (meter form: fill in the details before the meter exists).
+  Future<OnlineBill> previewOnlineBill(PowerCompany company, String reference) =>
+      _online.fetch(company, reference);
+
+  // ----------------------------------------------------------- assistant
+
+  /// Saved assistant chat (newest last), so closing the chat keeps it.
+  List<ChatMessage> loadChat() {
+    final raw = _settings.chatHistory;
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      return [
+        for (final m in (jsonDecode(raw) as List).cast<Map<String, dynamic>>())
+          ChatMessage(
+            fromUser: m['u'] == true,
+            text: (m['t'] as String?) ?? '',
+            imagePath: m['i'] as String?,
+            time: DateTime.tryParse('${m['at']}'),
+          ),
+      ];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveChat(List<ChatMessage> messages) {
+    final keep = messages.length > 60 ? messages.sublist(messages.length - 60) : messages;
+    return _settings.setChatHistory(jsonEncode([
+      for (final m in keep)
+        {
+          'u': m.fromUser,
+          't': m.text,
+          if (m.imagePath != null) 'i': m.imagePath,
+          'at': m.time.toIso8601String(),
+        },
+    ]));
+  }
+
+  Future<void> clearChat() => _settings.setChatHistory(null);
+
+  String? get chatLanguage => _settings.chatLanguage;
+  Future<void> setChatLanguage(String? v) => _settings.setChatLanguage(v);
+
+  /// The user said this bill is paid (no more due-date nagging).
+  bool isBillPaid(Bill b) => _settings.flag('paid_${b.meterId}_${b.month}', fallback: false);
+
+  Future<void> setBillPaid(Bill b, bool paid) async {
+    await _settings.setFlag('paid_${b.meterId}_${b.month}', paid);
+    await _replanReminders();
+    notifyListeners();
+  }
+
+  /// Looks up a reference number at every company (onboarding).
+  Future<(PowerCompany, OnlineBill)> findOnlineBill(String reference) => _online.find(reference);
+
+  Meter _meterFromBill(PowerCompany company, OnlineBill b, String name) {
+    final load = (b.sanctionedLoadKw ?? 0) > 0 ? b.sanctionedLoadKw! : 1.0;
+    return Meter(
+      name: name,
+      disco: company.code,
+      city: '',
+      province: Cities.provincesFor(company.code).first,
+      connectionType: 'home',
+      phase: load > 5 ? 'three' : 'single',
+      sanctionedLoadKw: load,
+      protectedSetting: switch (b.protectedCategory) {
+        true => ProtectedSetting.protected,
+        false => ProtectedSetting.unprotected,
+        null => ProtectedSetting.auto,
+      },
+      readingDay: b.readingDate?.day ?? DateTime.now().day,
+      createdAt: DateTime.now(),
+      referenceNo: b.reference,
+    );
+  }
+
+  /// One-step setup: creates the meter from an online bill (company, load,
+  /// protected status, reading day) and saves the bill history.
+  Future<void> setupFromOnlineBill(PowerCompany company, OnlineBill b, {bool analyticsConsent = false}) async {
+    await completeOnboarding(meter: _meterFromBill(company, b, 'Home'.tr), analyticsConsent: analyticsConsent);
+    await importOnlineBill(b);
+  }
+
+  /// The meter with this reference number, if it's already added.
+  Meter? meterWithReference(String reference) {
+    final ref = OnlineBillService.digitsOf(reference);
+    return _meters.where((m) => OnlineBillService.digitsOf(m.referenceNo) == ref).firstOrNull;
+  }
+
+  /// Adds another meter from an online bill, makes it active and saves its
+  /// bills. If it's already added, just switches to it.
+  Future<Meter> addMeterFromOnlineBill(PowerCompany company, OnlineBill b, {required String name}) async {
+    final existing = meterWithReference(b.reference);
+    if (existing?.id != null) {
+      await setActiveMeter(existing!.id!);
+      await importOnlineBill(b);
+      return existing;
+    }
+    final saved = await addMeter(_meterFromBill(company, b, name));
+    await importOnlineBill(b);
+    return saved;
+  }
+
+  /// Downloads the active meter's latest bill and saves it with its
+  /// 12-month history. Throws [OnlineBillException] with a readable message.
+  Future<OnlineBill> fetchOnlineBill() async {
+    final meter = _activeMeter;
+    if (meter?.id == null) throw OnlineBillException('Add your meter first'.tr);
+    _fetchingBill = true;
+    notifyListeners();
+    try {
+      final bill = await _online.fetch(company, meter!.referenceNo);
+      await importOnlineBill(bill);
+      return bill;
+    } finally {
+      _fetchingBill = false;
+      notifyListeners();
+    }
+  }
+
+  /// Saves an online bill and its history to the active meter: bills with
+  /// amounts and due date (so the due-date reminder is set) and the present
+  /// reading on the reading date. Returns how many months were new.
+  Future<int> importOnlineBill(OnlineBill b) async {
+    final meter = _activeMeter;
+    if (meter?.id == null) return 0;
+    final id = meter!.id!;
+    final existing = {for (final x in _bills) x.month: x};
+    final now = DateTime.now();
+    final key = Fmt.monthKey(b.month);
+    final toSave = <Bill>[
+      for (final h in b.history)
+        Bill(
+          meterId: id,
+          month: Fmt.monthKey(h.month),
+          units: h.units,
+          amount: h.bill > 0 ? h.bill : (existing[Fmt.monthKey(h.month)]?.amount ?? 0),
+          dueDate: existing[Fmt.monthKey(h.month)]?.dueDate,
+          presentReading: existing[Fmt.monthKey(h.month)]?.presentReading,
+          source: 'online',
+          createdAt: existing[Fmt.monthKey(h.month)]?.createdAt ?? now,
+        ),
+      Bill(
+        meterId: id,
+        month: key,
+        units: b.units,
+        amount: b.amount,
+        dueDate: b.dueDate,
+        presentReading: b.presentReading,
+        source: 'online',
+        createdAt: existing[key]?.createdAt ?? now,
+      ),
+    ];
+    final fresh = toSave.where((x) => !existing.containsKey(x.month)).length;
+    await _billRepo.upsertMany(toSave);
+
+    final present = b.presentReading;
+    final read = b.readingDate;
+    if (present != null && read != null && !DateX.dateOnly(read).isAfter(DateX.today())) {
+      final day = DateX.dateOnly(read);
+      final already = _readings.any((r) => DateX.dateOnly(r.date) == day);
+      if (!already) {
+        await _readingRepo.upsert(MeterReading(
+          meterId: id,
+          date: day,
+          value: present,
+          source: 'bill',
+          createdAt: now,
+        ));
+      }
+    }
+    // Remember the reference number and the real reading day.
+    if (meter.referenceNo != b.reference && b.reference.length == 14 ||
+        (read != null && meter.readingDay != read.day)) {
+      await updateMeter(meter.copyWith(
+        referenceNo: b.reference.length == 14 ? b.reference : meter.referenceNo,
+        readingDay: read?.day ?? meter.readingDay,
+      ));
+    }
+    await _settings.setOnlineBillChecked(id, now);
+    await _log(AppEvent.billAdded, meterId: id, value: toSave.length.toDouble(), detail: 'source=online');
+    await _loadActiveMeterData();
+    notifyListeners();
+    return fresh;
+  }
+
+  /// Quietly checks for a new bill at most once a day.
+  Future<void> autoCheckOnlineBill() async {
+    if (!onboardingDone || !canFetchOnlineBill || _fetchingBill) return;
+    final last = onlineBillChecked;
+    if (last != null && DateTime.now().difference(last) < const Duration(hours: 20)) return;
+    final known = {for (final b in _bills) b.month};
+    try {
+      final bill = await fetchOnlineBill();
+      if (!known.contains(Fmt.monthKey(bill.month))) {
+        _billNotice = bill.dueDate == null
+            ? 'New {0} bill: {1}'.trf({'0': Fmt.month(bill.month), '1': Fmt.rs(bill.amount)})
+            : 'New {0} bill: {1}, due {2}'
+                .trf({'0': Fmt.month(bill.month), '1': Fmt.rs(bill.amount), '2': Fmt.dayShort(bill.dueDate!)});
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Online bill check skipped: $e');
+    }
   }
 
   // ------------------------------------------------------------- onboarding
@@ -660,6 +917,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   bool reminderOn(ReminderType t) => _settings.flag(t.settingKey);
 
+
   Future<void> setReminder(ReminderType t, bool v) async {
     await _settings.setFlag(t.settingKey, v);
     if (v) await _notifications.requestPermission();
@@ -677,7 +935,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ReminderInputs _reminderInputs() {
     final meter = _activeMeter;
     final dueBill = _bills
-        .where((b) => b.dueDate != null)
+        .where((b) => b.dueDate != null && !isBillPaid(b))
         .fold<Bill?>(null, (best, b) => best == null || b.dueDate!.isAfter(best.dueDate!) ? b : best);
     return ReminderInputs(
       now: DateTime.now(),
@@ -689,6 +947,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       billAmount: dueBill?.amount,
       billDueDate: dueBill?.dueDate,
       billMonth: dueBill?.month,
+      isTou: meter?.meterType == MeterType.tou,
     );
   }
 

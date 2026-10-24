@@ -105,8 +105,27 @@ class SettingsService {
   String? get lastTariffStatus => _prefs.getString(_kLastTariffStatus);
   Future<void> setLastTariffStatus(String s) => _prefs.setString(_kLastTariffStatus, s);
 
+  /// When the online bill was last checked for [meterId].
+  DateTime? onlineBillChecked(int meterId) {
+    final ms = _prefs.getInt('online_bill_checked_$meterId');
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> setOnlineBillChecked(int meterId, DateTime t) =>
+      _prefs.setInt('online_bill_checked_$meterId', t.millisecondsSinceEpoch);
+
   /// Per-type reminder switches (keys from ReminderType.settingKey). On by default.
   bool flag(String key, {bool fallback = true}) => _prefs.getBool(key) ?? fallback;
+
+  /// The assistant chat, as JSON (kept between visits).
+  String? get chatHistory => _prefs.getString('assistant_chat');
+  Future<void> setChatHistory(String? json) =>
+      json == null ? _prefs.remove('assistant_chat') : _prefs.setString('assistant_chat', json);
+
+  /// The assistant's chat language ('en' / 'ur'), if the user chose one.
+  String? get chatLanguage => _prefs.getString('assistant_chat_language');
+  Future<void> setChatLanguage(String? v) =>
+      v == null ? _prefs.remove('assistant_chat_language') : _prefs.setString('assistant_chat_language', v);
   Future<void> setFlag(String key, bool v) => _prefs.setBool(key, v);
 
   DateTime? get lastAutoBackup {

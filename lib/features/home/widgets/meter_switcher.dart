@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/companies.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../state/app_state.dart';
+import '../../meters/add_meter_screen.dart';
 import '../../meters/meters_screen.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../shared/widgets/company_badge.dart';
@@ -32,7 +33,7 @@ class MeterSwitcher extends StatelessWidget {
                 ListTile(
                   leading: CompanyBadge(PowerCompanies.of(m.disco), size: 42),
                   title: Text(m.name),
-                  subtitle: Text('${PowerCompanies.of(m.disco).shortCode} · ${m.city}'),
+                  subtitle: Text(m.city.isEmpty ? PowerCompanies.of(m.disco).shortCode : '${PowerCompanies.of(m.disco).shortCode} · ${m.city}'),
                   trailing: m.id == state.activeMeter?.id
                       ? const Icon(Icons.check_circle_rounded, color: AppColors.amberDeep)
                       : null,
@@ -41,6 +42,16 @@ class MeterSwitcher extends StatelessWidget {
                     if (m.id != null) state.setActiveMeter(m.id!);
                   },
                 ),
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline_rounded),
+                title: Text('Add another meter'.tr),
+                subtitle: Text('Shop, home of parents… just type its reference number'.tr),
+                onTap: () {
+                  final nav = Navigator.of(context);
+                  Navigator.pop(ctx);
+                  nav.push(MaterialPageRoute<void>(builder: (_) => const AddMeterScreen()));
+                },
+              ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.tune_rounded),
@@ -84,7 +95,7 @@ class MeterSwitcher extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    meter?.name ?? 'Bijli Hisaab',
+                    meter?.name ?? 'Bijli Hisaab'.tr,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -9,6 +9,7 @@ import '../../shared/widgets/status_pill.dart';
 import '../../state/app_state.dart';
 import 'meter_edit_screen.dart';
 import '../../core/l10n/l10n.dart';
+import 'add_meter_screen.dart';
 
 class MetersScreen extends StatelessWidget {
   const MetersScreen({super.key});
@@ -24,7 +25,8 @@ class MetersScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Meters'.tr)),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _open(context),
+        onPressed: () => Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const AddMeterScreen())),
         icon: const Icon(Icons.add_rounded),
         label: Text('Add meter'.tr),
       ),

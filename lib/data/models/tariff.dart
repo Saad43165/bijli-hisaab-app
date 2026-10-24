@@ -249,6 +249,7 @@ class Tariff {
     this.companyOverrides = const {},
     this.tou = TouRates.defaults,
     this.solar = SolarRates.defaults,
+    this.news = const {},
   });
 
   /// Highest JSON schema this app understands.
@@ -294,6 +295,15 @@ class Tariff {
 
   /// Export rates for solar meters.
   final SolarRates solar;
+
+  /// Optional rate news shown on Home, by language: {"en": ..., "ur": ...}.
+  final Map<String, String> news;
+
+  /// The news in [language], falling back to English; null when none.
+  String? newsFor(String language) {
+    final t = news[language] ?? news['en'];
+    return t == null || t.trim().isEmpty ? null : t.trim();
+  }
 
   /// This tariff as it applies to one company.
   Tariff forCompany(String code) {
@@ -355,6 +365,7 @@ class Tariff {
         companyOverrides: companyOverrides,
         tou: tou ?? this.tou,
         solar: solar ?? this.solar,
+        news: news,
       );
 
   factory Tariff.fromJson(Map<String, dynamic> j) {
@@ -399,6 +410,10 @@ class Tariff {
       },
       tou: TouRates.fromJson(j['tou'] == null ? null : Map<String, dynamic>.from(j['tou'] as Map)),
       solar: SolarRates.fromJson(j['solar'] == null ? null : Map<String, dynamic>.from(j['solar'] as Map)),
+      news: {
+        for (final e in Map<String, dynamic>.from((j['news'] as Map?) ?? const {}).entries)
+          if (e.value is String) e.key: e.value as String,
+      },
     );
   }
 
@@ -428,6 +443,7 @@ class Tariff {
         'company_overrides': companyOverrides,
         'tou': tou.toJson(),
         'solar': solar.toJson(),
+        if (news.isNotEmpty) 'news': news,
       };
 }
 

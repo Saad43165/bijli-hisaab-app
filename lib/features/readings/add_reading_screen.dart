@@ -14,6 +14,7 @@ import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../services/bill_scan_analyzer.dart' show FieldConfidence;
 import '../../services/meter_reading_extractor.dart';
+import '../../services/voice_number.dart';
 import '../../shared/widgets/art.dart';
 import '../../state/app_state.dart';
 import 'meter_camera_screen.dart';
@@ -54,12 +55,30 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
       initialDate: _date,
       firstDate: today.subtract(const Duration(days: 120)),
       lastDate: today,
-      helpText: 'Reading date',
+      helpText: 'Reading date'.tr,
     );
     if (picked != null) {
       setState(() => _date = picked);
       _formKey.currentState?.validate();
     }
+  }
+
+  bool _listening = false;
+
+  /// Say the meter number instead of typing it.
+  Future<void> _voice() async {
+    setState(() => _listening = true);
+    showSnack(context, 'Listening… say the number on your meter'.tr);
+    final heard = await VoiceNumber.listen();
+    if (!mounted) return;
+    setState(() => _listening = false);
+    if (heard == null) {
+      showSnack(context, 'No number heard. Try again or type it.'.tr);
+      return;
+    }
+    _value.text = heard;
+    _value.selection = TextSelection.collapsed(offset: heard.length);
+    setState(() {});
   }
 
   Future<void> _scanMeter() async {
@@ -248,10 +267,21 @@ class _AddReadingScreenState extends State<AddReadingScreen> {
                       'Your meter shows import and export in turn — often marked 1.8.0 and 2.8.0.'.tr,
                   },
                   helperMaxLines: 2,
-                  suffixIcon: IconButton(
-                    tooltip: 'Scan meter'.tr,
-                    icon: const Icon(Icons.photo_camera_rounded),
-                    onPressed: _scanMeter,
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Say the number'.tr,
+                        icon: Icon(_listening ? Icons.graphic_eq_rounded : Icons.mic_rounded),
+                        color: _listening ? theme.colorScheme.primary : null,
+                        onPressed: _listening ? null : _voice,
+                      ),
+                      IconButton(
+                        tooltip: 'Scan meter'.tr,
+                        icon: const Icon(Icons.photo_camera_rounded),
+                        onPressed: _scanMeter,
+                      ),
+                    ],
                   ),
                 ),
                 validator: (v) => _validate(v, state),
@@ -421,9 +451,9 @@ class _ScanResultCard extends StatelessWidget {
     final theme = Theme.of(context);
     final p = AppPalette.of(context);
     final (label, color, icon) = switch (result.confidence) {
-      FieldConfidence.high => ('Read from photo', p.safe, Icons.check_circle_rounded),
-      FieldConfidence.medium => ('Check it matches your meter', p.warn, Icons.visibility_rounded),
-      FieldConfidence.low => ('Not sure — please check the digits', p.danger, Icons.error_outline_rounded),
+      FieldConfidence.high => ('Read from photo'.tr, p.safe, Icons.check_circle_rounded),
+      FieldConfidence.medium => ('Check it matches your meter'.tr, p.warn, Icons.visibility_rounded),
+      FieldConfidence.low => ('Not sure — please check the digits'.tr, p.danger, Icons.error_outline_rounded),
     };
     final others = result.candidates.where((c) => current == null || c.value.round() != current!.round()).toList();
 

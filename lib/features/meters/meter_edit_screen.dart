@@ -39,6 +39,10 @@ class _MeterEditScreenState extends State<MeterEditScreen> {
       } else {
         await state.updateMeter(result.meter);
       }
+      // New meters become active; for an edit, only the active meter's bills.
+      if (result.onlineBill != null && state.activeMeter?.id == (result.meter.id ?? state.activeMeter?.id)) {
+        await state.importOnlineBill(result.onlineBill!);
+      }
       if (!mounted) return;
       showSnack(context, 'Meter saved'.tr);
       Navigator.pop(context);

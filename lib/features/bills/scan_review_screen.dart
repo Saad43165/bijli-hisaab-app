@@ -238,7 +238,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
       initialDate: _due ?? now,
       firstDate: DateTime(now.year - 2),
       lastDate: DateTime(now.year + 1, 12, 31),
-      helpText: 'Due date',
+      helpText: 'Due date'.tr,
     );
     if (picked != null) {
       setState(() {
@@ -406,7 +406,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                     _pickDue();
                   },
                   style: OutlinedButton.styleFrom(
-                    alignment: Alignment.centerLeft,
+                    alignment: AlignmentDirectional.centerStart,
                     minimumSize: const Size.fromHeight(46),
                   ),
                   icon: const Icon(Icons.event_rounded, size: 18),
@@ -457,7 +457,7 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
                       ),
                     ),
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: TextButton.icon(
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _a.rawText));
@@ -582,8 +582,8 @@ class _FieldCard extends StatelessWidget {
     final (Color color, String badge, IconData icon) = switch (f?.confidence) {
       FieldConfidence.high => (p.safe, 'Sure', Icons.check_circle_rounded),
       FieldConfidence.medium => (AppColors.amberDeep, 'Likely', Icons.adjust_rounded),
-      FieldConfidence.low => (p.danger, 'Check this', Icons.error_rounded),
-      null => (p.muted, 'Not found', Icons.remove_circle_outline_rounded),
+      FieldConfidence.low => (p.danger, 'Check this'.tr, Icons.error_rounded),
+      null => (p.muted, 'Not found'.tr, Icons.remove_circle_outline_rounded),
     };
 
     return Padding(

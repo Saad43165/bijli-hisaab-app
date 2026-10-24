@@ -137,7 +137,7 @@ class _BudgetBar extends StatelessWidget {
                 width: 56,
                 child: Text(
                   '{0}/day'.trf({'0': Fmt.oneDp(v)}),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.end,
                   style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface),
                 ),
               ),
@@ -146,8 +146,8 @@ class _BudgetBar extends StatelessWidget {
         );
     return Column(
       children: [
-        bar('Your pace', rate, color),
-        bar('Safe budget', budget, theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+        bar('Your pace'.tr, rate, color),
+        bar('Safe budget'.tr, budget, theme.colorScheme.onSurface.withValues(alpha: 0.55)),
       ],
     );
   }

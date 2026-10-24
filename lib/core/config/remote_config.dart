@@ -21,6 +21,13 @@ class RemoteConfig {
         'https://raw.githubusercontent.com/$_owner/bijli-hisaab-rates/main/tariff_pk.json',
   );
 
+  /// The assistant's AI: any OpenAI-compatible chat endpoint. The default is
+  /// Pollinations' free, keyless service. Set it empty to use only the
+  /// built-in assistant:  --dart-define=ASSISTANT_URL=
+  static const String assistantUrl =
+      String.fromEnvironment('ASSISTANT_URL', defaultValue: 'https://text.pollinations.ai/openai');
+  static const String assistantModel = String.fromEnvironment('ASSISTANT_MODEL', defaultValue: 'openai-fast');
+
   /// How often the app checks for new rates on its own.
   static const Duration checkInterval = Duration(hours: 12);
 

@@ -9,7 +9,6 @@ import '../../shared/widgets/art.dart';
 import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/loading_button.dart';
 import '../../state/app_state.dart';
-import '../home/widgets/start_here_card.dart';
 import '../../core/l10n/l10n.dart';
 
 /// "Solar & TOU": pick what kind of meter the active meter is.
@@ -37,7 +36,6 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
     setState(() => _saving = true);
     try {
       await state.updateMeter(meter.copyWith(meterType: _type));
-      await state.setUiFlag(StartHereCard.meterTypeKey, true);
       if (!mounted) return;
       showSnack(context, switch (_type) {
         MeterType.standard => 'Set to a normal meter'.tr,

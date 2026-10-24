@@ -20,7 +20,7 @@ class StatTile extends StatelessWidget {
         const SizedBox(height: 4),
         FittedBox(
           fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: Text(
             value,
             style: theme.textTheme.titleLarge?.copyWith(color: valueColor),

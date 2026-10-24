@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../readings/readings_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/formatters.dart';
@@ -272,6 +273,12 @@ class _QuickReadingCardState extends State<QuickReadingCard> {
                   ],
                 ),
               ),
+              if (last != null)
+                TextButton(
+                  onPressed: () => Navigator.of(context)
+                      .push(MaterialPageRoute<void>(builder: (_) => const ReadingsScreen())),
+                  child: Text('See all'.tr),
+                ),
             ],
           ),
           const SizedBox(height: 14),

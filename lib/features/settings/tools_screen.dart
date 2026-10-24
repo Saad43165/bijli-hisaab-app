@@ -13,20 +13,20 @@ import '../../shared/widgets/hero_style.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
 import '../bills/scan_bill_screen.dart';
-import '../home/bill_calculator_screen.dart';
-import '../home/widgets/share_summary_sheet.dart';
-import '../meters/meter_type_screen.dart';
 import '../meters/meters_screen.dart';
 import '../readings/add_reading_screen.dart';
-import '../readings/readings_screen.dart';
+import '../bills/online_bill_screen.dart';
+import '../home/calculators_screen.dart';
+import '../assistant/assistant_screen.dart';
 import 'about_screen.dart';
+import 'help_screen.dart';
 import 'backup_screen.dart';
-import 'export_screen.dart';
 import 'reminders_screen.dart';
 import 'tariff_screen.dart';
 import 'tips_screen.dart';
 import 'widgets/company_card.dart';
 import '../../core/l10n/l10n.dart';
+import '../assistant/assistant_button.dart';
 
 class _Tool {
   const _Tool(this.art, this.label, this.onTap, {this.badge});
@@ -49,6 +49,15 @@ class ToolsScreen extends StatelessWidget {
   /// Switches the bottom-navigation tab (1 = History, 2 = Appliances).
   final ValueChanged<int> onOpenTab;
 
+  /// "Due 2 Nov" while the latest bill is unpaid-by-date.
+  static String? _dueBadge(AppState state) {
+    final bill = state.bills.firstOrNull;
+    final due = bill?.dueDate;
+    if (bill == null || due == null || state.isBillPaid(bill)) return null;
+    if (due.isBefore(DateUtils.dateOnly(DateTime.now()))) return null;
+    return 'Due {0}'.trf({'0': Fmt.dayShort(due)});
+  }
+
   void _push(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
 
@@ -69,48 +78,19 @@ class ToolsScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final h = HeroStyle.of(context);
     final type = state.activeMeter?.meterType ?? MeterType.standard;
-    final hasData = state.summary?.hasData ?? false;
 
+    // The main things people do. Everything else lives in one place:
+    // History and Appliances are tabs, share is on Home, the rest is below.
     final tools = <_Tool>[
+      _Tool(Art.brandBolt, 'Assistant'.tr, () => _push(context, const AssistantScreen())),
       _Tool(Art.camera, 'Scan bill'.tr, () => _push(context, const ScanBillScreen())),
+      if (state.company.billUrl != null)
+        _Tool(Art.receipt, 'Bill online'.tr,
+            () => OnlineBillScreen.open(context, state.company, state.activeMeter?.referenceNo ?? ''),
+            badge: _dueBadge(state)),
       _Tool(Art.stopwatch, 'Add reading'.tr, () => _push(context, const AddReadingScreen())),
-      _Tool(Art.moneyBag, 'Bill calculator'.tr, () => _push(context, const BillCalculatorScreen())),
-      _Tool(
-        Art.sun,
-        'Solar & TOU'.tr,
-        () => _push(context, const MeterTypeScreen()),
-        badge: switch (type) {
-          MeterType.standard => 'Not set'.tr,
-          MeterType.tou => 'TOU'.tr,
-          _ => 'Solar'.tr,
-        },
-      ),
-      _Tool(Art.plug, 'Appliances'.tr, () => onOpenTab(2)),
-      _Tool(Art.barChart, 'Bill history'.tr, () => onOpenTab(1)),
-      _Tool(Art.clipboard, 'Readings'.tr, () => _push(context, const ReadingsScreen()),
-          badge: '${state.readings.length}'),
-      _Tool(Art.bell, 'Reminders'.tr, () => _push(context, const RemindersScreen()),
-          badge: state.remindersEnabled ? 'On' : 'Off'.tr),
-      _Tool(Art.chartUp, 'Rates'.tr, () => _push(context, const TariffScreen())),
-      _Tool(Art.lock, 'Backup'.tr, () => _push(context, const BackupScreen())),
+      _Tool(Art.moneyBag, 'Calculators'.tr, () => _push(context, const CalculatorsScreen())),
       _Tool(Art.bulb, 'Saving tips'.tr, () => _push(context, const TipsScreen())),
-      _Tool(Art.party, 'Share month'.tr, () {
-        if (hasData) {
-          ShareSummarySheet.show(context);
-        } else {
-          showSnack(context, 'Add two readings this month first'.tr);
-        }
-      }),
-      _Tool(Art.house, 'Meters'.tr, () => _push(context, const MetersScreen()),
-          badge: '${state.meters.length}'),
-      _Tool(Art.clipboard, 'Export data'.tr, () => _push(context, const ExportScreen())),
-      _Tool(Art.phone, 'Home widget'.tr, () async {
-        final ok = await HomeWidgetSync.requestPin();
-        if (!context.mounted) return;
-        if (!ok) {
-          showSnack(context, 'Long-press your home screen → Widgets → Bijli Hisaab'.tr);
-        }
-      }),
     ];
 
     final grid = state.uiFlag(_gridKey);
@@ -121,6 +101,7 @@ class ToolsScreen extends StatelessWidget {
         titleTextStyle: theme.textTheme.headlineSmall,
         title: Text('Tools'.tr),
         actions: [
+          const AssistantButton(),
           IconButton(
             tooltip: grid ? 'Show as rows'.tr : 'Show as grid'.tr,
             onPressed: () => state.setUiFlag(_gridKey, !grid),
@@ -167,7 +148,7 @@ class ToolsScreen extends StatelessWidget {
               ),
             ),
           ),
-          SectionHeader('Everything in the app'.tr, padding: EdgeInsets.fromLTRB(4, 18, 4, 10)),
+          SectionHeader('Quick tools'.tr, padding: EdgeInsets.fromLTRB(4, 18, 4, 10)),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -251,24 +232,49 @@ class ToolsScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.update_rounded),
-                  title: Text('Electricity rates'.tr),
-                  subtitle: Text(
-                    '{0} · updated {1}{2}'.trf({'0': state.tariffOrigin.label, '1': Fmt.isoLabel(state.tariff.updatedAt), '2': state.autoUpdateRates && RemoteConfig.isConfigured ? ' · auto'.tr : ''}),
-                  ),
-                  trailing: const Icon(Icons.chevron_right_rounded),
+                _SettingRow(
+                  icon: Icons.help_outline_rounded,
+                  title: 'Guide & help'.tr,
+                  subtitle: 'How the app works and common questions'.tr,
+                  onTap: () => _push(context, const HelpScreen()),
+                ),
+                _SettingRow(
+                  icon: Icons.electric_meter_rounded,
+                  title: 'Meters'.tr,
+                  subtitle: '{0} · {1}'.trf({
+                    '0': state.meters.length == 1
+                        ? '${state.activeMeter?.name ?? ''} · ${state.company.shortCode}'
+                        : '{0} meters'.trf({'0': state.meters.length}),
+                    '1': type.label,
+                  }),
+                  onTap: () => _push(context, const MetersScreen()),
+                ),
+                _SettingRow(
+                  icon: Icons.notifications_active_outlined,
+                  title: 'Reminders & alerts'.tr,
+                  subtitle: state.remindersEnabled ? 'On'.tr : 'Off'.tr,
+                  onTap: () => _push(context, const RemindersScreen()),
+                ),
+                _SettingRow(
+                  icon: Icons.update_rounded,
+                  title: 'Electricity rates'.tr,
+                  subtitle: '{0} · updated {1}{2}'.trf({'0': state.tariffOrigin.label, '1': Fmt.isoLabel(state.tariff.updatedAt), '2': state.autoUpdateRates && RemoteConfig.isConfigured ? ' · auto'.tr : ''}),
                   onTap: () => _push(context, const TariffScreen()),
                 ),
-                const Divider(indent: 56),
-                SwitchListTile(
-                  secondary: const Icon(Icons.insights_rounded),
-                  title: Text('Allow anonymous data export'.tr),
-                  subtitle: Text('Needed for "Export data" (Power BI)'.tr),
-                  value: state.analyticsConsent,
-                  onChanged: state.setAnalyticsConsent,
+                _SettingRow(
+                  icon: Icons.backup_outlined,
+                  title: 'Backup & restore'.tr,
+                  onTap: () => _push(context, const BackupScreen()),
                 ),
-                const Divider(indent: 56),
+                _SettingRow(
+                  icon: Icons.widgets_outlined,
+                  title: 'Add home-screen widget'.tr,
+                  onTap: () async {
+                    final ok = await HomeWidgetSync.requestPin();
+                    if (!context.mounted) return;
+                    if (!ok) showSnack(context, 'Long-press your home screen → Widgets → Bijli Hisaab'.tr);
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Icons.shield_outlined),
                   title: Text('About & privacy'.tr),
@@ -361,4 +367,29 @@ class _ToolTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One settings row with a divider below.
+class _SettingRow extends StatelessWidget {
+  const _SettingRow({required this.icon, required this.title, this.subtitle, required this.onTap});
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(icon),
+            title: Text(title),
+            subtitle: subtitle == null ? null : Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: onTap,
+          ),
+          const Divider(indent: 56, height: 1),
+        ],
+      );
 }

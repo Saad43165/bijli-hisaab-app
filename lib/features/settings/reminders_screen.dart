@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../data/models/meter.dart';
 import '../../services/reminders/reminder_planner.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
@@ -19,6 +20,8 @@ class RemindersScreen extends StatelessWidget {
         ReminderType.closeToSlab => Art.bolt,
         ReminderType.billDue => Art.receipt,
         ReminderType.noReading => Art.stopwatch,
+        ReminderType.weeklySummary => Art.barChart,
+        ReminderType.peakHours => Art.hourglass,
       };
 
   @override
@@ -28,6 +31,8 @@ class RemindersScreen extends StatelessWidget {
     final p = AppPalette.of(context);
     final on = state.remindersEnabled;
     final upcoming = state.upcomingReminders;
+    final isTou = state.activeMeter?.meterType == MeterType.tou;
+    final types = [for (final t in ReminderType.values) if (t != ReminderType.peakHours || isTou) t];
 
     return Scaffold(
       appBar: AppBar(title: Text('Reminders & alerts'.tr)),
@@ -53,7 +58,7 @@ class RemindersScreen extends StatelessWidget {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  for (final (i, t) in ReminderType.values.indexed) ...[
+                  for (final (i, t) in types.indexed) ...[
                     SwitchListTile(
                       secondary: ArtTile(art(t), size: 40),
                       title: Text(t.label),
@@ -61,7 +66,7 @@ class RemindersScreen extends StatelessWidget {
                       value: state.reminderOn(t),
                       onChanged: on ? (v) => state.setReminder(t, v) : null,
                     ),
-                    if (i < ReminderType.values.length - 1) const Divider(indent: 70),
+                    if (i < types.length - 1) const Divider(indent: 70),
                   ],
                 ],
               ),
