@@ -20,9 +20,11 @@ class MainActivity : FlutterActivity() {
                     val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
                     result.success(pm.isIgnoringBatteryOptimizations(packageName))
                 }
-                "requestIgnoreBatteryOptimizations" -> {
+                // App info, where Battery → Unrestricted is. (Asking directly needs a
+                // permission Play only allows for a few kinds of apps.)
+                "openBatterySettings" -> {
                     open(
-                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")),
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")),
                         Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
                     )
                     result.success(null)

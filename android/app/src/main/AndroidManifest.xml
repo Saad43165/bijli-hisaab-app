@@ -16,8 +16,6 @@
     <!-- Power-cut and peak-hour alerts on time. The user can deny it (default
          on Android 14+); reminders then fall back to inexact alarms. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <!-- Reminders screen: ask to stop battery optimisation so alarms aren't dropped. -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
 
     <application
         android:label="Bijli Hisaab"

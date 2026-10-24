@@ -177,8 +177,8 @@ class NotificationService {
   /// for good, Android no longer shows the dialog).
   Future<void> openNotificationSettings() => _invoke('openNotificationSettings');
 
-  /// Asks Android to stop battery optimisation for the app.
-  Future<void> openBatterySettings() => _invoke('requestIgnoreBatteryOptimizations');
+  /// Opens the app's info page, where battery use can be set to Unrestricted.
+  Future<void> openBatterySettings() => _invoke('openBatterySettings');
 
   Future<void> _invoke(String method) async {
     try {
