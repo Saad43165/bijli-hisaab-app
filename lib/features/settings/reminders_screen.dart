@@ -4,15 +4,20 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/models/meter.dart';
+import '../../services/notification_service.dart';
 import '../../services/reminders/reminder_planner.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
+import '../../shared/widgets/dialogs.dart';
+import '../../shared/widgets/info_banner.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
 import '../../core/l10n/l10n.dart';
+import 'load_shedding_screen.dart';
+import 'widgets/notification_permission.dart';
 
 /// Tools → Reminders.
-class RemindersScreen extends StatelessWidget {
+class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
 
   static String art(ReminderType t) => switch (t) {
@@ -22,7 +27,96 @@ class RemindersScreen extends StatelessWidget {
         ReminderType.noReading => Art.stopwatch,
         ReminderType.weeklySummary => Art.barChart,
         ReminderType.peakHours => Art.hourglass,
+        ReminderType.powerCut => Art.battery,
       };
+
+  @override
+  State<RemindersScreen> createState() => _RemindersScreenState();
+}
+
+class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingObserver {
+  NotificationHealth? _health;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkHealth();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Back from Android settings: show whether the fix worked.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checkHealth();
+  }
+
+  Future<void> _checkHealth() async {
+    final h = await NotificationService.instance.health();
+    if (mounted) setState(() => _health = h);
+  }
+
+  /// Turning something on first makes sure notifications are allowed.
+  Future<void> _turnOn(Future<void> Function() change) async {
+    await change();
+    if (mounted) await NotificationPermission.ensure(context);
+    await _checkHealth();
+  }
+
+  Future<void> _sendTest({Duration? after}) async {
+    if (!await NotificationPermission.ensure(context)) {
+      await _checkHealth();
+      return;
+    }
+    final ok = await NotificationService.instance.sendTest(after: after);
+    if (!mounted) return;
+    showSnack(
+      context,
+      !ok
+          ? 'Could not send a notification on this phone.'.tr
+          : after == null
+              ? 'Sent — check your notifications.'.tr
+              : 'Scheduled for 2 minutes from now. You can close the app.'.tr,
+    );
+  }
+
+  Widget _healthBanner(NotificationHealth h) {
+    final service = NotificationService.instance;
+    if (!h.allowed) {
+      return InfoBanner(
+        icon: Icons.notifications_off_rounded,
+        color: AppColors.dangerLight,
+        title: 'Notifications are off'.tr,
+        message: 'You won\'t get slab warnings, bill or power-cut alerts.'.tr,
+        actionLabel: 'Turn on'.tr,
+        onAction: () async {
+          await NotificationPermission.ensure(context);
+          await _checkHealth();
+        },
+      );
+    }
+    if (!h.exactAlarms) {
+      return InfoBanner(
+        icon: Icons.alarm_rounded,
+        title: 'Alerts may come late'.tr,
+        message: 'Allow "Alarms & reminders" so power-cut and peak-hour alerts arrive on time.'.tr,
+        actionLabel: 'Allow'.tr,
+        onAction: service.openExactAlarmSettings,
+      );
+    }
+    return InfoBanner(
+      icon: Icons.battery_alert_rounded,
+      title: 'Battery saver may block reminders'.tr,
+      message: 'Some phones stop reminders when the app is closed. Set battery use to "Unrestricted".'.tr,
+      actionLabel: 'Fix'.tr,
+      onAction: service.openBatterySettings,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +133,10 @@ class RemindersScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
+          if (_health != null && !_health!.allGood) ...[
+            _healthBanner(_health!),
+            const SizedBox(height: 12),
+          ],
           AppCard(
             padding: EdgeInsets.zero,
             child: SwitchListTile(
@@ -47,7 +145,7 @@ class RemindersScreen extends StatelessWidget {
               title: Text('Smart reminders'.tr, style: theme.textTheme.titleMedium),
               subtitle: Text('Only when it matters — based on your readings, slab and bill'.tr),
               value: on,
-              onChanged: state.setRemindersEnabled,
+              onChanged: (v) => v ? _turnOn(() => state.setRemindersEnabled(true)) : state.setRemindersEnabled(false),
             ),
           ),
           SectionHeader('Remind me about'.tr),
@@ -59,13 +157,25 @@ class RemindersScreen extends StatelessWidget {
               child: Column(
                 children: [
                   for (final (i, t) in types.indexed) ...[
-                    SwitchListTile(
-                      secondary: ArtTile(art(t), size: 40),
-                      title: Text(t.label),
-                      subtitle: Text(t.description),
-                      value: state.reminderOn(t),
-                      onChanged: on ? (v) => state.setReminder(t, v) : null,
-                    ),
+                    if (t == ReminderType.powerCut)
+                      ListTile(
+                        leading: ArtTile(RemindersScreen.art(t), size: 40),
+                        title: Text(t.label),
+                        subtitle: Text(_powerCutSubtitle(state)),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () => Navigator.of(context)
+                            .push(MaterialPageRoute<void>(builder: (_) => const LoadSheddingScreen())),
+                      )
+                    else
+                      SwitchListTile(
+                        secondary: ArtTile(RemindersScreen.art(t), size: 40),
+                        title: Text(t.label),
+                        subtitle: Text(t.description),
+                        value: state.reminderOn(t),
+                        onChanged: on
+                            ? (v) => v ? _turnOn(() => state.setReminder(t, true)) : state.setReminder(t, false)
+                            : null,
+                      ),
                     if (i < types.length - 1) const Divider(indent: 70),
                   ],
                 ],
@@ -80,7 +190,38 @@ class RemindersScreen extends StatelessWidget {
               title: Text('Slab warning'.tr),
               subtitle: Text('Right after a reading that puts you over a limit'.tr),
               value: state.slabAlertsEnabled,
-              onChanged: state.setSlabAlertsEnabled,
+              onChanged: (v) =>
+                  v ? _turnOn(() => state.setSlabAlertsEnabled(true)) : state.setSlabAlertsEnabled(false),
+            ),
+          ),
+          SectionHeader('Check it works'.tr),
+          AppCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Send a test now, or one in 2 minutes and close the app to check reminders arrive.'.tr,
+                  style: theme.textTheme.bodyMedium?.copyWith(color: p.muted),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FilledButton.icon(
+                      onPressed: () => _sendTest(),
+                      icon: const Icon(Icons.notifications_active_rounded, size: 18),
+                      label: Text('Send test notification'.tr),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _sendTest(after: const Duration(minutes: 2)),
+                      icon: const Icon(Icons.schedule_rounded, size: 18),
+                      label: Text('In 2 minutes'.tr),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           SectionHeader('Coming up'.tr),
@@ -117,7 +258,7 @@ class RemindersScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
             child: Text(
-              'Reminders update every time you add a reading or bill. Nothing is sent before 9 am or after 9:30 pm. If nothing arrives, allow notifications for Bijli Hisaab in Android settings.'.tr,
+              'Reminders update every time you add a reading or bill. Nothing is sent before 9 am or after 9:30 pm, except power-cut alerts.'.tr,
               style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
             ),
           ),
@@ -125,6 +266,13 @@ class RemindersScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+String _powerCutSubtitle(AppState state) {
+  final slots = state.loadShedding;
+  if (slots.isEmpty) return 'Add your load-shedding times'.tr;
+  if (!state.reminderOn(ReminderType.powerCut)) return 'Off'.tr;
+  return slots.map(LoadSheddingScreen.label).join(', ');
 }
 
 class _UpcomingTile extends StatelessWidget {

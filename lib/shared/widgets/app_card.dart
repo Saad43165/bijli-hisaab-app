@@ -15,6 +15,7 @@ class AppCard extends StatelessWidget {
     this.borderColor,
     this.gradient,
     this.elevated = true,
+    this.radius,
   });
 
   final Widget child;
@@ -27,10 +28,13 @@ class AppCard extends StatelessWidget {
   /// Set false for cards nested in other cards or tinted alert cards.
   final bool elevated;
 
+  /// Corner radius; defaults to the card radius. Use 999 for a pill.
+  final double? radius;
+
   @override
   Widget build(BuildContext context) {
     final p = AppPalette.of(context);
-    final radius = BorderRadius.circular(AppTheme.radiusCard);
+    final radius = BorderRadius.circular(this.radius ?? AppTheme.radiusCard);
     final showShadow = elevated && !p.isDark && gradient == null && color == null;
 
     return DecoratedBox(

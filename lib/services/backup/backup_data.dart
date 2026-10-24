@@ -82,6 +82,8 @@ class BackupData {
     'reminder_weekly',
     'reminder_peak',
     'reminder_no_reading',
+    'reminder_power_cut',
+    'load_shedding_slots',
   };
 
   BackupSummary get summary => BackupSummary(

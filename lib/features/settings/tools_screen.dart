@@ -20,6 +20,7 @@ import '../home/calculators_screen.dart';
 import '../assistant/assistant_screen.dart';
 import 'about_screen.dart';
 import 'help_screen.dart';
+import 'load_shedding_screen.dart';
 import 'backup_screen.dart';
 import 'reminders_screen.dart';
 import 'tariff_screen.dart';
@@ -39,9 +40,7 @@ class _Tool {
   final String? badge;
 }
 
-/// Every feature in one grid, settings below. Replaces the old "More" tab.
-/// Settings flag: show tools as the big grid instead of slim rows.
-const _gridKey = 'tools_grid';
+/// Every feature as small pills, settings below. Replaces the old "More" tab.
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key, required this.onOpenTab});
@@ -91,9 +90,10 @@ class ToolsScreen extends StatelessWidget {
       _Tool(Art.stopwatch, 'Add reading'.tr, () => _push(context, const AddReadingScreen())),
       _Tool(Art.moneyBag, 'Calculators'.tr, () => _push(context, const CalculatorsScreen())),
       _Tool(Art.bulb, 'Saving tips'.tr, () => _push(context, const TipsScreen())),
+      _Tool(Art.battery, 'Power cuts'.tr, () => _push(context, const LoadSheddingScreen()),
+          badge: state.loadShedding.isEmpty ? null : '{0} times'.trf({'0': state.loadShedding.length})),
     ];
 
-    final grid = state.uiFlag(_gridKey);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 64,
@@ -102,11 +102,6 @@ class ToolsScreen extends StatelessWidget {
         title: Text('Tools'.tr),
         actions: [
           const AssistantButton(),
-          IconButton(
-            tooltip: grid ? 'Show as rows'.tr : 'Show as grid'.tr,
-            onPressed: () => state.setUiFlag(_gridKey, !grid),
-            icon: Icon(grid ? Icons.view_list_rounded : Icons.grid_view_rounded),
-          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -153,18 +148,17 @@ class ToolsScreen extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
-            // Grid: big tiles. Rows (default): slim two-column tiles that take
-            // about half the space.
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: grid ? 3 : 2,
-              mainAxisSpacing: grid ? 10 : 8,
-              crossAxisSpacing: grid ? 10 : 8,
-              mainAxisExtent: grid ? 116 : 54,
+            // Small two-column pills.
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              mainAxisExtent: 54,
             ),
             itemCount: tools.length,
             itemBuilder: (context, i) => FadeSlideIn(
               index: i + 1,
-              child: grid ? _ToolTile(tool: tools[i]) : _ToolRow(tool: tools[i]),
+              child: _ToolRow(tool: tools[i]),
             ),
           ),
           SectionHeader('Your electricity company'.tr),
@@ -297,7 +291,7 @@ class ToolsScreen extends StatelessWidget {
   }
 }
 
-/// Slim tool tile for the rows layout: small icon, name, status.
+/// Small tool pill: icon, name, status.
 class _ToolRow extends StatelessWidget {
   const _ToolRow({required this.tool});
 
@@ -308,7 +302,8 @@ class _ToolRow extends StatelessWidget {
     final theme = Theme.of(context);
     return AppCard(
       onTap: tool.onTap,
-      padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 10, 6),
+      radius: 999,
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 6, 14, 6),
       child: Row(
         children: [
           ArtTile(tool.art, size: 34),
@@ -329,40 +324,6 @@ class _ToolRow extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToolTile extends StatelessWidget {
-  const _ToolTile({required this.tool});
-
-  final _Tool tool;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return AppCard(
-      onTap: tool.onTap,
-      padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
-      child: Column(
-        children: [
-          ArtTile(tool.art, size: 44),
-          const SizedBox(height: 8),
-          Text(
-            tool.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          if (tool.badge != null)
-            Text(
-              tool.badge!,
-              maxLines: 1,
-              style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
-            ),
         ],
       ),
     );

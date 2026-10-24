@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import '../../core/utils/formatters.dart';
 import '../usage_forecaster.dart';
 import '../../core/l10n/l10n.dart';
+import '../../data/models/load_shedding.dart';
 
 enum ReminderType {
   /// 3 days and 1 day before the meter reading day.
@@ -22,7 +23,10 @@ enum ReminderType {
   weeklySummary,
 
   /// TOU meters: 30 minutes before peak hours start.
-  peakHours;
+  peakHours,
+
+  /// Before each load-shedding slot the user entered; repeats daily.
+  powerCut;
 
   String get settingKey => switch (this) {
         readingDay => 'reminder_reading_day',
@@ -31,6 +35,7 @@ enum ReminderType {
         noReading => 'reminder_no_reading',
         weeklySummary => 'reminder_weekly',
         peakHours => 'reminder_peak',
+        powerCut => 'reminder_power_cut',
       };
 
   String get label => switch (this) {
@@ -40,6 +45,7 @@ enum ReminderType {
         noReading => 'No recent reading',
         weeklySummary => 'Weekly summary',
         peakHours => 'Peak hours (TOU meters)',
+        powerCut => 'Power cuts',
       }.tr;
 
   String get description => switch (this) {
@@ -49,6 +55,7 @@ enum ReminderType {
         noReading => 'After 6 days without a reading',
         weeklySummary => 'Sunday evening: your units and bill this week',
         peakHours => '30 minutes before expensive peak hours start',
+        powerCut => '15 minutes before your load-shedding time',
       }.tr;
 }
 
@@ -59,6 +66,7 @@ class PlannedReminder {
     required this.when,
     required this.title,
     required this.body,
+    this.repeatDaily = false,
   });
 
   /// Notification id; stable per slot so re-planning replaces, never stacks.
@@ -70,8 +78,12 @@ class PlannedReminder {
   final String title;
   final String body;
 
+  /// Fires at the same time every day (power cuts), so it keeps working
+  /// even if the app isn't opened for a while.
+  final bool repeatDaily;
+
   @override
-  String toString() => '$id ${type.name} $when "$title" — $body';
+  String toString() => '$id ${type.name} $when${repeatDaily ? ' daily' : ''} "$title" — $body';
 }
 
 /// What the planner needs to know. Built by AppState from the active meter.
@@ -87,6 +99,7 @@ class ReminderInputs {
     this.billDueDate,
     this.billMonth,
     this.isTou = false,
+    this.loadShedding = const [],
   });
 
   final DateTime now;
@@ -104,6 +117,8 @@ class ReminderInputs {
   /// Time-of-use meter: warn before peak hours.
   final bool isTou;
 
+  /// The user's daily load-shedding times.
+  final List<LoadSheddingSlot> loadShedding;
 }
 
 /// Decides which reminders to schedule. Pure Dart, unit-tested; see
@@ -113,7 +128,13 @@ class ReminderPlanner {
   const ReminderPlanner();
 
   static const int idBase = 3000;
-  static const int idCount = 50;
+  static const int idCount = 80;
+
+  /// Power-cut alerts, one per load-shedding slot (ids 50–79).
+  static const int maxPowerCutSlots = 30;
+
+  /// Power-cut alerts come this many minutes before the slot.
+  static const int powerCutLeadMinutes = 15;
 
   /// Peak-hour alerts for this many days ahead (ids 40–46).
   static const int peakDaysAhead = 7;
@@ -293,6 +314,32 @@ class ReminderPlanner {
           }),
           minute: 30,
         );
+      }
+    }
+
+    // ------------------------------------------------- 7. power cuts
+    if (i.enabled.contains(ReminderType.powerCut)) {
+      for (final (k, slot) in i.loadShedding.take(maxPowerCutSlots).indexed) {
+        final alertMin = (slot.start - powerCutLeadMinutes) % (24 * 60);
+        var at = DateTime(today.year, today.month, today.day, alertMin ~/ 60, alertMin % 60);
+        // Next time it happens; daily repeats take it from there.
+        if (!at.isAfter(now.add(const Duration(minutes: 1)))) at = at.add(const Duration(days: 1));
+        final hours = slot.minutes / 60;
+        final length = slot.minutes % 60 == 0
+            ? (hours == 1 ? '1 hour'.tr : '{0} hours'.trf({'0': hours.round()}))
+            : '{0} min'.trf({'0': slot.minutes});
+        out.add(PlannedReminder(
+          id: idBase + 50 + k,
+          type: ReminderType.powerCut,
+          when: at,
+          title: 'Power cut at {0}'.trf({'0': _clock(slot.start)}),
+          body: 'Load shedding from {0} to {1} ({2}). Charge your phone and UPS and fill water now.'.trf({
+            '0': _clock(slot.start),
+            '1': _clock(slot.end),
+            '2': length,
+          }),
+          repeatDaily: true,
+        ));
       }
     }
 

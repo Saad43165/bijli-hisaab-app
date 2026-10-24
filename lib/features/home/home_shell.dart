@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/l10n/l10n.dart';
 import '../../core/navigation/app_nav.dart';
+import '../../services/notification_service.dart';
+import '../../services/reminders/reminder_planner.dart';
 import '../../shared/widgets/app_nav_bar.dart';
+import '../../state/app_state.dart';
 import '../appliances/appliances_screen.dart';
 import '../bills/history_screen.dart';
+import '../readings/add_reading_screen.dart';
+import '../settings/load_shedding_screen.dart';
+import '../settings/reminders_screen.dart';
 import '../settings/tools_screen.dart';
+import '../settings/widgets/notification_permission.dart';
 import 'dashboard_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -32,12 +40,57 @@ class _HomeShellState extends State<HomeShell> {
     super.initState();
     AppNav.tab.value = 0;
     AppNav.tab.addListener(_onTab);
+    NotificationService.instance.tapped.addListener(_onNotificationTap);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // The app may have been opened by tapping a notification.
+      _onNotificationTap();
+      _askForNotificationsOnce();
+    });
   }
 
   @override
   void dispose() {
     AppNav.tab.removeListener(_onTab);
+    NotificationService.instance.tapped.removeListener(_onNotificationTap);
     super.dispose();
+  }
+
+  static const _askedFlag = 'notification_prompt_shown';
+
+  /// First visit to Home after setup: explain, then ask (Android 13+).
+  Future<void> _askForNotificationsOnce() async {
+    final state = context.read<AppState>();
+    if (state.uiFlag(_askedFlag) || !state.remindersEnabled) return;
+    if (await NotificationService.instance.notificationsAllowed) return;
+    await state.setUiFlag(_askedFlag, true);
+    if (mounted) await NotificationPermission.ensure(context);
+  }
+
+  /// Opens the screen a tapped notification is about.
+  void _onNotificationTap() {
+    final payload = NotificationService.instance.tapped.value;
+    if (payload == null) return;
+    NotificationService.instance.tapped.value = null;
+    final type = ReminderType.values.where((t) => t.name == payload).firstOrNull;
+    switch (type) {
+      case ReminderType.readingDay || ReminderType.noReading || ReminderType.closeToSlab:
+        AppNav.goTab(0);
+        AppNav.push(const AddReadingScreen());
+      case ReminderType.billDue:
+        AppNav.goTab(1);
+      case ReminderType.powerCut:
+        AppNav.goTab(3);
+        AppNav.push(const LoadSheddingScreen());
+      case ReminderType.weeklySummary || ReminderType.peakHours:
+        AppNav.goTab(0);
+      case null:
+        if (payload == NotificationService.slabPayload) {
+          AppNav.goTab(0);
+        } else if (payload == NotificationService.testPayload) {
+          AppNav.goTab(3);
+          AppNav.push(const RemindersScreen());
+        }
+    }
   }
 
   Widget _tab(int i, Widget Function() build) => TickerMode(
