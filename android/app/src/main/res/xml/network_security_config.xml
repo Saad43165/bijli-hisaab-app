@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Plain HTTP only to the PITC bill site, for a header-only check that
+         tells whether a mobile network's filter is blocking it. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">bill.pitc.com.pk</domain>
+    </domain-config>
+</network-security-config>

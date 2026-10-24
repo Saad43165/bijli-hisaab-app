@@ -54,8 +54,12 @@ class OnlineBill {
 }
 
 class OnlineBillException implements Exception {
-  const OnlineBillException(this.message);
+  const OnlineBillException(this.message, {this.siteUnreachable = false});
   final String message;
+
+  /// The bill site couldn't be reached (blocked network, site down): the
+  /// app offers to open it in the browser instead.
+  final bool siteUnreachable;
   @override
   String toString() => message;
 }
@@ -68,7 +72,44 @@ class OnlineBillService {
   final http.Client _client;
 
   static const _ua = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Mobile Safari/537.36';
-  static const _timeout = Duration(seconds: 25);
+  static const _timeout = Duration(seconds: 20);
+
+  static const blockedMessage = 'Your internet provider is blocking the bill site (bill.pitc.com.pk). '
+      'Switch to another Wi-Fi or mobile data and try again.';
+  static const downMessage = 'The bill site (bill.pitc.com.pk) is not responding right now. Try again in a few minutes.';
+  static const offlineMessage = 'No internet connection. Connect and try again.';
+
+  /// Why the bill site can't be reached, found in a few seconds: no
+  /// internet, a network filter (some mobile networks and hotspots block
+  /// PITC: HTTPS times out and plain HTTP is redirected to the provider's
+  /// filter page), or the site itself is down. null when it's reachable.
+  Future<OnlineBillException?> checkSite() async {
+    try {
+      await _client.head(Uri.https('bill.pitc.com.pk', '/'), headers: {'User-Agent': _ua}).timeout(const Duration(seconds: 8));
+      return null;
+    } catch (_) {
+      // Look closer below.
+    }
+    try {
+      final req = http.Request('HEAD', Uri.http('bill.pitc.com.pk', '/'))
+        ..followRedirects = false
+        ..headers['User-Agent'] = _ua;
+      final res = await _client.send(req).timeout(const Duration(seconds: 6));
+      final to = Uri.tryParse(res.headers['location'] ?? '')?.host ?? '';
+      if (to.isNotEmpty && !to.endsWith('pitc.com.pk')) {
+        return const OnlineBillException(blockedMessage, siteUnreachable: true);
+      }
+    } catch (_) {
+      // Plain HTTP failed too: offline, or the site is down.
+    }
+    try {
+      await _client.head(Uri.https('www.google.com', '/')).timeout(const Duration(seconds: 6));
+    } catch (_) {
+      return const OnlineBillException(offlineMessage);
+    }
+    // The internet works but PITC doesn't answer: down, or blocked here.
+    return const OnlineBillException(downMessage, siteUnreachable: true);
+  }
 
   /// Companies whose bills are on the PITC site.
   static bool supports(PowerCompany c) => c.billUrl?.contains('bill.pitc.com.pk') ?? false;
@@ -81,6 +122,10 @@ class OnlineBillService {
   /// once and returns the first that knows this reference number.
   Future<(PowerCompany, OnlineBill)> find(String reference) async {
     if (!validReference(reference)) throw const OnlineBillException('Enter the 14-digit reference number');
+    // One quick check first, so a blocked or down site is reported in
+    // seconds (not after ten parallel searches time out).
+    final problem = await checkSite();
+    if (problem != null) throw problem;
     final companies = PowerCompanies.all.where(supports).toList();
     final done = Completer<(PowerCompany, OnlineBill)>();
     var failed = 0;
@@ -162,12 +207,10 @@ class OnlineBillService {
         throw const OnlineBillException('No bill found for this reference number');
       }
       return bill;
-    } on TimeoutException {
-      throw const OnlineBillException('The bill site is not responding. Try again later.');
     } on OnlineBillException {
       rethrow;
     } catch (e) {
-      throw const OnlineBillException('No internet, or the bill site is down');
+      throw await checkSite() ?? const OnlineBillException(downMessage, siteUnreachable: true);
     }
   }
 

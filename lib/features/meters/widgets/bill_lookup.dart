@@ -13,6 +13,7 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/company_badge.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../../../state/app_state.dart';
+import '../../bills/bill_site_fallback.dart';
 import '../../settings/help_screen.dart';
 
 /// Reference-number box + "Find my bill". Looks the number up at every
@@ -30,6 +31,7 @@ class _ReferenceLookupState extends State<ReferenceLookup> {
   final _ref = TextEditingController();
   bool _busy = false;
   String? _error;
+  bool _unreachable = false;
 
   @override
   void dispose() {
@@ -46,6 +48,7 @@ class _ReferenceLookupState extends State<ReferenceLookup> {
     setState(() {
       _busy = true;
       _error = null;
+      _unreachable = false;
     });
     try {
       final (company, bill) = await context.read<AppState>().findOnlineBill(_ref.text);
@@ -53,7 +56,12 @@ class _ReferenceLookupState extends State<ReferenceLookup> {
       HapticFeedback.mediumImpact();
       widget.onFound(company, bill);
     } on OnlineBillException catch (e) {
-      if (mounted) setState(() => _error = e.message.tr);
+      if (mounted) {
+        setState(() {
+          _error = e.message.tr;
+          _unreachable = e.siteUnreachable;
+        });
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -100,6 +108,14 @@ class _ReferenceLookupState extends State<ReferenceLookup> {
             label: Text('Where is it on my bill?'.tr),
           ),
         ),
+        if (_unreachable && !_busy) ...[
+          OutlinedButton.icon(
+            onPressed: () => BillSiteFallback.open(context, reference: _ref.text),
+            icon: const Icon(Icons.open_in_browser_rounded),
+            label: Text('Open in browser'.tr),
+          ),
+          const SizedBox(height: 8),
+        ],
         LoadingButton(
           loading: _busy,
           onPressed: _find,

@@ -14,6 +14,7 @@ import '../../shared/widgets/hero_style.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../services/online_bill_service.dart';
 import '../../state/app_state.dart';
+import 'bill_site_fallback.dart';
 import 'bill_form_screen.dart';
 import 'past_bills_screen.dart';
 import 'scan_bill_screen.dart';
@@ -44,7 +45,9 @@ class HistoryScreen extends StatelessWidget {
             : 'Your history is up to date ({0} bill).'.trf({'0': Fmt.month(bill.month)}),
       );
     } on OnlineBillException catch (e) {
-      if (context.mounted) showSnack(context, e.message.tr);
+      if (context.mounted) {
+        BillSiteFallback.snack(context, e, company: state.company, reference: state.activeMeter?.referenceNo);
+      }
     }
   }
 

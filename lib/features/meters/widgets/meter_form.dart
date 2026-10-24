@@ -13,6 +13,7 @@ import '../../../services/online_bill_service.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/art.dart';
 import '../../../state/app_state.dart';
+import '../../bills/bill_site_fallback.dart';
 import 'company_picker.dart';
 import '../../../core/l10n/l10n.dart';
 
@@ -182,7 +183,7 @@ class MeterFormState extends State<MeterForm> {
           })),
         ));
     } on OnlineBillException catch (e) {
-      messenger?.showSnackBar(SnackBar(content: Text(e.message.tr)));
+      if (mounted) BillSiteFallback.snack(context, e, company: PowerCompanies.of(_disco), reference: _reference.text);
     } finally {
       if (mounted) setState(() => _fetching = false);
     }

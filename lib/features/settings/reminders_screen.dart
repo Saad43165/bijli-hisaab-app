@@ -8,7 +8,6 @@ import '../../services/notification_service.dart';
 import '../../services/reminders/reminder_planner.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
-import '../../shared/widgets/dialogs.dart';
 import '../../shared/widgets/info_banner.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
@@ -64,37 +63,6 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
     await change();
     if (mounted) await NotificationPermission.ensure(context);
     await _checkHealth();
-  }
-
-  Future<void> _sendTest({Duration? after}) async {
-    if (!await NotificationPermission.ensure(context)) {
-      await _checkHealth();
-      return;
-    }
-    final ok = await NotificationService.instance.sendTest(after: after);
-    if (!mounted) return;
-    showSnack(
-      context,
-      !ok
-          ? 'Could not send a notification on this phone.'.tr
-          : after == null
-              ? 'Sent — check your notifications.'.tr
-              : 'Scheduled for 2 minutes from now. You can close the app.'.tr,
-    );
-  }
-
-  /// Shows the next reminder of each kind right now, with its real text.
-  Future<void> _previewUpcoming(List<PlannedReminder> upcoming) async {
-    if (!await NotificationPermission.ensure(context)) {
-      await _checkHealth();
-      return;
-    }
-    final seen = <ReminderType>{};
-    var sent = 0;
-    for (final r in upcoming) {
-      if (seen.add(r.type) && await NotificationService.instance.preview(r)) sent++;
-    }
-    if (mounted) showSnack(context, 'Sent {0} previews — check your notifications.'.trf({'0': sent}));
   }
 
   Widget _healthBanner(NotificationHealth h) {
@@ -194,42 +162,6 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
               value: state.slabAlertsEnabled,
               onChanged: (v) =>
                   v ? _turnOn(() => state.setSlabAlertsEnabled(true)) : state.setSlabAlertsEnabled(false),
-            ),
-          ),
-          SectionHeader('Check it works'.tr),
-          AppCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Send a test now, or one in 2 minutes and close the app to check reminders arrive.'.tr,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: p.muted),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    FilledButton.icon(
-                      onPressed: () => _sendTest(),
-                      icon: const Icon(Icons.notifications_active_rounded, size: 18),
-                      label: Text('Send test notification'.tr),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () => _sendTest(after: const Duration(minutes: 2)),
-                      icon: const Icon(Icons.schedule_rounded, size: 18),
-                      label: Text('In 2 minutes'.tr),
-                    ),
-                    if (on && upcoming.isNotEmpty)
-                      OutlinedButton.icon(
-                        onPressed: () => _previewUpcoming(upcoming),
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: Text('Preview coming-up alerts'.tr),
-                      ),
-                  ],
-                ),
-              ],
             ),
           ),
           SectionHeader('Coming up'.tr),

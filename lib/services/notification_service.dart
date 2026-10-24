@@ -38,15 +38,11 @@ class NotificationService {
   bool _ready = false;
 
   static const int _slabAlertId = 1001;
-  static const int _testId = 1002;
-  /// Previews of upcoming reminders, one per [ReminderType] (1100–1109).
-  static const int _previewBase = 1100;
   /// Old fixed weekly reminder (v1.0); cancelled on upgrade.
   static const int _legacyWeeklyId = 2001;
 
   /// Payloads that aren't a [ReminderType] name.
   static const String slabPayload = 'slab';
-  static const String testPayload = 'test';
 
   /// The payload of a notification the user tapped (also the one that
   /// launched the app). The home screen listens and opens the right screen.
@@ -200,56 +196,6 @@ class NotificationService {
       );
     } catch (e) {
       debugPrint('Slab alert failed: $e');
-    }
-  }
-
-  /// "Send test notification" on the Reminders screen. With [after], it is
-  /// scheduled instead (to check alarms fire while the app is closed).
-  Future<bool> sendTest({Duration? after}) async {
-    if (!_ready) return false;
-    final title = 'Bijli Hisaab notifications work'.tr;
-    final body = after == null
-        ? 'You\'ll get slab warnings, bill due dates and reminders like this one.'.tr
-        : 'This scheduled test arrived on time — reminders will work while the app is closed.'.tr;
-    final details = NotificationDetails(android: _channel('reading_reminders', bigText: body));
-    try {
-      if (after == null) {
-        await _plugin.show(id: _testId, title: title, body: body, notificationDetails: details, payload: testPayload);
-      } else {
-        final pk = _pk;
-        if (pk == null) return false;
-        await _plugin.zonedSchedule(
-          id: _testId,
-          title: title,
-          body: body,
-          scheduledDate: tz.TZDateTime.now(pk).add(after),
-          notificationDetails: details,
-          androidScheduleMode: await _scheduleMode,
-          payload: testPayload,
-        );
-      }
-      return true;
-    } catch (e) {
-      debugPrint('Test notification failed: $e');
-      return false;
-    }
-  }
-
-  /// Shows [r] now, exactly as it will look when it fires ("Preview").
-  Future<bool> preview(PlannedReminder r) async {
-    if (!_ready) return false;
-    try {
-      await _plugin.show(
-        id: _previewBase + r.type.index,
-        title: r.title,
-        body: r.body,
-        notificationDetails: NotificationDetails(android: _channel(_channelFor(r.type), bigText: r.body)),
-        payload: r.type.name,
-      );
-      return true;
-    } catch (e) {
-      debugPrint('Preview failed: $e');
-      return false;
     }
   }
 

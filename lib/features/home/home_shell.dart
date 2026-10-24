@@ -10,7 +10,6 @@ import '../../state/app_state.dart';
 import '../appliances/appliances_screen.dart';
 import '../bills/history_screen.dart';
 import '../readings/add_reading_screen.dart';
-import '../settings/reminders_screen.dart';
 import '../settings/tools_screen.dart';
 import '../settings/widgets/notification_permission.dart';
 import 'dashboard_screen.dart';
@@ -82,9 +81,6 @@ class _HomeShellState extends State<HomeShell> {
       case null:
         if (payload == NotificationService.slabPayload) {
           AppNav.goTab(0);
-        } else if (payload == NotificationService.testPayload) {
-          AppNav.goTab(3);
-          AppNav.push(const RemindersScreen());
         }
     }
   }
