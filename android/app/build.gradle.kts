@@ -74,3 +74,13 @@ dependencies {
 flutter {
     source = "../.."
 }
+
+// Bill and meter scanning only read Latin text, so leave out the Chinese,
+// Devanagari, Japanese and Korean models (saves several MB per install).
+configurations.all {
+    exclude(group = "com.google.mlkit", module = "text-recognition-chinese")
+    exclude(group = "com.google.mlkit", module = "text-recognition-devanagari")
+    exclude(group = "com.google.mlkit", module = "text-recognition-japanese")
+    exclude(group = "com.google.mlkit", module = "text-recognition-korean")
+}
+
