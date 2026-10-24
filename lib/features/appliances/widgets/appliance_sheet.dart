@@ -228,6 +228,12 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
     final rate = context.watch<AppState>().marginalRate;
     final units = _monthlyUnits;
     final isNew = widget.existing == null;
+    final others = context
+        .watch<AppState>()
+        .appliances
+        .where((a) => a.id != widget.existing?.id)
+        .fold<double>(0, (t, a) => t + a.monthlyUnits);
+    final share = others + units <= 0 ? null : units / (others + units);
     final nonInverterAc = _name.text.toLowerCase().contains('non-inverter');
 
     return SingleChildScrollView(
@@ -299,11 +305,25 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            // How many, by slider too (the stepper goes up to 50).
             Row(
               children: [
-                Text('USED PER DAY'.tr, style: theme.textTheme.labelSmall),
-                const Spacer(),
+                Expanded(child: Text('HOW MANY'.tr, style: theme.textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                Text('× {0}'.trf({'0': _qty}), style: theme.textTheme.titleMedium),
+              ],
+            ),
+            Slider(
+              value: _qty.clamp(1, 20).toDouble(),
+              min: 1,
+              max: 20,
+              divisions: 19,
+              label: '$_qty',
+              onChanged: (v) => setState(() => _qty = v.round()),
+            ),
+            Row(
+              children: [
+                Expanded(child: Text('USED PER DAY'.tr, style: theme.textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
                 Text(_hoursLabel(_hours), style: theme.textTheme.titleMedium),
               ],
             ),
@@ -317,6 +337,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
             ),
             Wrap(
               spacing: 8,
+              runSpacing: 6,
               children: [
                 for (final h in _hourChips)
                   ChoiceChip(
@@ -339,10 +360,12 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                   Expanded(child: _Est(label: 'Per day'.tr, value: '${Fmt.oneDp(_dailyUnits)} units')),
                   Expanded(child: _Est(label: 'Per month'.tr, value: Fmt.units(units))),
                   Expanded(child: _Est(label: 'Costs about'.tr, value: '${Fmt.rs(units * rate)}/mo')),
+                  if (share != null) Expanded(child: _Est(label: 'Of your use'.tr, value: '${(share * 100).round()}%')),
                 ],
               ),
             ),
-            if (nonInverterAc && units > 0) ...[
+            // Depends only on the name, not the sliders, so the sheet keeps its height while you drag.
+            if (nonInverterAc) ...[
               const SizedBox(height: 10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,11 +414,15 @@ class _Est extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.bodySmall),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: AlignmentDirectional.centerStart,
-          child: Text(value, style: theme.textTheme.titleSmall),
+        Text(label, style: theme.textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+        // Fixed height: a longer number shrinks rather than growing the sheet.
+        SizedBox(
+          height: 24,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(value, style: theme.textTheme.titleSmall),
+          ),
         ),
       ],
     );

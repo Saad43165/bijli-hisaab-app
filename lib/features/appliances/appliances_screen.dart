@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/appliance.dart';
 import '../../services/appliance_planner.dart';
+import '../../shared/widgets/animated_number.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
 import '../../shared/widgets/dialogs.dart';
@@ -21,7 +22,7 @@ import 'widgets/quick_setup.dart';
 
 /// What uses your electricity and how to pay less. One tap fills in a
 /// typical home from your bill; everything is adjusted with + / −.
-class AppliancesScreen extends StatelessWidget {
+class AppliancesScreen extends StatefulWidget {
   const AppliancesScreen({super.key});
 
   /// Monthly units the appliance list should roughly add up to.
@@ -32,11 +33,49 @@ class AppliancesScreen extends StatelessWidget {
     return t > 0 ? t : 200;
   }
 
+  /// [items] biggest cost first, or by name.
+  static List<Appliance> sorted(List<Appliance> items, {required bool byName}) => [...items]
+    ..sort((a, b) => byName
+        ? a.name.toLowerCase().compareTo(b.name.toLowerCase())
+        : b.monthlyUnits.compareTo(a.monthlyUnits));
+
+  @override
+  State<AppliancesScreen> createState() => _AppliancesScreenState();
+}
+
+class _AppliancesScreenState extends State<AppliancesScreen> {
+  bool _byName = false;
+
+  /// Swipe or − to zero: remove, with Undo in the snack bar.
+  Future<void> _remove(Appliance a) async {
+    final state = context.read<AppState>();
+    final messenger = ScaffoldMessenger.of(context);
+    HapticFeedback.mediumImpact();
+    await state.deleteAppliance(a);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text('{0} removed'.trf({'0': a.name.tr})),
+        action: SnackBarAction(
+          label: 'Undo'.tr,
+          onPressed: () => state.saveAppliance(Appliance(
+            meterId: a.meterId,
+            name: a.name,
+            category: a.category,
+            watts: a.watts,
+            quantity: a.quantity,
+            hoursPerDay: a.hoursPerDay,
+            createdAt: a.createdAt,
+          )),
+        ),
+      ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final theme = Theme.of(context);
-    final items = [...state.appliances]..sort((a, b) => b.monthlyUnits.compareTo(a.monthlyUnits));
+    final items = AppliancesScreen.sorted(state.appliances, byName: _byName);
     final total = state.applianceMonthlyUnits;
     final rate = state.marginalRate;
 
@@ -53,7 +92,7 @@ class AppliancesScreen extends StatelessWidget {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
               children: [
-                _SummaryCard(total: total),
+                _SummaryCard(total: total, rate: rate),
                 const SizedBox(height: 12),
                 _SavingsCard(items: items, rate: rate),
                 const SizedBox(height: 18),
@@ -61,7 +100,27 @@ class AppliancesScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text('YOUR APPLIANCES · {0}'.trf({'0': items.length}),
-                          style: theme.textTheme.labelSmall),
+                          style: theme.textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                    PopupMenuButton<bool>(
+                      tooltip: 'Sort'.tr,
+                      initialValue: _byName,
+                      onSelected: (v) => setState(() => _byName = v),
+                      itemBuilder: (_) => [
+                        PopupMenuItem(value: false, child: Text('Biggest cost first'.tr)),
+                        PopupMenuItem(value: true, child: Text('By name'.tr)),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.sort_rounded, size: 18),
+                            const SizedBox(width: 4),
+                            Text(_byName ? 'By name'.tr : 'By cost'.tr, style: theme.textTheme.labelLarge),
+                          ],
+                        ),
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: () => QuickSetup.show(context),
@@ -70,18 +129,40 @@ class AppliancesScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                for (final a in items) ...[
-                  _ApplianceRow(appliance: a, total: total, rate: rate),
-                  const SizedBox(height: 8),
-                ],
+                for (final a in items)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Dismissible(
+                      key: ValueKey('appliance-${a.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: const _SwipeDelete(),
+                      onDismissed: (_) => _remove(a),
+                      child: _ApplianceRow(appliance: a, total: total, rate: rate, onRemove: () => _remove(a)),
+                    ),
+                  ),
                 const SizedBox(height: 4),
                 Text(
-                  'Tap − / + to match your home. Costs use {0} per unit, before taxes.'.trf({'0': Fmt.rate(rate)}),
+                  'Swipe left to remove. Costs use {0} per unit, before taxes.'.trf({'0': Fmt.rate(rate)}),
                   style: theme.textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _SwipeDelete extends StatelessWidget {
+  const _SwipeDelete();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
+    return Container(
+      alignment: AlignmentDirectional.centerEnd,
+      padding: const EdgeInsetsDirectional.only(end: 20),
+      decoration: BoxDecoration(color: p.danger.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(20)),
+      child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
     );
   }
 }
@@ -191,32 +272,48 @@ class _EmptyStartState extends State<_EmptyStart> {
 
 // ---------------------------------------------------------------- summary
 
-/// Total units and cost, and how well it matches the meter or bill.
+/// Total units and cost a month, their share of the bill, and how well
+/// they match it.
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.total});
+  const _SummaryCard({required this.total, required this.rate});
 
   final double total;
+  final double rate;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<AppState>();
     final h = HeroStyle.of(context);
-    final bill = state.estimateFor(total.round());
     final target = AppliancesScreen.targetUnits(state);
-    final coverage = target <= 0 ? null : total / target;
+    final share = target <= 0 ? null : total / target;
+    final cost = total * rate;
 
-    String? note;
-    if (coverage != null) {
-      if (coverage < 0.75) {
-        note = 'About {0} units a month aren\'t explained yet — something is missing or running longer.'
-            .trf({'0': Fmt.whole(target - total)});
-      } else if (coverage > 1.3) {
-        note = 'That\'s more than your bills show — some hours are probably too high.'.tr;
-      } else {
-        note = 'Matches your bills well.'.tr;
-      }
+    final String note;
+    if (share == null) {
+      note = '';
+    } else if (share < 0.75) {
+      note = 'About {0} units a month aren\'t explained yet — something is missing or running longer.'
+          .trf({'0': Fmt.whole(target - total)});
+    } else if (share > 1.3) {
+      note = 'That\'s more than your bills show — some hours are probably too high.'.tr;
+    } else {
+      note = 'Matches your bills well.'.tr;
     }
+    final accent = h.dark ? AppColors.amber : AppColors.navy;
+
+    Widget figure(String label, Widget value) => Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: theme.textTheme.labelSmall?.copyWith(color: h.muted), maxLines: 1),
+              SizedBox(
+                height: 34,
+                child: FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: value),
+              ),
+            ],
+          ),
+        );
 
     return AppCard(
       padding: const EdgeInsets.all(18),
@@ -224,28 +321,55 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('YOUR HOME USES ABOUT'.tr, style: theme.textTheme.labelSmall?.copyWith(color: h.muted)),
-          const SizedBox(height: 4),
+          Text('YOUR APPLIANCES USE ABOUT'.tr, style: theme.textTheme.labelSmall?.copyWith(color: h.muted)),
+          const SizedBox(height: 8),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(Fmt.whole(total), style: theme.textTheme.displaySmall?.copyWith(color: h.fg, height: 1)),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text('units a month'.tr, style: theme.textTheme.titleMedium?.copyWith(color: h.muted)),
+              figure(
+                'UNITS A MONTH'.tr,
+                AnimatedNumber(
+                  value: total,
+                  format: Fmt.whole,
+                  duration: const Duration(milliseconds: 400),
+                  style: theme.textTheme.headlineMedium?.copyWith(color: h.fg, fontWeight: FontWeight.w800),
+                ),
               ),
-              const Spacer(),
-              if (bill != null)
-                Text(Fmt.rs(bill.total),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: h.dark ? AppColors.amber : AppColors.navy,
-                      fontWeight: FontWeight.w800,
-                    )),
+              figure(
+                'COST A MONTH'.tr,
+                AnimatedNumber(
+                  value: cost,
+                  format: Fmt.rs,
+                  duration: const Duration(milliseconds: 400),
+                  style: theme.textTheme.headlineMedium?.copyWith(color: accent, fontWeight: FontWeight.w800),
+                ),
+              ),
+              if (share != null)
+                figure(
+                  'OF YOUR BILL'.tr,
+                  Text('{0}%'.trf({'0': (share * 100).clamp(0, 999).round()}),
+                      style: theme.textTheme.headlineMedium?.copyWith(color: h.fg, fontWeight: FontWeight.w800)),
+                ),
             ],
           ),
-          if (note != null) ...[
+          if (share != null) ...[
             const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: share.clamp(0.0, 1.0),
+                minHeight: 8,
+                color: AppColors.amber,
+                backgroundColor: h.fg.withValues(alpha: 0.12),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '{0} of about {1} units on your bills'.trf({'0': Fmt.whole(total), '1': Fmt.whole(target)}),
+              style: theme.textTheme.bodySmall?.copyWith(color: h.muted),
+            ),
+          ],
+          if (note.isNotEmpty) ...[
+            const SizedBox(height: 8),
             Text(note, style: theme.textTheme.bodySmall?.copyWith(color: h.fg)),
           ],
         ],
@@ -338,18 +462,18 @@ class _SavingsCard extends StatelessWidget {
 
 /// Name, share of the bill and cost, with − / + for how many and hours.
 class _ApplianceRow extends StatelessWidget {
-  const _ApplianceRow({required this.appliance, required this.total, required this.rate});
+  const _ApplianceRow({required this.appliance, required this.total, required this.rate, required this.onRemove});
 
   final Appliance appliance;
   final double total;
   final double rate;
+  final VoidCallback onRemove;
 
   Future<void> _set(BuildContext context, {int? quantity, double? hours}) async {
     HapticFeedback.selectionClick();
     final state = context.read<AppState>();
     if (quantity == 0) {
-      await state.deleteAppliance(appliance);
-      if (context.mounted) showSnack(context, '{0} removed'.trf({'0': appliance.name.tr}));
+      onRemove();
       return;
     }
     await state.saveAppliance(appliance.copyWith(quantity: quantity, hoursPerDay: hours));
@@ -383,24 +507,47 @@ class _ApplianceRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(a.name.tr, style: theme.textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text('{0} units · {1}% of your use'.trf({'0': a.monthlyUnits.round(), '1': (share * 100).round()}),
-                        style: theme.textTheme.bodySmall),
+                    Text(
+                      '{0} W · {1} units a month'.trf({'0': a.watts * a.quantity, '1': a.monthlyUnits.round()}),
+                      style: theme.textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-              Text('{0}/mo'.trf({'0': Fmt.rs(a.monthlyUnits * rate)}),
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(Fmt.rs(a.monthlyUnits * rate),
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
+                  Text('a month'.tr, style: theme.textTheme.bodySmall),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: share.clamp(0.0, 1.0),
-              minHeight: 4,
-              color: AppColors.amber,
-              backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),
-            ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: share.clamp(0.0, 1.0),
+                    minHeight: 6,
+                    color: AppColors.amber,
+                    backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 40,
+                child: Text('{0}%'.trf({'0': (share * 100).round()}),
+                    textAlign: TextAlign.end, style: theme.textTheme.labelMedium),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Row(
@@ -450,9 +597,13 @@ class _Stepper extends StatelessWidget {
             onPressed: onMinus,
             icon: Icon(minusIcon),
           ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 52),
-            child: Text(label, textAlign: TextAlign.center, style: theme.textTheme.labelLarge),
+          // Fixed width, so the buttons don't shift as the value changes.
+          SizedBox(
+            width: 64,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label, textAlign: TextAlign.center, style: theme.textTheme.labelLarge, maxLines: 1),
+            ),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
