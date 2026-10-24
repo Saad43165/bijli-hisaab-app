@@ -43,7 +43,10 @@ class BillCalculatorScreen extends StatefulWidget {
       (label: 'TV fee'.tr, note: '', amount: e.tvFee),
       if (e.exportCredit != 0) (label: 'Solar credit'.tr, note: '', amount: -e.exportCredit),
     ];
-    return [for (final l in lines) if (l.amount.abs() >= 0.5 || l.label == 'Energy charge'.tr) l];
+    return [
+      for (final l in lines)
+        if (l.amount.abs() >= 0.5 || l.label == 'Energy charge'.tr) l,
+    ];
   }
 
   /// When [units] is just over a slab limit: the limit and what the extra
@@ -62,6 +65,9 @@ class BillCalculatorScreen extends StatefulWidget {
 }
 
 class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
+  /// Room for two lines of the status note, so the card never changes height.
+  static const _slotHeight = 44.0;
+
   int? _units;
 
   /// null = the meter's own category.
@@ -127,36 +133,62 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
     final lines = BillScreenText.lines(e, tariff);
     final jump = tou ? null : BillCalculatorScreen.overLimit(units, calc.limitsFor(cls), (u) => estimate(u).total);
     final movedUp = cls.hasProtection && e.appliedClass == ConsumerClass.unprotected;
+    final next = tou ? null : calc.limitsFor(cls).where((l) => l >= units).firstOrNull;
+    final (String, IconData, Color) note = jump != null
+        ? (
+            '{0} units over {1} add {2}. Staying at {1} saves that much.'.trf({
+              '0': units - jump.$1,
+              '1': jump.$1,
+              '2': Fmt.rs(jump.$2),
+            }),
+            Icons.warning_amber_rounded,
+            p.isDark ? p.danger : const Color(0xFFFFB4AB),
+          )
+        : movedUp
+        ? (
+            'Above {0} units, protected rates don\'t apply — the whole bill is at unprotected rates.'.trf({
+              '0': tariff.protectedThresholdUnits,
+            }),
+            Icons.info_outline_rounded,
+            AppColors.amber,
+          )
+        : next != null
+        ? (
+            '{0} units to the next slab limit ({1}).'.trf({'0': next - units, '1': next}),
+            Icons.check_circle_outline_rounded,
+            h.fg.withValues(alpha: 0.8),
+          )
+        : ('Highest slab.'.tr, Icons.info_outline_rounded, h.fg.withValues(alpha: 0.8));
 
     Widget section(String title, Widget child, {String? hint}) => Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: AppCard(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-                if (hint != null) ...[
-                  const SizedBox(height: 2),
-                  Text(hint, style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
-                ],
-                const SizedBox(height: 10),
-                child,
-              ],
-            ),
-          ),
-        );
+      padding: const EdgeInsets.only(top: 12),
+      child: AppCard(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+            if (hint != null) ...[
+              const SizedBox(height: 2),
+              Text(hint, style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
+            ],
+            const SizedBox(height: 10),
+            child,
+          ],
+        ),
+      ),
+    );
 
     Widget stepButton(IconData icon, VoidCallback? onTap, String tip) => IconButton.filledTonal(
-          tooltip: tip,
-          onPressed: onTap == null
-              ? null
-              : () {
-                  HapticFeedback.selectionClick();
-                  onTap();
-                },
-          icon: Icon(icon),
-        );
+      tooltip: tip,
+      onPressed: onTap == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
+      icon: Icon(icon),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -178,75 +210,75 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Bill for {0} units'.trf({'0': Fmt.whole(units)}),
-                          style: theme.textTheme.labelLarge?.copyWith(color: h.muted),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                  SizedBox(
+                    height: 28,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Bill for {0} units'.trf({'0': Fmt.whole(units)}),
+                            style: theme.textTheme.labelLarge?.copyWith(color: h.muted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      _Badge(e.isTou ? 'TOU' : 'Slab {0}'.trf({'0': e.slabLabel}), AppColors.amber),
-                    ],
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: _Badge(e.isTou ? 'TOU' : 'Slab {0}'.trf({'0': e.slabLabel}), AppColors.amber),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.centerStart,
-                    child: AnimatedNumber(
-                      value: e.total,
-                      format: Fmt.rs,
-                      duration: const Duration(milliseconds: 450),
-                      style: theme.textTheme.displaySmall?.copyWith(color: h.fg, fontWeight: FontWeight.w800),
+                  // Fixed height: a longer amount shrinks to fit instead of
+                  // changing the card's height.
+                  SizedBox(
+                    height: 52,
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: AnimatedNumber(
+                        value: e.total,
+                        format: Fmt.rs,
+                        duration: const Duration(milliseconds: 450),
+                        style: theme.textTheme.displaySmall?.copyWith(color: h.fg, fontWeight: FontWeight.w800),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _Badge('{0}/unit all-in'.trf({'0': Fmt.rate(e.effectiveRate)}), h.fg.withValues(alpha: 0.85)),
-                      _Badge(e.appliedClass.label, e.appliedClass.hasProtection ? p.safe : AppColors.amber),
-                    ],
-                  ),
-                  if (movedUp) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      'Above {0} units, protected rates don\'t apply — the whole bill is at unprotected rates.'
-                          .trf({'0': tariff.protectedThresholdUnits}),
-                      style: theme.textTheme.bodySmall?.copyWith(color: h.fg),
+                  // One line that shrinks rather than wraps, so the card keeps its height.
+                  SizedBox(
+                    height: 28,
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Row(
+                        children: [
+                          _Badge('{0}/unit all-in'.trf({'0': Fmt.rate(e.effectiveRate)}), h.fg.withValues(alpha: 0.85)),
+                          const SizedBox(width: 8),
+                          _Badge(e.appliedClass.label, e.appliedClass.hasProtection ? p.safe : AppColors.amber),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Fixed height: the warning comes and goes while you drag
+                  // the slider, and nothing below may move under your finger.
+                  SizedBox(
+                    height: _slotHeight,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _StatusLine(key: ValueKey(note.$1), icon: note.$2, text: note.$1, color: note.$3),
+                    ),
+                  ),
                 ],
               ),
             ),
-            if (jump != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: p.danger.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.warning_amber_rounded, size: 20, color: p.danger),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '{0} units over {1} add {2}. Staying at {1} saves that much.'
-                              .trf({'0': units - jump.$1, '1': jump.$1, '2': Fmt.rs(jump.$2)}),
-                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
 
             // ---------------------------------------------------- units
             section(
@@ -264,7 +296,10 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
                           focusNode: _focus,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(4),
+                          ],
                           style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                           decoration: InputDecoration(
                             suffixText: 'units'.tr,
@@ -279,7 +314,11 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      stepButton(Icons.add_rounded, units < BillCalculatorScreen.maxUnits ? () => _setUnits(units + 10) : null, '+10'),
+                      stepButton(
+                        Icons.add_rounded,
+                        units < BillCalculatorScreen.maxUnits ? () => _setUnits(units + 10) : null,
+                        '+10',
+                      ),
                     ],
                   ),
                   Slider(
@@ -314,16 +353,27 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
             // ---------------------------------------------------- category
             section(
               'Rate category'.tr,
-              hint: 'Protected: each of your last {0} bills was {1} units or less.'
-                  .trf({'0': tariff.protectedMonths, '1': tariff.protectedThresholdUnits}),
+              hint: 'Protected: each of your last {0} bills was {1} units or less.'.trf({
+                '0': tariff.protectedMonths,
+                '1': tariff.protectedThresholdUnits,
+              }),
               SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<ConsumerClass?>(
                   showSelectedIcon: false,
                   segments: [
-                    ButtonSegment(value: null, label: Text('Mine'.tr, maxLines: 1)),
-                    ButtonSegment(value: ConsumerClass.protected, label: Text('Protected'.tr, maxLines: 1)),
-                    ButtonSegment(value: ConsumerClass.unprotected, label: Text('Unprotected'.tr, maxLines: 1)),
+                    ButtonSegment(
+                      value: null,
+                      label: FittedBox(fit: BoxFit.scaleDown, child: Text('Mine'.tr, maxLines: 1)),
+                    ),
+                    ButtonSegment(
+                      value: ConsumerClass.protected,
+                      label: FittedBox(fit: BoxFit.scaleDown, child: Text('Protected'.tr, maxLines: 1)),
+                    ),
+                    ButtonSegment(
+                      value: ConsumerClass.unprotected,
+                      label: FittedBox(fit: BoxFit.scaleDown, child: Text('Unprotected'.tr, maxLines: 1)),
+                    ),
                   ],
                   selected: {_class},
                   onSelectionChanged: (v) => setState(() => _class = v.first),
@@ -338,7 +388,11 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
                 hint: 'Printed on your bill. Fixed charges depend on it.'.tr,
                 Row(
                   children: [
-                    stepButton(Icons.remove_rounded, load > 0.5 ? () => setState(() => _load = load - 0.5) : null, '−0.5'),
+                    stepButton(
+                      Icons.remove_rounded,
+                      load > 0.5 ? () => setState(() => _load = load - 0.5) : null,
+                      '−0.5',
+                    ),
                     Expanded(
                       child: Text(
                         '{0} kW'.trf({'0': Fmt.oneDp(load)}),
@@ -373,7 +427,10 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
                       Row(
                         children: [
                           Expanded(child: Text('Total'.tr, style: theme.textTheme.titleMedium)),
-                          Text(Fmt.rs(e.total), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                          Text(
+                            Fmt.rs(e.total),
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -388,8 +445,10 @@ class _BillCalculatorScreenState extends State<BillCalculatorScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              '{0} · {1}. NEPRA rates as in the app; your real bill may differ slightly.'
-                  .trf({'0': state.company.shortCode, '1': tariff.name}),
+              '{0} · {1}. NEPRA rates as in the app; your real bill may differ slightly.'.trf({
+                '0': state.company.shortCode,
+                '1': tariff.name,
+              }),
               style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
             ),
           ],
@@ -410,11 +469,40 @@ class BillScreenText {
     if (e.isTou) return 'Time-of-use meter: peak and off-peak units at their own rates, no slabs.'.tr;
     final cat = t.categoryOf(e.appliedClass);
     return switch (cat.billingMode) {
-      BillingMode.whole => 'All units are charged at the rate of the slab you end up in, so one unit over a limit raises the whole bill.'.tr,
-      BillingMode.previousSlab => 'Protected rates: units up to the previous slab at its rate, the rest at your slab\'s rate.'.tr,
+      BillingMode.whole =>
+        'All units are charged at the rate of the slab you end up in, so one unit over a limit raises the whole bill.'
+            .tr,
+      BillingMode.previousSlab =>
+        'Protected rates: units up to the previous slab at its rate, the rest at your slab\'s rate.'.tr,
       BillingMode.incremental => 'Each slab\'s units are charged at that slab\'s rate.'.tr,
     };
   }
+}
+
+/// The note in the result card: an icon and up to two lines.
+class _StatusLine extends StatelessWidget {
+  const _StatusLine({super.key, required this.icon, required this.text, required this.color});
+
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, size: 18, color: color),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          text,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+        ),
+      ),
+    ],
+  );
 }
 
 class _LineRow extends StatelessWidget {
@@ -436,8 +524,7 @@ class _LineRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(line.label, style: theme.textTheme.bodyMedium),
-                if (line.note.isNotEmpty)
-                  Text(line.note, style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
+                if (line.note.isNotEmpty) Text(line.note, style: theme.textTheme.bodySmall?.copyWith(color: p.muted)),
               ],
             ),
           ),
@@ -460,12 +547,12 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: color.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(999)),
-        child: Text(
-          text,
-          maxLines: 1,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w700),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(999)),
+    child: Text(
+      text,
+      maxLines: 1,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w700),
+    ),
+  );
 }

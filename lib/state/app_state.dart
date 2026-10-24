@@ -93,6 +93,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool get onboardingDone => _settings.onboardingDone && _meters.isNotEmpty;
   Tariff get tariff => _tariff!;
   bool get hasTariff => _tariff != null;
+
+  /// Tests: use [t] without loading rates from disk.
+  @visibleForTesting
+  void debugUseTariff(Tariff t) => _tariff = t;
   TariffOrigin get tariffOrigin => _tariffOrigin;
   bool get autoUpdateRates => _settings.autoUpdateRates;
   bool get checkingRates => _checkingRates;
