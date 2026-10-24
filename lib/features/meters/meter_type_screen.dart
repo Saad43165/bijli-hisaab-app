@@ -96,7 +96,7 @@ class _MeterTypeScreenState extends State<MeterTypeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text('When was your solar agreement signed?'.tr, style: theme.textTheme.labelSmall),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           SegmentedButton<MeterType>(
                             segments: [
                               ButtonSegment(value: MeterType.netMetering, label: Text('Before Feb 2026'.tr)),

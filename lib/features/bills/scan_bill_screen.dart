@@ -117,9 +117,9 @@ class _ScanBillScreenState extends State<ScanBillScreen> {
             Row(
               children: [
                 Expanded(child: _Step(art: Art.receipt, n: 1, text: 'Lay the bill flat in good light'.tr)),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(child: _Step(art: Art.camera, n: 2, text: 'Hold steady — it captures itself'.tr)),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(child: _Step(art: Art.check, n: 3, text: 'Check the values and save'.tr)),
               ],
             ),

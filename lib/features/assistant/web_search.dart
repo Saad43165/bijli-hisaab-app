@@ -86,7 +86,7 @@ class WebSearch {
     }
   }
 
-  /// DuckDuckGo wraps links: //duckduckgo.com/l/?uddg=<real url>
+  /// DuckDuckGo wraps links: `//duckduckgo.com/l/?uddg=<real url>`
   static String _realUrl(String href) {
     final u = Uri.tryParse(href.startsWith('//') ? 'https:$href' : href);
     final real = u?.queryParameters['uddg'];

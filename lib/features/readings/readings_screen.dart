@@ -38,7 +38,7 @@ class ReadingsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _add(context),
         icon: const Icon(Icons.add_rounded),
-        label: Text('Add reading'.tr, style: TextStyle(fontWeight: FontWeight.w800)),
+        label: Text('Add reading'.tr, style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: readings.isEmpty
           ? Center(

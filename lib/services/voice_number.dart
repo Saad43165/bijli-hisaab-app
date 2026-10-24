@@ -19,10 +19,13 @@ class VoiceNumber {
     String? result;
     var done = false;
     await _speech.listen(
-      localeId: L10n.isUrdu ? 'ur_PK' : 'en_US',
-      listenFor: const Duration(seconds: 12),
-      pauseFor: const Duration(seconds: 3),
-      listenOptions: SpeechListenOptions(listenMode: ListenMode.dictation, partialResults: true),
+      listenOptions: SpeechListenOptions(
+        localeId: L10n.isUrdu ? 'ur_PK' : 'en_US',
+        listenFor: const Duration(seconds: 12),
+        pauseFor: const Duration(seconds: 3),
+        listenMode: ListenMode.dictation,
+        partialResults: true,
+      ),
       onResult: (r) {
         onPartial?.call(r.recognizedWords);
         if (r.finalResult) {
@@ -53,10 +56,13 @@ class VoiceNumber {
     String? result;
     var done = false;
     await _speech.listen(
-      localeId: localeId ?? (L10n.isUrdu ? 'ur_PK' : 'en_US'),
-      listenFor: const Duration(seconds: 20),
-      pauseFor: const Duration(seconds: 3),
-      listenOptions: SpeechListenOptions(listenMode: ListenMode.dictation, partialResults: true),
+      listenOptions: SpeechListenOptions(
+        localeId: localeId ?? (L10n.isUrdu ? 'ur_PK' : 'en_US'),
+        listenFor: const Duration(seconds: 20),
+        pauseFor: const Duration(seconds: 3),
+        listenMode: ListenMode.dictation,
+        partialResults: true,
+      ),
       onResult: (r) {
         onPartial?.call(r.recognizedWords);
         if (r.finalResult) {

@@ -61,7 +61,7 @@ class _MonthlyUnitsChartState extends State<MonthlyUnitsChart> {
                 ),
                 if (hasAmounts)
                   SegmentedButton<bool>(
-                    style: ButtonStyle(visualDensity: VisualDensity.compact),
+                    style: const ButtonStyle(visualDensity: VisualDensity.compact),
                     showSelectedIcon: false,
                     segments: [
                       ButtonSegment(value: false, label: Text('Units'.tr)),

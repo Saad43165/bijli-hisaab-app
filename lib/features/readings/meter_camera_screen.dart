@@ -344,7 +344,7 @@ class _MeterCameraScreenState extends State<MeterCameraScreen> with WidgetsBindi
                 child: Text(
                   'Scan meter'.tr,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800),
+                  style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800),
                 ),
               ),
               if (_state == _CamState.ready)
@@ -571,7 +571,7 @@ class _Problem extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Type it in instead'.tr, style: TextStyle(color: Colors.white70)),
+            child: Text('Type it in instead'.tr, style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
@@ -591,15 +591,15 @@ class _ReadingVeil extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 44,
               height: 44,
               child: CircularProgressIndicator(color: AppColors.amber, strokeWidth: 3.5),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Reading the meter…'.tr,
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ],
         ),

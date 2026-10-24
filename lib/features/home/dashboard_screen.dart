@@ -127,7 +127,7 @@ class DashboardScreen extends StatelessWidget {
           onScan: () => _push(context, const ScanBillScreen()),
         )),
 
-      SectionHeader('Shortcuts'.tr, padding: EdgeInsets.fromLTRB(4, 8, 4, 10)),
+      SectionHeader('Shortcuts'.tr, padding: const EdgeInsets.fromLTRB(4, 8, 4, 10)),
       QuickActionsRow(
         actions: [
           QuickAction(art: Art.camera, label: 'Scan bill'.tr, onTap: () => _push(context, const ScanBillScreen())),
@@ -141,7 +141,7 @@ class DashboardScreen extends StatelessWidget {
           QuickAction(art: Art.plug, label: 'Appliances'.tr, onTap: () => onOpenTab(2)),
         ],
       ),
-      SectionHeader('Tip of the day'.tr, padding: EdgeInsets.fromLTRB(4, 22, 4, 10)),
+      SectionHeader('Tip of the day'.tr, padding: const EdgeInsets.fromLTRB(4, 22, 4, 10)),
       const TipCard(),
     ];
 

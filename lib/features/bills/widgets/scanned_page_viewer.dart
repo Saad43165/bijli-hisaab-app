@@ -159,14 +159,14 @@ class _ScannedPageViewerState extends State<ScannedPageViewer> {
                   child: InkWell(
                     onTap: () => widget.onRotate!(_pages.hasClients ? (_pages.page ?? 0).round() : widget.page),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.rotate_right_rounded, size: 18, color: Colors.white),
-                          SizedBox(width: 6),
+                          const Icon(Icons.rotate_right_rounded, size: 18, color: Colors.white),
+                          const SizedBox(width: 6),
                           Text('Rotate'.tr,
-                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                         ],
                       ),
                     ),

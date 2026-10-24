@@ -320,12 +320,12 @@ class _BackupScreenState extends State<BackupScreen> {
                   child: Center(
                     child: Card(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+                        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3)),
-                            SizedBox(width: 16),
+                            const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3)),
+                            const SizedBox(width: 16),
                             Text('Restoring…'.tr),
                           ],
                         ),

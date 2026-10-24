@@ -444,7 +444,7 @@ class MeterFormState extends State<MeterForm> {
           ),
           gap,
           Text('Connection'.tr, style: theme.textTheme.labelSmall),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           SegmentedButton<String>(
             segments: [
               for (final t in AppConstants.connectionTypes)
@@ -456,7 +456,7 @@ class MeterFormState extends State<MeterForm> {
           ),
           gap,
           Text('Meter type'.tr, style: theme.textTheme.labelSmall),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           SegmentedButton<MeterType>(
             segments: [
               ButtonSegment(value: MeterType.standard, label: Text('Normal'.tr)),
@@ -484,7 +484,7 @@ class MeterFormState extends State<MeterForm> {
           if (_meterType.isSolar) ...[
             const SizedBox(height: 12),
             Text('When was your solar agreement signed?'.tr, style: theme.textTheme.labelSmall),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             SegmentedButton<MeterType>(
               segments: [
                 ButtonSegment(value: MeterType.netMetering, label: Text('Before Feb 2026'.tr)),
@@ -511,7 +511,7 @@ class MeterFormState extends State<MeterForm> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text('Meter phase'.tr, style: theme.textTheme.labelSmall),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     SegmentedButton<String>(
                       segments: [
                         ButtonSegment(value: 'single', label: Text('Single'.tr)),

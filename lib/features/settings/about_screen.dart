@@ -34,7 +34,7 @@ class AboutScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
-          Center(child: const ArtTile(Art.brandBolt, onNavy: true, size: 88)),
+          const Center(child: ArtTile(Art.brandBolt, onNavy: true, size: 88)),
           const SizedBox(height: 12),
           Center(child: Text(AppConstants.appName, style: theme.textTheme.titleLarge)),
           Center(child: Text('Version 1.0.0'.tr, style: theme.textTheme.bodySmall)),
@@ -99,7 +99,7 @@ class AboutScreen extends StatelessWidget {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.mail_outline_rounded),
-                  title: Text(AppConstants.creatorEmail),
+                  title: const Text(AppConstants.creatorEmail),
                   subtitle: Text('Feedback, ideas or problems — write to me'.tr),
                   onTap: () => launchUrl(
                     Uri(scheme: 'mailto', path: AppConstants.creatorEmail, query: 'subject=Bijli%20Hisaab%20feedback'),

@@ -128,12 +128,12 @@ class PowerCompanies {
       billUrl: _pitc('PESCO'),
       helpline: '118',
     ),
-    PowerCompany(
+    const PowerCompany(
       code: 'HAZECO',
       fullName: 'Hazara Electric Supply Company',
       region: 'Abbottabad, Haripur, Mansehra, Battagram, Torghar, Kohistan',
       province: 'KP',
-      color: const Color(0xFF558B2F),
+      color: Color(0xFF558B2F),
       website: 'https://hazeco.com.pk',
       billUrl: 'https://bill.pitc.com.pk',
       helpline: '118',

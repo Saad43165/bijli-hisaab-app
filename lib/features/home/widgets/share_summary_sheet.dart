@@ -70,7 +70,7 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
     if (s == null || !s.hasData || meter == null) {
       return SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Text('Add two readings this month to share your usage.'.tr),
         ),
       );

@@ -2,7 +2,7 @@ name: bijli_bachao
 description: "Track electricity units, predict your bill and stay under the slab limit."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.0

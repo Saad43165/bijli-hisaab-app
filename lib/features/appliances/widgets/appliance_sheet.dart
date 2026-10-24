@@ -167,7 +167,7 @@ class _ApplianceSheetState extends State<ApplianceSheet> {
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
                     hintText: 'Search: fan, AC, motor…'.tr,
-                    prefixIcon: Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(Icons.search_rounded),
                   ),
                 ),
               ],

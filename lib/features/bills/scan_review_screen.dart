@@ -615,7 +615,7 @@ class _FieldCard extends StatelessWidget {
               if (f?.note != null || extra != null) ...[
                 const SizedBox(height: 6),
                 Text(
-                  [if (f?.note != null) f!.note!, if (extra != null) extra!].join(' · '),
+                  [if (f?.note != null) f!.note!, ?extra].join(' · '),
                   style: theme.textTheme.bodySmall,
                 ),
               ],

@@ -38,7 +38,7 @@ class MeterFrameOverlay extends StatelessWidget {
               child: Text(
                 'Fit the meter numbers inside the frame'.tr,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -55,9 +55,9 @@ class MeterFrameOverlay extends StatelessWidget {
                 child: hint == null
                     ? Text(
                         'Skip digits in red or after a decimal point'.tr,
-                        key: ValueKey('tip'),
+                        key: const ValueKey('tip'),
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
                       )
                     : Container(
                         key: ValueKey(hint),

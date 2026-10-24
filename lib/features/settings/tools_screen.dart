@@ -140,7 +140,7 @@ class ToolsScreen extends StatelessWidget {
               ),
             ),
           ),
-          SectionHeader('Quick tools'.tr, padding: EdgeInsets.fromLTRB(4, 18, 4, 10)),
+          SectionHeader('Quick tools'.tr, padding: const EdgeInsets.fromLTRB(4, 18, 4, 10)),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -194,23 +194,23 @@ class ToolsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           AppCard(
-            padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: SegmentedButton<ThemeMode>(
               showSelectedIcon: false,
               segments: [
                 ButtonSegment(
                   value: ThemeMode.system,
-                  icon: Icon(Icons.brightness_auto_rounded, size: 18),
+                  icon: const Icon(Icons.brightness_auto_rounded, size: 18),
                   label: Text('Phone'.tr),
                 ),
                 ButtonSegment(
                   value: ThemeMode.light,
-                  icon: Icon(Icons.light_mode_rounded, size: 18),
+                  icon: const Icon(Icons.light_mode_rounded, size: 18),
                   label: Text('Light'.tr),
                 ),
                 ButtonSegment(
                   value: ThemeMode.dark,
-                  icon: Icon(Icons.dark_mode_rounded, size: 18),
+                  icon: const Icon(Icons.dark_mode_rounded, size: 18),
                   label: Text('Dark'.tr),
                 ),
               ],

@@ -38,9 +38,8 @@ class SmartScannerUnavailable implements Exception {
 
 /// Capture (document scanner / camera / gallery) + on-device OCR.
 class BillOcrService {
-  BillOcrService({ImagePicker? picker, BillScanAnalyzer analyzer = const BillScanAnalyzer()})
-      : _picker = picker ?? ImagePicker(),
-        _analyzer = analyzer;
+  BillOcrService({ImagePicker? picker, this._analyzer = const BillScanAnalyzer()})
+      : _picker = picker ?? ImagePicker();
 
   final ImagePicker _picker;
   final BillScanAnalyzer _analyzer;

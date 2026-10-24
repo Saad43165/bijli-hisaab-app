@@ -32,7 +32,7 @@ class CompanyPickerField extends StatelessWidget {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: 'Electricity company'.tr,
-          contentPadding: EdgeInsets.fromLTRB(12, 14, 12, 14),
+          contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
         ),
         child: Row(
           children: [
@@ -96,7 +96,7 @@ class _CompanySheetState extends State<_CompanySheet> {
                   onChanged: (v) => setState(() => _q = v),
                   decoration: InputDecoration(
                     hintText: 'Search city or company'.tr,
-                    prefixIcon: Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(Icons.search_rounded),
                     isDense: true,
                   ),
                 ),

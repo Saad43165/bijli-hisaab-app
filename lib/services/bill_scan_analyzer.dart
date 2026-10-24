@@ -97,11 +97,11 @@ class BillScanAnalysis {
   static const empty = BillScanAnalysis();
 
   List<ScanField<Object>> get _all => [
-        if (month != null) month!,
-        if (units != null) units!,
-        if (amount != null) amount!,
-        if (dueDate != null) dueDate!,
-        if (presentReading != null) presentReading!,
+        ?month,
+        ?units,
+        ?amount,
+        ?dueDate,
+        ?presentReading,
       ];
 
   int get foundCount => _all.length;
