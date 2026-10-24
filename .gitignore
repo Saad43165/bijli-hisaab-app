@@ -46,3 +46,23 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Secrets: never commit signing keys, passwords or service configs
+key.properties
+**/key.properties
+*.jks
+*.keystore
+local.properties
+**/local.properties
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+.env
+*.env
+
+# Build outputs and logs
+*.apk
+*.aab
+build.log
+analyze.log
+test.log
