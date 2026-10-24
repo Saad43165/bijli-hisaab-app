@@ -154,6 +154,70 @@ void main() {
     });
   });
 
+  group('follow-ups use the conversation', () {
+    /// Resolves each line against the one before, like the chat does.
+    List<CoreMatch?> chain(List<String> lines) {
+      CoreMatch? last;
+      return [
+        for (final l in lines) last = CoreAnswers.resolve(l, last) ?? last,
+      ];
+    }
+
+    String ans(CoreMatch m, String q, {bool urdu = false}) => CoreAnswers.answer(m, live, urdu: urdu, question: q)!;
+
+    test('English: appliance, then another, then why/how much', () {
+      final c = chain(['Biggest power user?', 'and the fan?', 'what about the fridge?']);
+      expect(c[1]!.intent, CoreIntent.appliances);
+      expect(ans(c[1]!, 'and the fan?'), contains('Ceiling fan: about 40 units'));
+      expect(ans(c[2]!, 'what about the fridge?'), contains('Refrigerator: about 45 units'));
+    });
+
+    test('English: estimate → why? → last month → the month before', () {
+      final c = chain(['How much will my bill be?', 'why?', 'what about last month?', 'and the month before?']);
+      expect(c[1]!.intent, CoreIntent.billHigh);
+      expect(c[2]!.intent, CoreIntent.lastBill);
+      expect(ans(c[2]!, ''), contains('180 units'));
+      expect(c[3]!.monthsBack, 1);
+      expect(ans(c[3]!, ''), contains('195 units'));
+    });
+
+    test('units left → how much would that cost?', () {
+      final c = chain(['How many units can I still use?', 'how much would that cost?']);
+      expect(c[1]!.intent, CoreIntent.billEstimate);
+    });
+
+    test('Roman Urdu: 250 units kitna → aur 300? → isko kam kaise karun', () {
+      final c = chain(['250 units kitna bill?', 'aur 300?', 'isko kam kaise karun']);
+      expect(c[1]!.units, 300);
+      expect(ans(c[1]!, 'aur 300?'), contains('Rs 9,000'));
+      expect(c[2]!.intent, CoreIntent.savingTips);
+    });
+
+    test('Roman Urdu: aur AC ka? → kitna?', () {
+      final c = chain(['sab se zyada bijli kaun use karta', 'aur AC ka?', 'kitna?']);
+      expect(c[1]!.appliance, 'ac');
+      expect(c[2]!.appliance, 'ac');
+      expect(ans(c[2]!, 'kitna?'), contains('AC 1.5 ton (inverter): about 180 units'));
+    });
+
+    test('Urdu: estimate → کیوں؟ → پچھلے مہینے کا؟', () {
+      final c = chain(['میرا بل کتنا آئے گا؟', 'کیوں؟', 'پچھلے مہینے کا؟']);
+      expect(c[1]!.intent, CoreIntent.billHigh);
+      expect(c[2]!.intent, CoreIntent.lastBill);
+      expect(ans(c[2]!, '', urdu: true), contains('180'));
+    });
+
+    test('a new question is not swallowed by the old topic', () {
+      final c = chain(['Biggest power user?', 'Am I protected?']);
+      expect(c[1]!.intent, CoreIntent.protection);
+    });
+
+    test('long unrelated messages are not follow-ups', () {
+      expect(CoreAnswers.resolve('tell me a long story about cricket and football please', const CoreMatch(CoreIntent.fca)),
+          isNull);
+    });
+  });
+
   group('AI reply guard', () {
     final ctx = live.context();
 

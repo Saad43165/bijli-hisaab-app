@@ -23,6 +23,21 @@ class LocalBrain implements AssistantBrain {
   /// follow each message (Urdu script → Urdu, else the app language).
   String? chatLanguage;
 
+  /// The last core question, for follow-ups.
+  CoreMatch? _last;
+
+  static CoreMatch? _lastFrom(List<ChatMessage> history) {
+    for (final m in history.reversed.take(8)) {
+      if (!m.fromUser) continue;
+      final c = CoreAnswers.match(m.text);
+      if (c != null) return c;
+    }
+    return null;
+  }
+
+  /// Forget the conversation ("New chat").
+  void reset() => _last = null;
+
   /// Language of the reply being built.
   bool _urdu = false;
 
@@ -103,8 +118,8 @@ class LocalBrain implements AssistantBrain {
     }
 
     // ----------------------------------------------- "I have 2 ACs, 5 fans and a motor"
-    if (_has(t, ['have', ' hai', ' hain', 'paas', 'پاس', 'ہیں', 'ہے', 'add', 'shamil', 'شامل']) &&
-        !_has(t, ['reading', 'ریڈنگ', 'meter ', 'bill'])) {
+    if (_has(t, ['have', ' hain', 'paas', 'پاس', 'ہیں', 'add', 'shamil', 'شامل']) &&
+        !_has(t, ['reading', 'ریڈنگ', 'meter ', 'bill', 'kitna', 'kitne', 'how much', 'cost', '?', '؟', 'کتنا', 'کیا'])) {
       final found = <(String, int)>[];
       for (final chunk in t.split(RegExp(r',|\band\b|\baur\b|اور|&'))) {
         final name = AssistantTools.applianceNamed(chunk);
@@ -197,8 +212,11 @@ class LocalBrain implements AssistantBrain {
     // ----------------------------------------------- the common questions
     // Bill estimate, units, slab, protected, rates, appliances, due date:
     // answered from the app's own numbers, never guessed.
-    final core = CoreAnswers.match(input);
+    // Follow-ups ("and the fan?", "kitna?", "why?") read against the last
+    // question; after reopening the chat, the last one saved.
+    final core = CoreAnswers.resolve(input, _last ?? _lastFrom(history));
     if (core != null) {
+      _last = core;
       if (core.intent == CoreIntent.savingTips) return _plan();
       final facts = tools.facts();
       return AssistantReply(
@@ -329,6 +347,7 @@ class LocalBrain implements AssistantBrain {
             _go(_t('Open History'), 'history'),
           ],
         CoreIntent.protection => [_go(_t('Open History'), 'history')],
+        CoreIntent.lastBill => [_go(_t('Open History'), 'history')],
         CoreIntent.savingTips || CoreIntent.howTo => const [],
       };
 

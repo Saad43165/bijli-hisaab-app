@@ -1,7 +1,9 @@
+import 'dart:math' as math;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +47,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
   int _generation = 0;
   bool _listening = false;
 
+  /// Microphone level while listening, 0–1 (drives the waveform).
+  final _level = ValueNotifier<double>(0);
+  DateTime? _listenStart;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +70,8 @@ class _AssistantScreenState extends State<AssistantScreen> {
   void dispose() {
     _input.dispose();
     _scroll.dispose();
+    _level.dispose();
+    if (_listening) VoiceNumber.cancel();
     super.dispose();
   }
 
@@ -318,16 +326,43 @@ class _AssistantScreenState extends State<AssistantScreen> {
       await VoiceNumber.stop();
       return;
     }
-    setState(() => _listening = true);
+    HapticFeedback.lightImpact();
+    _level.value = 0;
+    setState(() {
+      _listening = true;
+      _listenStart = DateTime.now();
+      _input.clear();
+    });
     final words = await VoiceNumber.listenWords(
-      localeId: (_brain.chatLanguage ?? L10n.language) == 'ur' ? 'ur_PK' : 'en_US',
+      localeId: _chatUrdu ? 'ur_PK' : 'en_US',
       onPartial: (w) {
         if (mounted) setState(() => _input.text = w);
       },
+      onLevel: (v) => _level.value = v,
     );
     if (!mounted) return;
+    HapticFeedback.selectionClick();
     setState(() => _listening = false);
+    final problem = VoiceNumber.lastProblem;
+    if (problem != null) {
+      showSnack(
+        context,
+        problem == VoiceProblem.permission
+            ? (_chatUrdu
+                ? 'مائیکروفون کی اجازت نہیں۔ سیٹنگز ← ایپس ← بجلی حساب ← اجازتیں میں مائیکروفون آن کریں۔'
+                : 'Microphone permission is off. Turn it on in Settings → Apps → Bijli Hisaab → Permissions.')
+            : (_chatUrdu ? 'اس فون پر آواز سے لکھنا دستیاب نہیں۔' : 'Voice typing isn\'t available on this phone.'),
+      );
+      return;
+    }
     if (words != null) await _send(words);
+  }
+
+  /// Cancel while listening: stop and throw away what was heard.
+  Future<void> _cancelVoice() async {
+    HapticFeedback.selectionClick();
+    await VoiceNumber.cancel();
+    if (mounted) setState(() => _input.clear());
   }
 
   /// Scrolls to the newest message and saves the chat.
@@ -349,6 +384,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   });
 
   void _clear() {
+    _brain.reset();
     context.read<AppState>().clearChat();
     _clearView();
   }
@@ -470,6 +506,16 @@ class _AssistantScreenState extends State<AssistantScreen> {
                     },
                   ),
           ),
+          if (_listening)
+            _VoicePanel(
+              level: _level,
+              started: _listenStart ?? DateTime.now(),
+              transcript: _input.text,
+              urdu: chatUrdu,
+              onCancel: _cancelVoice,
+              onDone: VoiceNumber.stop,
+            )
+          else
           Material(
             color: theme.scaffoldBackgroundColor,
             child: SafeArea(
@@ -1034,4 +1080,243 @@ class _TypingState extends State<_Typing> with SingleTickerProviderStateMixin {
     final x = (t * 3 - i) % 3;
     return x < 1 ? (x < 0.5 ? x * 2 : (1 - x) * 2) : 0;
   }
+}
+
+/// While listening: a live waveform from the microphone level, the words
+/// heard so far, a timer, and cancel / done.
+class _VoicePanel extends StatefulWidget {
+  const _VoicePanel({
+    required this.level,
+    required this.started,
+    required this.transcript,
+    required this.urdu,
+    required this.onCancel,
+    required this.onDone,
+  });
+
+  final ValueListenable<double> level;
+  final DateTime started;
+  final String transcript;
+  final bool urdu;
+  final VoidCallback onCancel;
+  final VoidCallback onDone;
+
+  @override
+  State<_VoicePanel> createState() => _VoicePanelState();
+}
+
+class _VoicePanelState extends State<_VoicePanel> with SingleTickerProviderStateMixin {
+  static const _bars = 28;
+  late final Ticker _ticker;
+  final _heights = List<double>.filled(_bars, 0.08);
+  double _smooth = 0;
+  Duration _t = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_tick)..start();
+  }
+
+  void _tick(Duration t) {
+    final dt = ((t - _t).inMicroseconds / 1e6).clamp(0.0, 0.05);
+    _t = t;
+    // Rise fast, fall slowly, like a VU meter.
+    final target = widget.level.value;
+    _smooth += (target - _smooth) * (target > _smooth ? 18 : 5) * dt;
+    final s = t.inMicroseconds / 1e6;
+    for (var i = 0; i < _bars; i++) {
+      // Taller in the middle, each bar moving at its own pace.
+      final centre = 1 - ((i - (_bars - 1) / 2).abs() / (_bars / 2)) * 0.55;
+      final wobble = 0.55 + 0.45 * math.sin(s * (7 + (i % 5) * 1.3) + i * 0.9);
+      final idle = 0.08 + 0.05 * (0.5 + 0.5 * math.sin(s * 2.2 + i * 0.45));
+      final want = math.max(idle, _smooth * centre * wobble);
+      _heights[i] += (want - _heights[i]) * math.min(1, 22 * dt);
+    }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final p = AppPalette.of(context);
+    final secs = DateTime.now().difference(widget.started).inSeconds;
+    final timer = '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+    final heard = widget.transcript.trim();
+    final pulse = 0.5 + 0.5 * math.sin(_t.inMicroseconds / 1e6 * 4);
+
+    return Material(
+      color: p.surface,
+      elevation: 8,
+      shadowColor: Colors.black26,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.redAccent.withValues(alpha: 0.5 + 0.5 * pulse),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.urdu ? 'سن رہا ہوں…' : 'Listening…',
+                    style: _textStyle(theme, widget.urdu ? 'ا' : 'a', size: 14)
+                        ?.copyWith(fontWeight: FontWeight.w700, color: p.ink),
+                  ),
+                  const Spacer(),
+                  Text(
+                    timer,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: p.muted,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 56,
+                width: double.infinity,
+                child: CustomPaint(painter: _WavePainter(_heights, AppColors.amber, AppColors.amberDeep)),
+              ),
+              const SizedBox(height: 10),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 24),
+                child: Text(
+                  heard.isEmpty ? (widget.urdu ? 'بولیں، میں لکھ رہا ہوں' : 'Speak — I\'m writing it down') : heard,
+                  textAlign: TextAlign.center,
+                  textDirection: _isUrdu(heard) || (heard.isEmpty && widget.urdu) ? TextDirection.rtl : TextDirection.ltr,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: _textStyle(theme, heard.isEmpty ? (widget.urdu ? 'ا' : 'a') : heard, size: 15)
+                      ?.copyWith(color: heard.isEmpty ? p.muted : p.ink),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _RoundButton(
+                    icon: Icons.close_rounded,
+                    label: widget.urdu ? 'منسوخ' : 'Cancel',
+                    color: p.muted.withValues(alpha: 0.16),
+                    iconColor: p.ink,
+                    onTap: widget.onCancel,
+                  ),
+                  // Pulses with the voice.
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.amber.withValues(alpha: 0.45),
+                          blurRadius: 10 + 26 * _smooth,
+                          spreadRadius: 2 + 10 * _smooth,
+                        ),
+                      ],
+                    ),
+                    child: const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.amber,
+                      child: Icon(Icons.mic_rounded, color: AppColors.navy, size: 30),
+                    ),
+                  ),
+                  _RoundButton(
+                    icon: Icons.check_rounded,
+                    label: widget.urdu ? 'بھیجیں' : 'Send',
+                    color: AppColors.navy,
+                    iconColor: Colors.white,
+                    onTap: widget.onDone,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: label,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Material(
+              color: color,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTap,
+                child: SizedBox(width: 48, height: 48, child: Icon(icon, color: iconColor)),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(label, style: _textStyle(Theme.of(context), label, size: 12)),
+          ],
+        ),
+      );
+}
+
+/// Rounded bars, mirrored around the middle line.
+class _WavePainter extends CustomPainter {
+  _WavePainter(this.heights, this.light, this.deep);
+
+  final List<double> heights;
+  final Color light;
+  final Color deep;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final n = heights.length;
+    final gap = size.width / n;
+    final w = math.min(6.0, gap * 0.55);
+    final mid = size.height / 2;
+    for (var i = 0; i < n; i++) {
+      final h = math.max(w, heights[i].clamp(0.0, 1.0) * size.height);
+      final x = gap * i + gap / 2;
+      final paint = Paint()..color = Color.lerp(light, deep, heights[i].clamp(0.0, 1.0))!;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(x, mid), width: w, height: h), Radius.circular(w / 2)),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WavePainter old) => true;
 }

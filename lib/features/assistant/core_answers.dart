@@ -185,17 +185,23 @@ enum CoreIntent {
   unitsSoFar,
   billEstimate,
   howTo,
+
+  /// A past bill ("what about last month?").
+  lastBill,
 }
 
 /// A matched question: what it's about, plus a number of units if given.
 class CoreMatch {
-  const CoreMatch(this.intent, {this.units, this.appliance});
+  const CoreMatch(this.intent, {this.units, this.appliance, this.monthsBack = 0});
 
   final CoreIntent intent;
   final int? units;
 
   /// Words naming one appliance ("ac"), for "how much does my AC cost".
   final String? appliance;
+
+  /// For [CoreIntent.lastBill]: 0 = the latest bill, 1 = the one before.
+  final int monthsBack;
 }
 
 /// The common questions, matched and answered on the phone from [CoreFacts].
@@ -213,6 +219,63 @@ class CoreAnswers {
     'استری', 'geyser', 'heater', 'tv', 'ٹی وی', 'cooler', 'washing', 'freezer', 'computer', 'pc', 'laptop', 'bulb',
     'light', 'microwave', 'oven', 'kettle', 'dispenser', 'ups',
   ];
+
+  static String? _applianceIn(String t) =>
+      _applianceWords.where((w) => RegExp('(^|[^a-z])${RegExp.escape(w)}([^a-z]|\$)').hasMatch(t)).firstOrNull;
+
+  /// Like [match], but short follow-ups ("and the fan?", "kitna?", "why?",
+  /// "what about last month?", "aur 300?") are read against [previous],
+  /// the last question in the chat.
+  static CoreMatch? resolve(String input, CoreMatch? previous) {
+    final t = ' ${input.toLowerCase().trim()} ';
+    final words = t.trim().split(RegExp(r'\s+')).length;
+    final m = match(input);
+    final short = words <= 7;
+
+    // "What about last month?" / "pichle mahine ka?" / "the month before?"
+    final before = _has(t, ['month before', 'before that', 'us se pehle', 'اس سے پہلے']);
+    if ((before && previous?.intent == CoreIntent.lastBill) ||
+        _has(t, ['last month', 'previous month', 'pichle mahine', 'pichlay mahine', 'pichla mahina', 'پچھلے مہینے', 'پچھلا مہینہ'])) {
+      if (m == null || m.intent == CoreIntent.billEstimate || m.intent == CoreIntent.unitsSoFar) {
+        return CoreMatch(CoreIntent.lastBill, monthsBack: before ? (previous?.monthsBack ?? 0) + 1 : 0);
+      }
+    }
+    if (m != null) return m;
+    if (previous == null || !short) return null;
+
+    // "And the fan?" / "aur AC ka?" / "what about the fridge?"
+    final named = _applianceIn(t);
+    if (named != null) return CoreMatch(CoreIntent.appliances, appliance: named);
+
+    // "Aur 300?" after "250 units kitna?"
+    final n = RegExp(r'\d{1,4}').firstMatch(t)?.group(0);
+    if (n != null && previous.intent == CoreIntent.unitsCost) return CoreMatch(CoreIntent.unitsCost, units: int.parse(n));
+
+    // "Why?" / "kyun?"
+    if (_has(t, ['why', 'kyun', 'kyon', 'kiyon', 'کیوں', 'how come'])) {
+      return switch (previous.intent) {
+        CoreIntent.billEstimate || CoreIntent.unitsSoFar || CoreIntent.lastBill || CoreIntent.billHigh =>
+          const CoreMatch(CoreIntent.billHigh),
+        _ => previous,
+      };
+    }
+
+    // "How much would that cost?" / "kitna?" / "kitne ka?"
+    if (_has(t, ['cost', 'how much', 'kitna', 'kitne', 'kitni', 'کتنا', 'کتنے', 'price', 'kharch', 'خرچ', 'rupees', 'روپے'])) {
+      if (previous.units != null) return CoreMatch(CoreIntent.unitsCost, units: previous.units);
+      return switch (previous.intent) {
+        CoreIntent.appliances || CoreIntent.lastBill => previous,
+        CoreIntent.unitsLeft || CoreIntent.unitsSoFar || CoreIntent.daysLeft => const CoreMatch(CoreIntent.billEstimate),
+        _ => null,
+      };
+    }
+
+    // "Tell me more" / "explain" / "and?"
+    if (_has(t, ['more', 'explain', 'detail', 'samjhao', 'سمجھائیں', 'تفصیل']) || t.trim() == 'and?' || t.trim() == 'aur?') {
+      return previous;
+    }
+    return null;
+  }
 
   /// What a question is about, or null when it isn't one of the core ones.
   static CoreMatch? match(String input) {
@@ -251,7 +314,7 @@ class CoreAnswers {
         _has(t, ['per unit', 'unit ka rate', 'unit price', 'ریٹ', 'ٹیرف', 'سلیب', 'ٹیکس', 'فی یونٹ'])) {
       return const CoreMatch(CoreIntent.tariff);
     }
-    final named = _applianceWords.where((w) => RegExp('(^|[^a-z])${RegExp.escape(w)}([^a-z]|\$)').hasMatch(t)).firstOrNull;
+    final named = _applianceIn(t);
     if (_has(t, [
           'biggest', 'power user', 'most power', 'uses most', 'use most', 'most electricity', 'most units', 'consum',
           'sab se zyada', 'sabse zyada', 'سب سے زیادہ', 'which appliance', 'appliance', 'آلات', 'آلہ',
@@ -498,6 +561,22 @@ class CoreAnswers {
               'آپ کا پچھلا بل (${Fmt.month(b.month)}) ${b.units} یونٹ${b.amount > 0 ? '، ${Fmt.rs(b.amount)}' : ''} تھا۔ $addReading');
         }
         return '${u('I don\'t have a bill or readings yet.', 'ابھی کوئی بل یا ریڈنگ نہیں۔')} $addReading';
+
+      case CoreIntent.lastBill:
+        if (m.monthsBack >= f.bills.length) {
+          return u('I don\'t have that bill saved. Fetch your bill history from the History screen.',
+              'وہ بل محفوظ نہیں۔ ہسٹری والی اسکرین سے اپنے پچھلے بل لائیں۔');
+        }
+        final b = f.bills[m.monthsBack];
+        final older = m.monthsBack + 1 < f.bills.length ? f.bills[m.monthsBack + 1] : null;
+        final change = older == null
+            ? ''
+            : b.units == older.units
+                ? u(' Same units as ${Fmt.month(older.month)}.', ' ${Fmt.month(older.month)} جتنے ہی یونٹ۔')
+                : u(' That\'s ${(b.units - older.units).abs()} ${b.units > older.units ? 'more' : 'fewer'} units than ${Fmt.month(older.month)} (${older.units}).',
+                    ' یہ ${Fmt.month(older.month)} (${older.units}) سے ${(b.units - older.units).abs()} یونٹ ${b.units > older.units ? 'زیادہ' : 'کم'} ہے۔');
+        return u('Your ${Fmt.month(b.month)} bill was ${b.units} units${b.amount > 0 ? ', ${Fmt.rs(b.amount)}' : ''}.$change',
+            'آپ کا ${Fmt.month(b.month)} کا بل ${b.units} یونٹ${b.amount > 0 ? '، ${Fmt.rs(b.amount)}' : ''} تھا۔$change');
 
       case CoreIntent.howTo:
         final t = question.toLowerCase();

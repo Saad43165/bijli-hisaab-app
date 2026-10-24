@@ -43,6 +43,24 @@ class CloudBrain implements AssistantBrain {
   String? get chatLanguage => _local.chatLanguage;
   set chatLanguage(String? v) => _local.chatLanguage = v;
 
+  /// "New chat": forget the conversation.
+  void reset() => _local.reset();
+
+  /// The last [maxTurns] messages (user and assistant), oldest first,
+  /// trimmed from the oldest to about [maxChars] characters.
+  @visibleForTesting
+  static List<ChatMessage> recent(List<ChatMessage> history, {int maxTurns = 8, int maxChars = 3000}) {
+    final out = <ChatMessage>[];
+    var used = 0;
+    for (final m in history.reversed) {
+      if (m.text.isEmpty || m.source == ReplySource.app) continue;
+      if (out.length >= maxTurns || used + m.text.length > maxChars) break;
+      used += m.text.length;
+      out.add(m);
+    }
+    return out.reversed.toList();
+  }
+
   @override
   Future<AssistantReply> respond(String text, {String? imagePath, List<ChatMessage> history = const []}) async {
     _urduNow = _local.replyUrdu(text);
@@ -107,6 +125,8 @@ class CloudBrain implements AssistantBrain {
         urdu
             ? '6. Reply in Urdu (Urdu script), simple everyday words.'
             : '6. Reply in English, simple everyday words.',
+        '7. This is an ongoing chat: read short follow-ups ("and the fan?", "why?", "kitna?") as being about the '
+            'previous messages.',
         'Today is $today.',
         '',
         'User\'s facts from the app:',
@@ -122,19 +142,18 @@ class CloudBrain implements AssistantBrain {
       question = '$question\n\n$photo';
       context = '$facts\n$photo';
     }
+    final past = recent(history);
     final messages = <Map<String, Object?>>[
       {
         'role': 'system',
         'content': systemPrompt(facts: facts, urdu: _replyUrdu, today: DateTime.now().toIso8601String().substring(0, 10)),
       },
-      for (final m in history.reversed.take(6).toList().reversed)
-        if (m.text.isNotEmpty && m.source != ReplySource.app)
-          {'role': m.fromUser ? 'user' : 'assistant', 'content': m.text},
+      for (final m in past) {'role': m.fromUser ? 'user' : 'assistant', 'content': m.text},
       {'role': 'user', 'content': question},
     ];
     final raw = await _call(messages);
-    // Numbers the user typed (e.g. "300 units") are fine to repeat.
-    return AiGuard.check(raw, context: '$context\n$text');
+    // Numbers the user typed or the chat already gave are fine to repeat.
+    return AiGuard.check(raw, context: '$context\n${past.map((m) => m.text).join('\n')}\n$text');
   }
 
   Future<String> _photoText(String path) async {

@@ -2,6 +2,8 @@ import 'package:speech_to_text/speech_to_text.dart';
 
 import '../core/l10n/l10n.dart';
 
+enum VoiceProblem { permission, unavailable }
+
 /// Reads a meter number spoken aloud ("12450", "ایک دو چار پانچ صفر").
 class VoiceNumber {
   VoiceNumber._();
@@ -47,11 +49,41 @@ class VoiceNumber {
 
   static Future<void> stop() => _speech.stop();
 
+  /// Why the last [listenWords] heard nothing: the microphone permission
+  /// was refused, or speech recognition isn't available on this phone.
+  static VoiceProblem? lastProblem;
+
+  static bool _cancelled = false;
+
+  /// Stops listening and throws away what was heard.
+  static Future<void> cancel() async {
+    _cancelled = true;
+    await _speech.cancel();
+  }
+
   /// Listens once and returns the words heard (for the assistant), or null.
-  static Future<String?> listenWords({void Function(String text)? onPartial, String? localeId}) async {
+  /// [onLevel] gets the microphone level, 0 (silent) to 1 (loud), many
+  /// times a second.
+  static Future<String?> listenWords({
+    void Function(String text)? onPartial,
+    void Function(double level)? onLevel,
+    String? localeId,
+  }) async {
+    lastProblem = null;
+    _cancelled = false;
     if (!_ready) {
-      _ready = await _speech.initialize();
-      if (!_ready) return null;
+      var denied = false;
+      _ready = await _speech.initialize(
+        onError: (e) => denied = denied || e.errorMsg.contains('permission') || e.errorMsg == 'error_audio_error',
+      );
+      if (!_ready) {
+        lastProblem = denied || !await _speech.hasPermission ? VoiceProblem.permission : VoiceProblem.unavailable;
+        return null;
+      }
+    }
+    if (!await _speech.hasPermission) {
+      lastProblem = VoiceProblem.permission;
+      return null;
     }
     String? result;
     var done = false;
@@ -70,6 +102,8 @@ class VoiceNumber {
           done = true;
         }
       },
+      // Android reports roughly -2 dB (silence) to 10 dB (loud speech).
+      onSoundLevelChange: onLevel == null ? null : (db) => onLevel(((db + 2) / 12).clamp(0.0, 1.0)),
     );
     for (var i = 0; i < 250 && !done && _speech.isListening; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -78,6 +112,7 @@ class VoiceNumber {
       await _speech.stop();
       result ??= _speech.lastRecognizedWords;
     }
+    if (_cancelled) return null;
     return (result?.trim().isEmpty ?? true) ? null : result!.trim();
   }
 
