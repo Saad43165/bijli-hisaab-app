@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/companies.dart';
 import '../../data/models/appliance.dart';
+import '../../data/models/meter.dart';
+import '../../data/models/tariff.dart';
 import '../../core/l10n/l10n.dart';
 import '../../core/navigation/app_nav.dart';
 import '../../core/utils/formatters.dart';
@@ -19,6 +21,7 @@ import '../../services/appliance_planner.dart';
 import '../home/widgets/advice_card.dart';
 import '../home/widgets/bill_overview_card.dart';
 import '../meters/add_meter_screen.dart';
+import 'core_answers.dart';
 import '../meters/meters_screen.dart';
 import '../readings/add_reading_screen.dart';
 import '../readings/readings_screen.dart';
@@ -44,6 +47,58 @@ class AssistantTools {
   ];
 
   // ------------------------------------------------------------ look up
+
+  /// The user's numbers for the assistant, from the tariff calculator and
+  /// the app's data.
+  CoreFacts facts() {
+    final m = state.activeMeter;
+    final t = state.effectiveTariff;
+    final s = state.summary;
+    final live = s != null && s.hasData;
+    final p = state.protection;
+    final bills = state.bills;
+    final next = BillOverviewCard.nextUnits(bills);
+    final rate = state.marginalRate;
+    final apps = [...state.appliances]..sort((a, z) => z.monthlyUnits.compareTo(a.monthlyUnits));
+    List<(String, double)> slabs(List<Slab> list) => [for (final x in list) (x.label, x.rate)];
+    return CoreFacts(
+      today: DateTime.now(),
+      hasMeter: m != null,
+      disco: m == null ? null : state.company.shortCode,
+      isTou: m?.meterType == MeterType.tou,
+      unitsSoFar: live ? s.unitsUsed : null,
+      dailyRate: live ? s.dailyRate : null,
+      projectedUnits: live ? s.projectedUnits : null,
+      projectedBill: live ? s.estimateProjected.total : null,
+      projectedSlab: live ? s.estimateProjected.slabLabel : null,
+      daysLeft: live ? s.daysLeft : null,
+      cycleEnd: live ? s.cycleEnd : null,
+      targetLimit: live ? s.targetLimit : null,
+      safeDailyBudget: live ? s.safeDailyBudget : null,
+      extraCostIfCrossed: live ? s.extraCostIfCrossed : 0,
+      isProtected: p?.isProtected,
+      isLifeline: p?.consumerClass == ConsumerClass.lifeline,
+      protectedThreshold: t.protectedThresholdUnits,
+      protectedMonths: t.protectedMonths,
+      bills: [
+        for (final b in bills.take(12))
+          BillFact(month: b.monthDate, units: b.units, amount: b.amount, dueDate: b.dueDate, paid: state.isBillPaid(b)),
+      ],
+      predictedUnits: next,
+      predictedBill: next == null ? null : state.estimateFor(next)?.total,
+      fcaPerUnit: t.fcaPerUnit,
+      fcaLabel: t.fcaLabel,
+      qtaPerUnit: t.qtaPerUnit,
+      gstPercent: t.gstPercent,
+      marginalRate: rate,
+      tariffName: t.name,
+      protectedSlabs: slabs(t.protectedCategory.slabs),
+      unprotectedSlabs: slabs(t.unprotectedCategory.slabs),
+      appliances: [for (final a in apps) ApplianceFact(a.name, a.monthlyUnits, a.monthlyUnits * rate)],
+      helpline: m == null ? null : state.company.helpline,
+      estimate: m == null ? null : (n) => state.estimateFor(n)?.total,
+    );
+  }
 
   /// Facts about the active meter: bill, due date, prediction, this month.
   String overview() {

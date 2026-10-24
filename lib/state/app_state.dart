@@ -404,6 +404,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             fromUser: m['u'] == true,
             text: (m['t'] as String?) ?? '',
             imagePath: m['i'] as String?,
+            source: ReplySource.values.asNameMap()[m['s']] ?? ReplySource.app,
             time: DateTime.tryParse('${m['at']}'),
           ),
       ];
@@ -420,6 +421,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'u': m.fromUser,
           't': m.text,
           if (m.imagePath != null) 'i': m.imagePath,
+          if (m.source != ReplySource.app) 's': m.source.name,
           'at': m.time.toIso8601String(),
         },
     ]));

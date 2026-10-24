@@ -8,9 +8,9 @@ import '../../services/bill_ocr_service.dart';
 import '../../services/online_bill_service.dart';
 import '../../services/appliance_planner.dart';
 import '../home/widgets/advice_card.dart';
-import '../home/widgets/bill_overview_card.dart';
 import 'assistant_models.dart';
 import 'assistant_tools.dart';
+import 'core_answers.dart';
 
 /// The built-in assistant: free, works offline, understands common requests
 /// in English, Urdu and Roman Urdu, and can act on the app.
@@ -152,15 +152,6 @@ class LocalBrain implements AssistantBrain {
       );
     }
 
-    // ----------------------------------------------- calculate
-    final units = RegExp(r'(\d{1,4})\s*(units?|unit|یونٹ)').firstMatch(t)?.group(1);
-    if (units != null && _has(t, ['calculat', 'kitna', 'kitne', 'how much', 'cost', 'hisab', 'حساب', 'کتنا', 'bill'])) {
-      final n = int.parse(units);
-      final e = state.estimateFor(n);
-      if (e == null) return AssistantReply(_t('Set up your meter first.'));
-      return AssistantReply(_tf('{0} units ≈ {1} with taxes ({2} per unit, all-in).', {'0': n, '1': Fmt.rs(e.total), '2': Fmt.rate(n == 0 ? 0 : e.total / n)}));
-    }
-
     // ----------------------------------------------- fetch / scan
     final aboutBill = _has(t, ['bill', 'بل']);
     if (_has(t, ['fetch', 'download', 'new bill', 'naya bill', 'نیا بل', 'check bill', 'bill check', 'bill aya', 'bill aaya']) ||
@@ -203,35 +194,21 @@ class LocalBrain implements AssistantBrain {
       return AssistantReply(_tf('Marked your {0} bill as paid. I won\'t remind you about it again.', {'0': Fmt.month(latest.monthDate)}));
     }
 
-    // ----------------------------------------------- "how do I pay less?"
-    if (_has(t, [
-          'save', 'saving', 'lower', 'reduce', 'cut ', 'pay less', 'plan', 'tips', 'bachat', 'bacha', 'بچت', 'بچا',
-          'kam kar', 'kam ho', 'kam kaise', 'kam karna', 'کم کر', 'کم کیسے', 'tareeq', 'طریق',
-        ]) &&
-        !_word(t, ['reading'])) {
-      return _plan();
-    }
-
-    // ----------------------------------------------- questions about my bill
-    if (_has(t, ['next bill', 'agla bill', 'اگلا بل', 'predict', 'forecast', 'aglay', 'next month'])) {
-      return _next();
-    }
-    if (_word(t, ['due', 'deadline']) || _has(t, ['last date', 'akhri', 'آخری تاریخ', 'kab tak', 'pay by'])) {
-      return _due();
-    }
-    if (_has(t, ['this month', 'is mahine', 'اس مہینے', 'kitne unit', 'units so far', 'usage'])) {
-      return _thisMonth();
+    // ----------------------------------------------- the common questions
+    // Bill estimate, units, slab, protected, rates, appliances, due date:
+    // answered from the app's own numbers, never guessed.
+    final core = CoreAnswers.match(input);
+    if (core != null) {
+      if (core.intent == CoreIntent.savingTips) return _plan();
+      final facts = tools.facts();
+      return AssistantReply(
+        CoreAnswers.answer(core, facts, urdu: _urdu, question: input)!,
+        actions: _actionsFor(core.intent, facts),
+      );
     }
     if (_has(t, ['history', 'pichle', 'پچھلے', 'all bills', 'previous bills', 'last year'])) {
       return AssistantReply(_tf('{0}\n\n{1}', {'0': _t('Your bills:'), '1': tools.billHistory(12)}),
           actions: [_go(_t('Open History'), 'history')]);
-    }
-    if (_has(t, ['my bill', 'mera bill', 'میرا بل', 'bill kitna', 'how much is my bill', 'bill amount', 'kitna bill', 'bill kya'])) {
-      return _bill();
-    }
-    if (_has(t, ['protected', 'protect', 'محفوظ', 'mehfooz', '200'])) {
-      final p = _protected();
-      return AssistantReply(p.text, actions: p.actions, canImprove: question);
     }
 
     // ----------------------------------------------- open a screen
@@ -243,21 +220,23 @@ class LocalBrain implements AssistantBrain {
 
     // ----------------------------------------------- greetings / help
     if (_has(t, [' hi ', ' hello', 'salam', 'aoa', 'السلام', 'assalam', ' hey'])) {
-      return AssistantReply(_hello(), canImprove: true);
+      return AssistantReply(_hello());
     }
-    if (_has(t, ['help', 'what can you', 'kya kar', 'madad', 'مدد'])) return AssistantReply(_hello(), canImprove: true);
+    if (_has(t, ['help', 'what can you', 'kya kar', 'madad', 'مدد'])) return AssistantReply(_hello());
 
     // ----------------------------------------------- FAQs
     final faq = _bestFaq(t);
-    if (faq != null) return AssistantReply(_t(faq.answer), canImprove: true);
+    if (faq != null) return AssistantReply(_t(faq.answer));
 
     if (screen != null) {
       tools.openScreen(screen);
       return AssistantReply(_t('Opened.'));
     }
     if (_has(t, ['bill', 'بل'])) {
+      // A bill question we can't match: the AI may answer it (checked against
+      // your numbers); otherwise the latest bill.
       final b = _bill();
-      return AssistantReply(b.text, actions: b.actions, canImprove: true);
+      return AssistantReply(b.text, actions: b.actions, canImprove: question);
     }
 
     return AssistantReply(
@@ -339,59 +318,19 @@ class LocalBrain implements AssistantBrain {
     );
   }
 
-  AssistantReply _due() {
-    final b = tools.state.bills.firstOrNull;
-    if (b?.dueDate == null) return _bill();
-    return _bill();
-  }
-
-  AssistantReply _next() {
-    final bills = tools.state.bills;
-    final n = BillOverviewCard.nextUnits(bills);
-    if (n == null) return AssistantReply(_t('I need at least one bill to predict the next one.'));
-    final amt = tools.state.estimateFor(n)?.total;
-    final next = DateTime(bills.first.monthDate.year, bills.first.monthDate.month + 1);
-    final lastYear = bills.any((b) => b.monthDate == DateTime(next.year - 1, next.month));
-    return AssistantReply(
-      _tf('Next bill ({0}): about {1} units{2}. {3}', {
-        '0': Fmt.month(next),
-        '1': n,
-        '2': amt == null ? '' : ' ≈ ${Fmt.rs(amt)}',
-        '3': lastYear
-            ? _t('Based on the same month last year.')
-            : _t('Based on your last 3 bills.'),
-      }),
-    );
-  }
-
-  AssistantReply _thisMonth() {
-    final s = tools.state.summary;
-    if (s == null || !s.hasData) {
-      return AssistantReply(
-        _t('Live tracking is off — I need two meter readings this month. Tell me today\'s reading, like "reading 12450".'),
-        actions: [_go(_t('Add reading'), 'add_reading')],
-      );
-    }
-    return AssistantReply(
-      _tf('This month: {0} units so far ({1} a day), heading for {2} ≈ {3}. You are {4}.', {
-        '0': Fmt.whole(s.unitsUsed),
-        '1': Fmt.oneDp(s.dailyRate),
-        '2': Fmt.whole(s.projectedUnits),
-        '3': Fmt.rs(s.estimateProjected.total),
-        '4': _t(AssistantTools.statusWordEn(s.status)),
-      }),
-    );
-  }
-
-  AssistantReply _protected() {
-    final p = tools.state.protection;
-    final faq = _t(Faq.all.first.answer);
-    if (p == null) return AssistantReply(faq);
-    return AssistantReply(_tf('{0}\n\n{1}', {
-      '0': p.consumerClass.hasProtection ? _t('You are on protected rates.') : _t('You are not on protected rates right now.'),
-      '1': faq,
-    }), actions: [_go(_t('Open History'), 'history')]);
-  }
+  /// Buttons that go with a core answer.
+  List<ReplyAction> _actionsFor(CoreIntent i, CoreFacts f) => switch (i) {
+        CoreIntent.billEstimate || CoreIntent.unitsSoFar || CoreIntent.unitsLeft || CoreIntent.daysLeft =>
+          f.live ? [_go(_t('Open Home'), 'home')] : [_go(_t('Add reading'), 'add_reading')],
+        CoreIntent.appliances || CoreIntent.billHigh => [_go(_t('Open Appliances'), 'appliances')],
+        CoreIntent.tariff || CoreIntent.fca || CoreIntent.unitsCost => [_go(_t('Rates'), 'rates')],
+        CoreIntent.dueDate => [
+            if (tools.state.company.billUrl != null) _go(_t('View full bill'), 'bill_online'),
+            _go(_t('Open History'), 'history'),
+          ],
+        CoreIntent.protection => [_go(_t('Open History'), 'history')],
+        CoreIntent.savingTips || CoreIntent.howTo => const [],
+      };
 
   Future<AssistantReply> _fetch() async {
     final state = tools.state;

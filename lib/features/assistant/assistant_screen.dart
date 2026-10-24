@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/l10n/l10n.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/bill.dart';
 import '../../services/bill_ocr_service.dart';
@@ -50,7 +52,6 @@ class _AssistantScreenState extends State<AssistantScreen> {
     _brain = CloudBrain(AssistantTools(state));
     _brain.chatLanguage = state.chatLanguage;
     _messages.addAll(state.loadChat());
-    if (_messages.isEmpty) _messages.add(ChatMessage(fromUser: false, text: _welcome()));
     // Open at the latest message.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(_scroll.position.maxScrollExtent);
@@ -66,31 +67,24 @@ class _AssistantScreenState extends State<AssistantScreen> {
     super.dispose();
   }
 
-  String _welcome() {
-    final state = context.read<AppState>();
-    final b = state.bills.firstOrNull;
-    final hello = 'Assalam o alaikum! I\'m your Bijli Hisaab assistant.'.tr;
-    if (b == null) return '$hello ${'Ask me anything about your electricity bill, or tell me what to do.'.tr}';
-    return '$hello ${'Your {0} bill is {1}. Ask me anything, or tell me what to do.'.trf({
-      '0': Fmt.month(b.monthDate),
-      '1': b.amount > 0 ? Fmt.rs(b.amount) : '{0} units'.trf({'0': b.units}),
-    })}';
-  }
+  bool get _chatUrdu => (_brain.chatLanguage ?? L10n.language) == 'ur';
 
-  List<String> get _suggestions {
-    final state = context.read<AppState>();
-    return [
-      'Scan my bill'.tr,
-      if (state.bills.isNotEmpty) 'When is my bill due?'.tr,
-      if (state.bills.isNotEmpty) 'What will my next bill be?'.tr,
-      if (state.canFetchOnlineBill) 'Check for a new bill'.tr,
-      'How do I get protected rates?'.tr,
-      'Why is my bill so high?'.tr,
-      '250 units kitna bill?',
-      'Add another meter'.tr,
-      'Open History'.tr,
-    ];
-  }
+  /// The questions people ask most, answered from their own data.
+  List<String> get _suggestions => _chatUrdu
+      ? const [
+          'میرا بل کتنا آئے گا؟',
+          'کتنے یونٹ باقی ہیں؟',
+          'کیا میں محفوظ صارف ہوں؟',
+          'سب سے زیادہ بجلی کون استعمال کرتا ہے؟',
+          'بجلی کیسے بچاؤں؟',
+        ]
+      : const [
+          'How much will my bill be?',
+          'How many units can I still use?',
+          'Am I protected?',
+          'Biggest power user?',
+          'How to save?',
+        ];
 
   static final _scanWords = RegExp(
     r'^\s*(scan|scanner|اسکین)\b|\b(scan|اسکین)\s*(my|mera|the|kro|karo|kar|bill|بل)|\b(bill|بل)\s*(scan|اسکین)',
@@ -116,7 +110,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     try {
       final r = await _brain.respond(t, imagePath: imagePath, history: _messages.sublist(0, _messages.length - 1));
       if (!mounted || gen != _generation) return;
-      setState(() => _messages.add(ChatMessage(fromUser: false, text: r.text, actions: r.actions)));
+      setState(() => _messages.add(ChatMessage(fromUser: false, text: r.text, actions: r.actions, source: r.source)));
     } catch (e) {
       if (mounted) {
         setState(
@@ -132,7 +126,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   Future<void> _runAction(ReplyAction a) async {
     final follow = await a.run();
     if (follow != null && mounted) {
-      setState(() => _messages.add(ChatMessage(fromUser: false, text: follow)));
+      setState(() => _messages.add(ChatMessage(fromUser: false, text: follow, source: ReplySource.data)));
       _toBottom();
     }
   }
@@ -222,7 +216,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
       // A question with the photo also goes to the assistant.
       if (question.isNotEmpty) {
         final r = await _brain.respond(question, imagePath: images.first, history: _messages);
-        if (mounted) setState(() => _messages.add(ChatMessage(fromUser: false, text: r.text, actions: r.actions)));
+        if (mounted) {
+          setState(() => _messages.add(ChatMessage(fromUser: false, text: r.text, actions: r.actions, source: r.source)));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -267,6 +263,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
             ? 'I could not read the bill clearly. Try the scan again with the whole bill flat and in good light.'.tr
             : '${'I could only read part of it:'.tr}\n${lines.join('\n')}',
         actions: [_reviewAction('Check & fill in'.tr, result)],
+        source: ReplySource.data,
       );
     }
     final meter = state.activeMeter;
@@ -278,6 +275,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     ];
     return ChatMessage(
       fromUser: false,
+      source: ReplySource.data,
       text: '${'Here is what I read:'.tr}\n${lines.join('\n')}${warn.isEmpty ? '' : '\n\n${warn.join('\n')}'}',
       actions: [
         ReplyAction('Save this bill'.tr, () async {
@@ -355,11 +353,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     _clearView();
   }
 
-  void _clearView() => setState(() {
-    _messages
-      ..clear()
-      ..add(ChatMessage(fromUser: false, text: _welcome()));
-  });
+  void _clearView() => setState(_messages.clear);
 
   void _toggleChatLanguage() {
     final now = _brain.chatLanguage ?? L10n.language;
@@ -381,7 +375,8 @@ class _AssistantScreenState extends State<AssistantScreen> {
     final theme = Theme.of(context);
     final p = AppPalette.of(context);
     final typing = _input.text.trim().isNotEmpty;
-    final chatUrdu = (_brain.chatLanguage ?? L10n.language) == 'ur';
+    final chatUrdu = _chatUrdu;
+    final state = context.read<AppState>();
 
     return Scaffold(
       appBar: AppBar(
@@ -396,8 +391,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
                 children: [
                   Text('Assistant'.tr, style: theme.textTheme.titleMedium),
                   Text(
-                    CloudBrain.configured ? 'Smart AI · can act in the app'.tr : 'Built-in · works offline'.tr,
-                    style: theme.textTheme.bodySmall,
+                    'Answers from your bills & readings'.tr,
+                    style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -412,7 +409,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
           ),
           IconButton(
             tooltip: 'New chat'.tr,
-            onPressed: _thinking ? null : _clear,
+            onPressed: _thinking || _messages.isEmpty ? null : _clear,
             icon: const Icon(Icons.add_comment_outlined),
           ),
           const SizedBox(width: 4),
@@ -420,109 +417,128 @@ class _AssistantScreenState extends State<AssistantScreen> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scroll,
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              itemCount: _messages.length + (_thinking ? 1 : 0),
-              itemBuilder: (context, i) {
-                if (i < _messages.length) return _Bubble(_messages[i], onAction: _runAction);
-                return _Typing(
-                  status: _brain.status,
-                  onStop: () => setState(() {
-                    _generation++;
-                    _thinking = false;
-                    _messages.add(ChatMessage(fromUser: false, text: 'Stopped.'.tr));
-                    _toBottom();
-                  }),
-                );
-              },
+          // The common questions, always one tap away.
+          Container(
+            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: p.border))),
+            height: 52,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              children: [
+                for (final s in _suggestions)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: ActionChip(
+                      avatar: const Icon(Icons.bolt_rounded, size: 16, color: AppColors.amberDeep),
+                      label: Text(s, style: _textStyle(theme, s, size: 13)),
+                      onPressed: _thinking ? null : () => _send(s),
+                      visualDensity: VisualDensity.compact,
+                      shape: StadiumBorder(side: BorderSide(color: p.border)),
+                      backgroundColor: p.surface,
+                    ),
+                  ),
+              ],
             ),
           ),
-          // Suggestions: a quiet row that hides while you type.
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            child: typing || _thinking
-                ? const SizedBox(width: double.infinity)
-                : SizedBox(
-                    height: 44,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      children: [
-                        for (final s in _suggestions)
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(end: 8),
-                            child: ActionChip(
-                              label: Text(s),
-                              onPressed: () => _send(s),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ),
-                      ],
-                    ),
+          Expanded(
+            child: _messages.isEmpty && !_thinking
+                ? _EmptyState(
+                    urdu: chatUrdu,
+                    bill: state.bills.firstOrNull,
+                    onAsk: _send,
+                    suggestions: _suggestions,
+                  )
+                : ListView.builder(
+                    controller: _scroll,
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    itemCount: _messages.length + (_thinking ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      if (i < _messages.length) {
+                        final m = _messages[i];
+                        final prev = i > 0 ? _messages[i - 1] : null;
+                        return _Bubble(m, onAction: _runAction, grouped: prev?.fromUser == m.fromUser);
+                      }
+                      return _Typing(
+                        status: _brain.status,
+                        onStop: () => setState(() {
+                          _generation++;
+                          _thinking = false;
+                          _messages.add(ChatMessage(fromUser: false, text: 'Stopped.'.tr));
+                          _toBottom();
+                        }),
+                      );
+                    },
                   ),
           ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  IconButton(
-                    tooltip: 'Scan or send a bill'.tr,
-                    onPressed: _thinking ? null : _attach,
-                    icon: const Icon(Icons.add_circle_outline_rounded),
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: p.surface,
-                        border: Border.all(color: _listening ? AppColors.amber : p.border, width: _listening ? 2 : 1),
-                        borderRadius: BorderRadius.circular(26),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _input,
-                              minLines: 1,
-                              maxLines: 5,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: _send,
-                              onChanged: (_) => setState(() {}),
-                              decoration: InputDecoration(
-                                hintText: _listening ? 'Listening… speak now'.tr : 'Ask or tell me what to do…'.tr,
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                filled: false,
-                                contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 12, 4, 12),
+          Material(
+            color: theme.scaffoldBackgroundColor,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        decoration: BoxDecoration(
+                          color: p.surface,
+                          border: Border.all(
+                            color: _listening ? AppColors.amber : p.border,
+                            width: _listening ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              tooltip: 'Scan or send a bill'.tr,
+                              onPressed: _thinking ? null : _attach,
+                              icon: Icon(Icons.add_photo_alternate_outlined, color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: _input,
+                                minLines: 1,
+                                maxLines: 5,
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: _send,
+                                onChanged: (_) => setState(() {}),
+                                style: _textStyle(theme, _input.text.isEmpty && chatUrdu ? 'ا' : _input.text),
+                                textDirection: _isUrdu(_input.text) || (_input.text.isEmpty && chatUrdu)
+                                    ? TextDirection.rtl
+                                    : TextDirection.ltr,
+                                decoration: InputDecoration(
+                                  hintText: _listening
+                                      ? (chatUrdu ? 'سن رہا ہوں… بولیں' : 'Listening… speak now')
+                                      : (chatUrdu ? 'اپنے بل کے بارے میں پوچھیں…' : 'Ask about your bill…'),
+                                  hintStyle: _textStyle(theme, chatUrdu ? 'ا' : 'a')?.copyWith(color: p.muted),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsetsDirectional.fromSTEB(0, 14, 12, 14),
+                                ),
                               ),
                             ),
-                          ),
-                          if (!typing)
-                            IconButton(
-                              tooltip: 'Scan my bill'.tr,
-                              onPressed: _thinking ? null : () => _capture('scan'),
-                              icon: Icon(Icons.document_scanner_outlined, color: theme.colorScheme.onSurfaceVariant),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  // One button: mic while empty, send once you type.
-                  _MicSendButton(
-                    send: typing,
-                    listening: _listening,
-                    busy: _thinking,
-                    onSend: () => _send(_input.text),
-                    onMic: _voice,
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    // One button: mic while empty, send once you type.
+                    _MicSendButton(
+                      send: typing,
+                      listening: _listening,
+                      busy: _thinking,
+                      onSend: () => _send(_input.text),
+                      onMic: _voice,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -628,106 +644,292 @@ class _MicSendButtonState extends State<_MicSendButton> with SingleTickerProvide
   }
 }
 
+final _urduScript = RegExp(r'[؀-ۿ]');
+
+/// Mostly Urdu script: shown right to left in Nastaliq.
+bool _isUrdu(String text) {
+  final letters = text.replaceAll(RegExp(r'[\s\d\p{P}\p{S}]', unicode: true), '');
+  if (letters.isEmpty) return false;
+  return _urduScript.allMatches(letters).length * 2 >= letters.length;
+}
+
+/// Body text for [text]: Nastaliq with room for its tall letters when it's Urdu.
+TextStyle? _textStyle(ThemeData theme, String text, {double size = 15}) {
+  final base = theme.textTheme.bodyMedium?.copyWith(fontSize: size, height: 1.45);
+  if (!_isUrdu(text)) return base;
+  return base?.copyWith(fontFamily: AppTheme.urduFontFamily, fontSize: size - 1, height: 2.0);
+}
+
 class _Bubble extends StatelessWidget {
-  const _Bubble(this.m, {required this.onAction});
+  const _Bubble(this.m, {required this.onAction, this.grouped = false});
 
   final ChatMessage m;
   final Future<void> Function(ReplyAction) onAction;
+
+  /// Same sender as the message above: less space, no avatar.
+  final bool grouped;
+
+  void _copy(BuildContext context) {
+    if (m.text.isEmpty) return;
+    HapticFeedback.selectionClick();
+    Clipboard.setData(ClipboardData(text: m.text));
+    showSnack(context, 'Copied'.tr);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final p = AppPalette.of(context);
     final mine = m.fromUser;
-    final bubble = ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (mine ? 0.82 : 0.74)),
+    final urdu = _isUrdu(m.text);
+    final ink = mine ? (p.isDark ? AppColors.navy : Colors.white) : p.ink;
+    final bg = mine ? (p.isDark ? AppColors.amber : AppColors.navy) : p.surface;
+    const r = Radius.circular(20);
+    const tail = Radius.circular(6);
+
+    final body = Container(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      decoration: BoxDecoration(
+        color: bg,
+        border: mine ? null : Border.all(color: p.border),
+        borderRadius: BorderRadiusDirectional.only(
+          topStart: !mine && grouped ? tail : r,
+          topEnd: mine && grouped ? tail : r,
+          bottomStart: mine ? r : tail,
+          bottomEnd: mine ? tail : r,
+        ),
+        boxShadow: mine
+            ? null
+            : [BoxShadow(color: Colors.black.withValues(alpha: p.isDark ? 0.18 : 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
       child: Column(
-        crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: mine ? AppColors.amber.withValues(alpha: p.isDark ? 0.25 : 0.35) : p.surface,
-              border: mine ? null : Border.all(color: p.border),
-              borderRadius: BorderRadiusDirectional.only(
-                topStart: const Radius.circular(18),
-                topEnd: const Radius.circular(18),
-                bottomStart: Radius.circular(mine ? 18 : 4),
-                bottomEnd: Radius.circular(mine ? 4 : 18),
+          if (m.imagePath != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(m.imagePath!),
+                  height: 160,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Container(
+                    height: 56,
+                    alignment: Alignment.center,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+                    child: const Icon(Icons.receipt_long_rounded),
+                  ),
+                ),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (m.imagePath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(m.imagePath!),
-                        height: 160,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          height: 56,
-                          width: 160,
-                          alignment: Alignment.center,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
-                          child: const Icon(Icons.receipt_long_rounded),
-                        ),
-                      ),
-                    ),
-                  ),
-                if (m.text.isNotEmpty) SelectableText(m.text, style: theme.textTheme.bodyMedium?.copyWith(height: 1.4)),
-              ],
+          if (m.text.isNotEmpty)
+            Text(
+              m.text,
+              textDirection: urdu ? TextDirection.rtl : TextDirection.ltr,
+              textAlign: urdu ? TextAlign.right : TextAlign.left,
+              style: _textStyle(theme, m.text)?.copyWith(color: ink),
+            ),
+        ],
+      ),
+    );
+
+    final meta = Padding(
+      padding: const EdgeInsets.fromLTRB(6, 3, 6, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!mine && m.source != ReplySource.app) ...[
+            _SourceTag(m.source),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            Fmt.clock(m.time.hour, m.time.minute),
+            style: theme.textTheme.bodySmall?.copyWith(fontSize: 10.5, color: p.muted),
+          ),
+        ],
+      ),
+    );
+
+    final column = ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (mine ? 0.8 : 0.78)),
+      child: Column(
+        crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onLongPress: () => _copy(context),
+            child: Semantics(
+              hint: 'Long-press to copy'.tr,
+              child: IntrinsicWidth(child: body),
             ),
           ),
           if (m.actions.isNotEmpty)
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final a in m.actions)
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final a in m.actions)
+                    ActionChip(
+                      label: Text(a.label, style: _textStyle(theme, a.label, size: 13)),
+                      avatar: const Icon(Icons.arrow_forward_rounded, size: 16),
+                      onPressed: () => onAction(a),
                       visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      shape: StadiumBorder(side: BorderSide(color: AppColors.amber.withValues(alpha: 0.6))),
+                      backgroundColor: AppColors.amber.withValues(alpha: p.isDark ? 0.12 : 0.10),
                     ),
-                    onPressed: () => onAction(a),
-                    child: Text(a.label),
-                  ),
-              ],
+                ],
+              ),
             ),
+          meta,
         ],
       ),
     );
-    final time = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Text(
-        Fmt.clock(m.time.hour, m.time.minute),
-        style: theme.textTheme.bodySmall?.copyWith(fontSize: 10.5, color: theme.colorScheme.onSurfaceVariant),
-      ),
+
+    return Padding(
+      padding: EdgeInsets.only(top: grouped ? 2 : 10),
+      child: mine
+          ? Align(alignment: AlignmentDirectional.centerEnd, child: column)
+          : Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 30,
+                    child: grouped ? null : const AssistantAvatar(size: 28, spark: false),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(child: column),
+                ],
+              ),
+            ),
     );
-    if (mine) {
-      return Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [bubble, time]),
-      );
-    }
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
+  }
+}
+
+/// "From your data" / "AI answer" under a reply.
+class _SourceTag extends StatelessWidget {
+  const _SourceTag(this.source);
+
+  final ReplySource source;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
+    final ai = source == ReplySource.ai;
+    final color = ai ? AppColors.amberDeep : p.safe;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(padding: EdgeInsets.only(top: 6), child: AssistantAvatar(size: 28, spark: false)),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [bubble, time]),
+          Icon(ai ? Icons.auto_awesome_rounded : Icons.verified_rounded, size: 11, color: color),
+          const SizedBox(width: 3),
+          Text(
+            ai ? 'AI answer'.tr : 'Answered from your data'.tr,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10, color: color, fontWeight: FontWeight.w700),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// No messages yet: what the assistant does, and questions to start with.
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.urdu, required this.bill, required this.onAsk, required this.suggestions});
+
+  final bool urdu;
+  final Bill? bill;
+  final void Function(String) onAsk;
+  final List<String> suggestions;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final p = AppPalette.of(context);
+    final b = bill;
+    final title = urdu ? 'السلام علیکم! میں آپ کا بجلی حساب اسسٹنٹ ہوں' : 'Assalam o alaikum! I\'m your Bijli Hisaab assistant';
+    final last = b == null
+        ? ''
+        : urdu
+            ? ' آپ کا ${Fmt.month(b.monthDate)} کا بل ${b.amount > 0 ? Fmt.rs(b.amount) : '${b.units} یونٹ'} تھا۔'
+            : ' Your ${Fmt.month(b.monthDate)} bill was ${b.amount > 0 ? Fmt.rs(b.amount) : '${b.units} units'}.';
+    final sub = urdu
+        ? 'بل کا اندازہ، باقی یونٹ، سلیب، ریٹ اور آلات — آپ کے اپنے ڈیٹا سے فوری جواب۔$last'
+        : 'Bill estimate, units left, slab, rates and appliances — answered instantly from your own data.$last';
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+      children: [
+        const Center(child: AssistantAvatar(size: 72)),
+        const SizedBox(height: 18),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          textDirection: urdu ? TextDirection.rtl : TextDirection.ltr,
+          style: _textStyle(theme, title, size: 18)?.copyWith(fontWeight: FontWeight.w800, color: p.ink),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          sub,
+          textAlign: TextAlign.center,
+          textDirection: urdu ? TextDirection.rtl : TextDirection.ltr,
+          style: _textStyle(theme, sub, size: 14)?.copyWith(color: p.muted),
+        ),
+        const SizedBox(height: 24),
+        for (final s in suggestions)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Material(
+              color: p.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: p.border)),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => onAsk(s),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    textDirection: urdu ? TextDirection.rtl : TextDirection.ltr,
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: AppColors.amber.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.bolt_rounded, size: 18, color: AppColors.amberDeep),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          s,
+                          textDirection: urdu ? TextDirection.rtl : TextDirection.ltr,
+                          style: _textStyle(theme, s, size: 14)?.copyWith(fontWeight: FontWeight.w600, color: p.ink),
+                        ),
+                      ),
+                      Icon(urdu ? Icons.chevron_left_rounded : Icons.chevron_right_rounded, color: p.muted),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
+        Text(
+          urdu
+              ? 'آپ کا نام، پتہ یا ریفرنس نمبر کبھی نہیں بھیجا جاتا۔'
+              : 'Your name, address and reference number are never sent.',
+          textAlign: TextAlign.center,
+          style: _textStyle(theme, urdu ? 'ا' : 'a', size: 12)?.copyWith(color: p.muted),
+        ),
+      ],
     );
   }
 }
@@ -743,7 +945,7 @@ class _Typing extends StatefulWidget {
 }
 
 class _TypingState extends State<_Typing> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))
     ..repeat();
 
   @override
@@ -756,61 +958,80 @@ class _TypingState extends State<_Typing> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final p = AppPalette.of(context);
-    final color = theme.colorScheme.onSurfaceVariant;
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 4, 8),
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.85),
-        decoration: BoxDecoration(
-          color: p.surface,
-          border: Border.all(color: p.border),
-          borderRadius: BorderRadius.circular(18),
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AnimatedBuilder(
-              animation: _c,
-              builder: (_, _) => Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (var i = 0; i < 3; i++)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color.withValues(alpha: 0.3 + 0.7 * (((_c.value * 3 - i) % 3) < 1 ? 1 : 0)),
+            const AssistantAvatar(size: 28, spark: false),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 4, 6),
+                decoration: BoxDecoration(
+                  color: p.surface,
+                  border: Border.all(color: p.border),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _c,
+                      builder: (_, _) => Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var i = 0; i < 3; i++)
+                            Transform.translate(
+                              offset: Offset(0, -3 * _bounce(_c.value, i)),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.amberDeep.withValues(alpha: 0.45 + 0.55 * _bounce(_c.value, i)),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Flexible(
-              child: ValueListenableBuilder<String?>(
-                valueListenable: widget.status,
-                builder: (_, s, _) => AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: Text(
-                    s ?? 'Thinking…'.tr,
-                    key: ValueKey(s),
-                    style: theme.textTheme.bodySmall?.copyWith(color: color),
-                  ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: ValueListenableBuilder<String?>(
+                        valueListenable: widget.status,
+                        builder: (_, s, _) => AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Text(
+                            s ?? 'Thinking…'.tr,
+                            key: ValueKey(s),
+                            style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
+                          ),
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: widget.onStop,
+                      style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                      child: Text('Stop'.tr),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            TextButton(
-              onPressed: widget.onStop,
-              style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-              child: Text('Stop'.tr),
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// 0→1→0 for dot [i], one after another.
+  static double _bounce(double t, int i) {
+    final x = (t * 3 - i) % 3;
+    return x < 1 ? (x < 0.5 ? x * 2 : (1 - x) * 2) : 0;
   }
 }
