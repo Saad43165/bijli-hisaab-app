@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/l10n/l10n.dart';
 import '../../core/utils/formatters.dart';
+import '../../shared/widgets/animated_number.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/art.dart';
 import '../../shared/widgets/hero_style.dart';
@@ -17,19 +19,39 @@ class SolarCalculatorScreen extends StatefulWidget {
   static const double unitsPerKwDay = 4.0;
   static const int panelWatts = 585;
 
+  static const double minUnits = 50;
+  static const double maxUnits = 3000;
+
+  /// The system for [units] a month: kW (rounded up to 0.5), panels, units made a month.
+  static (double kw, int panels, double made) size(double units) {
+    final kw = ((units / (30 * unitsPerKwDay)) * 2).ceil() / 2;
+    return (kw, (kw * 1000 / panelWatts).ceil(), kw * unitsPerKwDay * 30);
+  }
+
   @override
   State<SolarCalculatorScreen> createState() => _SolarCalculatorScreenState();
 }
 
 class _SolarCalculatorScreenState extends State<SolarCalculatorScreen> {
   double? _units;
-  double _costPerKw = 110000;
+  static const double _defaultCost = 110000;
+  double _costPerKw = _defaultCost;
 
   /// Net metering (old agreements) or net billing (new, since Feb 2026).
   bool _netBilling = true;
 
   /// Share of solar units used at home while the sun is up; the rest is exported.
   double _selfUse = 0.4;
+
+  void _reset() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _units = null;
+      _costPerKw = _defaultCost;
+      _netBilling = true;
+      _selfUse = 0.4;
+    });
+  }
 
   int _averageUnits(AppState s) {
     final bills = s.last12Bills;
@@ -43,13 +65,12 @@ class _SolarCalculatorScreenState extends State<SolarCalculatorScreen> {
     final theme = Theme.of(context);
     final h = HeroStyle.of(context);
     final billsCount = state.last12Bills.length;
-    final units = (_units ?? _averageUnits(state).toDouble()).clamp(50.0, 3000.0);
+    final units = (_units ?? _averageUnits(state).toDouble())
+        .clamp(SolarCalculatorScreen.minUnits, SolarCalculatorScreen.maxUnits)
+        .toDouble();
 
-    final kwRaw = units / (30 * SolarCalculatorScreen.unitsPerKwDay);
-    final kw = (kwRaw * 2).ceil() / 2; // to the next 0.5 kW
-    final panels = (kw * 1000 / SolarCalculatorScreen.panelWatts).ceil();
+    final (kw, panels, made) = SolarCalculatorScreen.size(units);
     final cost = kw * _costPerKw;
-    final made = kw * SolarCalculatorScreen.unitsPerKwDay * 30;
 
     final u = units.round();
     final before = state.estimateFor(u)?.total ?? 0;
@@ -67,19 +88,34 @@ class _SolarCalculatorScreenState extends State<SolarCalculatorScreen> {
       saving = before - after;
     }
     final years = saving <= 0 ? null : cost / (saving * 12);
+    final valueStyle = theme.textTheme.titleLarge?.copyWith(color: h.fg, fontWeight: FontWeight.w800);
 
-    Widget stat(String label, String value) => Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: theme.textTheme.labelSmall?.copyWith(color: h.muted)),
-              Text(value, style: theme.textTheme.titleLarge?.copyWith(color: h.fg, fontWeight: FontWeight.w800)),
-            ],
+    Widget stat(String label, Widget value) => Expanded(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: theme.textTheme.labelSmall?.copyWith(color: h.muted)),
+                FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: value),
+              ],
+            ),
           ),
         );
+    Widget money(double v) =>
+        AnimatedNumber(value: v, format: Fmt.rs, duration: const Duration(milliseconds: 450), style: valueStyle);
+
+    void setUnits(double v) => setState(
+        () => _units = v.clamp(SolarCalculatorScreen.minUnits, SolarCalculatorScreen.maxUnits).toDouble());
 
     return Scaffold(
-      appBar: AppBar(title: Text('Solar calculator'.tr)),
+      appBar: AppBar(
+        title: Text('Solar calculator'.tr),
+        actions: [
+          TextButton.icon(onPressed: _reset, icon: const Icon(Icons.restart_alt_rounded), label: Text('Reset'.tr)),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
@@ -101,13 +137,16 @@ class _SolarCalculatorScreenState extends State<SolarCalculatorScreen> {
                 ),
                 const SizedBox(height: 14),
                 Row(children: [
-                  stat('PANELS'.tr, '$panels × ${SolarCalculatorScreen.panelWatts} W'),
-                  stat('COST'.tr, Fmt.rs(cost)),
+                  stat('PANELS'.tr, Text('$panels × ${SolarCalculatorScreen.panelWatts} W', style: valueStyle)),
+                  stat('COST'.tr, money(cost)),
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [
-                  stat('SAVES A MONTH'.tr, Fmt.rs(saving)),
-                  stat('PAYS BACK IN'.tr, years == null ? '—' : '{0} years'.trf({'0': Fmt.oneDp(years)})),
+                  stat('SAVES A MONTH'.tr, money(saving)),
+                  stat(
+                    'PAYS BACK IN'.tr,
+                    Text(years == null ? '—' : '{0} years'.trf({'0': Fmt.oneDp(years)}), style: valueStyle),
+                  ),
                 ]),
               ],
             ),
@@ -125,23 +164,35 @@ class _SolarCalculatorScreenState extends State<SolarCalculatorScreen> {
                       : 'Add your bills for a better average. Drag to try other amounts.'.tr,
                   style: theme.textTheme.bodySmall,
                 ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
+                    IconButton.filledTonal(
+                      tooltip: '−50',
+                      onPressed: units > SolarCalculatorScreen.minUnits ? () => setUnits(units - 50) : null,
+                      icon: const Icon(Icons.remove_rounded),
+                    ),
                     Expanded(
-                      child: Slider(
-                        value: units,
-                        min: 50,
-                        max: 1500,
-                        divisions: 145,
-                        onChanged: (v) => setState(() => _units = v),
+                      child: Text(
+                        '{0} units/month'.trf({'0': Fmt.whole(u)}),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
-                    SizedBox(
-                      width: 92,
-                      child: Text('{0} units/month'.trf({'0': u}),
-                          textAlign: TextAlign.end, style: theme.textTheme.labelLarge),
+                    IconButton.filledTonal(
+                      tooltip: '+50',
+                      onPressed: units < SolarCalculatorScreen.maxUnits ? () => setUnits(units + 50) : null,
+                      icon: const Icon(Icons.add_rounded),
                     ),
                   ],
+                ),
+                // The slider covers 50–1,500; the buttons go up to 3,000.
+                Slider(
+                  value: units.clamp(SolarCalculatorScreen.minUnits, 1500.0),
+                  min: SolarCalculatorScreen.minUnits,
+                  max: 1500,
+                  divisions: 145,
+                  onChanged: setUnits,
                 ),
                 const Divider(height: 24),
                 Text('Agreement'.tr, style: theme.textTheme.titleMedium),
@@ -189,6 +240,41 @@ class _SolarCalculatorScreenState extends State<SolarCalculatorScreen> {
                   ],
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                leading: const Icon(Icons.calculate_outlined),
+                title: Text('How is this calculated?'.tr, style: theme.textTheme.titleSmall),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final line in [
+                    '{0} units a month ÷ (30 days × {1} units per kW a day) = {2} kW, rounded up to {3} kW.'.trf({
+                      '0': Fmt.whole(u),
+                      '1': Fmt.oneDp(SolarCalculatorScreen.unitsPerKwDay),
+                      '2': Fmt.twoDp(u / (30 * SolarCalculatorScreen.unitsPerKwDay)),
+                      '3': Fmt.oneDp(kw),
+                    }),
+                    '{0} kW makes about {1} units a month.'.trf({'0': Fmt.oneDp(kw), '1': Fmt.whole(made)}),
+                    'Bill now for {0} units: {1}.'.trf({'0': Fmt.whole(u), '1': Fmt.rs(before)}),
+                    _netBilling
+                        ? 'Net billing: units you use yourself come off the bill; exported units earn {0} each.'
+                            .trf({'0': Fmt.rate(state.effectiveTariff.solar.netBillingRate)})
+                        : 'Net metering: units sent to the grid cancel units you take, and extra ones earn {0} each.'
+                            .trf({'0': Fmt.rate(state.effectiveTariff.solar.netMeteringRate)}),
+                    'Cost {0} ÷ savings of {1} a year = payback time.'.trf({'0': Fmt.rs(cost), '1': Fmt.rs(saving * 12)}),
+                  ])
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text('• $line', style: theme.textTheme.bodyMedium),
+                    ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
