@@ -61,9 +61,8 @@ class _ExplainSheet extends StatelessWidget {
             point(Art.warning, 'Before you cross a slab and your bill jumps'.tr),
             point(Art.receipt, 'Before your bill is due'.tr),
             point(Art.calendar, 'Before your meter reading day'.tr),
-            point(Art.battery, 'Before power cuts you add'.tr),
             const SizedBox(height: 4),
-            Text('No ads, and nothing before 9 am or after 9:30 pm except power cuts.'.tr,
+            Text('No ads, and nothing before 9 am or after 9:30 pm.'.tr,
                 style: theme.textTheme.bodySmall),
             const SizedBox(height: 16),
             SizedBox(

@@ -20,7 +20,6 @@ import '../home/calculators_screen.dart';
 import '../assistant/assistant_screen.dart';
 import 'about_screen.dart';
 import 'help_screen.dart';
-import 'load_shedding_screen.dart';
 import 'backup_screen.dart';
 import 'reminders_screen.dart';
 import 'tariff_screen.dart';
@@ -90,8 +89,6 @@ class ToolsScreen extends StatelessWidget {
       _Tool(Art.stopwatch, 'Add reading'.tr, () => _push(context, const AddReadingScreen())),
       _Tool(Art.moneyBag, 'Calculators'.tr, () => _push(context, const CalculatorsScreen())),
       _Tool(Art.bulb, 'Saving tips'.tr, () => _push(context, const TipsScreen())),
-      _Tool(Art.battery, 'Power cuts'.tr, () => _push(context, const LoadSheddingScreen()),
-          badge: state.loadShedding.isEmpty ? null : '{0} times'.trf({'0': state.loadShedding.length})),
     ];
 
     return Scaffold(

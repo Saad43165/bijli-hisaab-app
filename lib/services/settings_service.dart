@@ -25,7 +25,6 @@ class SettingsService {
   static const _kThemeMode = 'theme_mode';
   static const _kSimpleHome = 'simple_home';
   static const _kLanguage = 'language';
-  static const _kLoadShedding = 'load_shedding_slots';
 
   static Future<SettingsService> create() async {
     final prefs = await SharedPreferencesWithCache.create(
@@ -33,8 +32,10 @@ class SettingsService {
     );
     final service = SettingsService._(prefs);
     await service._ensureInstallId();
-    // The Tools grid/rows toggle is gone; drop its old setting.
-    await prefs.remove('tools_grid');
+    // Settings for removed features (Tools grid toggle, power-cut alerts).
+    for (final k in const ['tools_grid', 'load_shedding_slots', 'reminder_power_cut']) {
+      await prefs.remove(k);
+    }
     return service;
   }
 
@@ -89,10 +90,6 @@ class SettingsService {
   /// 'en' (default) or 'ur'.
   String get language => _prefs.getString(_kLanguage) ?? 'en';
   Future<void> setLanguage(String v) => _prefs.setString(_kLanguage, v);
-
-  /// Daily load-shedding times as JSON (see LoadSheddingSlot).
-  String? get loadSheddingJson => _prefs.getString(_kLoadShedding);
-  Future<void> setLoadSheddingJson(String v) => _prefs.setString(_kLoadShedding, v);
 
   /// 'system' (default), 'light' or 'dark'.
   String get themeMode => _prefs.getString(_kThemeMode) ?? 'system';

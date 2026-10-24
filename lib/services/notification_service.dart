@@ -39,6 +39,8 @@ class NotificationService {
 
   static const int _slabAlertId = 1001;
   static const int _testId = 1002;
+  /// Previews of upcoming reminders, one per [ReminderType] (1100–1109).
+  static const int _previewBase = 1100;
   /// Old fixed weekly reminder (v1.0); cancelled on upgrade.
   static const int _legacyWeeklyId = 2001;
 
@@ -61,7 +63,6 @@ class NotificationService {
       'slab_alerts' => ('Slab alerts', 'Warnings when you are about to cross a slab limit', Importance.high),
       'bill_reminders' => ('Bill due dates', 'Reminders before your electricity bill is due', Importance.high),
       'peak_hours' => ('Peak hours', 'Before expensive peak hours start (TOU meters)', Importance.high),
-      'power_cuts' => ('Power cuts', 'Before your load-shedding time', Importance.high),
       'weekly_summary' => ('Weekly summary', 'Your units and bill each Sunday', Importance.low),
       _ => ('Reading reminders', 'Reminders before your meter reading day and when no reading was added',
           Importance.defaultImportance),
@@ -78,7 +79,7 @@ class NotificationService {
               : Priority.defaultPriority,
       icon: _icon,
       color: _color,
-      category: kind == 'power_cuts' || kind == 'peak_hours'
+      category: kind == 'peak_hours'
           ? AndroidNotificationCategory.alarm
           : AndroidNotificationCategory.reminder,
       styleInformation: bigText == null ? null : BigTextStyleInformation(bigText),
@@ -88,7 +89,6 @@ class NotificationService {
   static String _channelFor(ReminderType t) => switch (t) {
         ReminderType.closeToSlab => 'slab_alerts',
         ReminderType.peakHours => 'peak_hours',
-        ReminderType.powerCut => 'power_cuts',
         ReminderType.billDue => 'bill_reminders',
         ReminderType.weeklySummary => 'weekly_summary',
         ReminderType.readingDay || ReminderType.noReading => 'reading_reminders',
@@ -235,7 +235,25 @@ class NotificationService {
     }
   }
 
-  /// Exact when Android allows it, so power-cut and peak alerts are on time;
+  /// Shows [r] now, exactly as it will look when it fires ("Preview").
+  Future<bool> preview(PlannedReminder r) async {
+    if (!_ready) return false;
+    try {
+      await _plugin.show(
+        id: _previewBase + r.type.index,
+        title: r.title,
+        body: r.body,
+        notificationDetails: NotificationDetails(android: _channel(_channelFor(r.type), bigText: r.body)),
+        payload: r.type.name,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Preview failed: $e');
+      return false;
+    }
+  }
+
+  /// Exact when Android allows it, so slab and peak alerts are on time;
   /// otherwise inexact (can be a few minutes late).
   Future<AndroidScheduleMode> get _scheduleMode async =>
       await _canScheduleExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
@@ -260,7 +278,6 @@ class NotificationService {
           scheduledDate: tz.TZDateTime(pk, w.year, w.month, w.day, w.hour, w.minute),
           notificationDetails: NotificationDetails(android: _channel(_channelFor(r.type), bigText: r.body)),
           androidScheduleMode: mode,
-          matchDateTimeComponents: r.repeatDaily ? DateTimeComponents.time : null,
           payload: r.type.name,
         );
       }

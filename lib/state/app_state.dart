@@ -15,7 +15,6 @@ import '../features/assistant/assistant_models.dart';
 import '../data/models/app_event.dart';
 import '../data/models/appliance.dart';
 import '../data/models/bill.dart';
-import '../data/models/load_shedding.dart';
 import '../data/models/meter.dart';
 import '../data/models/meter_reading.dart';
 import '../data/models/tariff.dart';
@@ -948,18 +947,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       billDueDate: dueBill?.dueDate,
       billMonth: dueBill?.month,
       isTou: meter?.meterType == MeterType.tou,
-      loadShedding: loadShedding,
     );
-  }
-
-  /// Daily load-shedding times (for power-cut alerts).
-  List<LoadSheddingSlot> get loadShedding => LoadSheddingSlot.decode(_settings.loadSheddingJson);
-
-  Future<void> setLoadShedding(List<LoadSheddingSlot> slots) async {
-    final sorted = [...slots]..sort((a, b) => a.start.compareTo(b.start));
-    await _settings.setLoadSheddingJson(LoadSheddingSlot.encode(sorted));
-    await _replanReminders();
-    notifyListeners();
   }
 
   /// Re-plans every scheduled reminder from the latest data. Called after

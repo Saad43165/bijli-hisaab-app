@@ -1,4 +1,3 @@
-import 'package:bijli_bachao/data/models/load_shedding.dart';
 import 'package:bijli_bachao/data/models/tariff.dart';
 import 'package:bijli_bachao/services/reminders/reminder_planner.dart';
 import 'package:bijli_bachao/services/usage_forecaster.dart';
@@ -136,45 +135,5 @@ void main() {
       expect(ReminderPlanner.allIds, contains(x.id));
     }
     expect(r.map((x) => x.id).toSet().length, r.length);
-  });
-
-  group('power cuts', () {
-    ReminderInputs withSlots(List<LoadSheddingSlot> slots, {Set<ReminderType>? enabled}) => ReminderInputs(
-          now: now,
-          enabled: enabled ?? {ReminderType.powerCut},
-          loadShedding: slots,
-        );
-
-    test('15 minutes before each slot, repeating daily, outside quiet hours too', () {
-      final r = planner.plan(withSlots(const [
-        LoadSheddingSlot(start: 14 * 60, end: 16 * 60),
-        LoadSheddingSlot(start: 23 * 60, end: 60),
-      ]));
-      expect(r.map((x) => x.when), [DateTime(2026, 11, 2, 13, 45), DateTime(2026, 11, 2, 22, 45)]);
-      expect(r.every((x) => x.repeatDaily && x.type == ReminderType.powerCut), isTrue);
-      expect(r.first.body, contains('2 hours'));
-      expect(r.last.body, contains('2 hours'));
-      expect(r.map((x) => x.id).toSet().length, 2);
-      expect(r.every((x) => ReminderPlanner.allIds.contains(x.id)), isTrue);
-    });
-
-    test('a slot already passed today starts tomorrow', () {
-      final r = planner.plan(withSlots(const [LoadSheddingSlot(start: 8 * 60, end: 9 * 60)]));
-      expect(r.single.when, DateTime(2026, 11, 3, 7, 45));
-      expect(r.single.body, contains('1 hour'));
-    });
-
-    test('nothing when switched off or no times', () {
-      expect(planner.plan(withSlots(const [LoadSheddingSlot(start: 600, end: 720)], enabled: {})), isEmpty);
-      expect(planner.plan(withSlots(const [])), isEmpty);
-    });
-
-    test('slots survive a save and load', () {
-      const slots = [LoadSheddingSlot(start: 1380, end: 60), LoadSheddingSlot(start: 600, end: 690)];
-      final back = LoadSheddingSlot.decode(LoadSheddingSlot.encode(slots));
-      expect(back, [slots[1], slots[0]]);
-      expect(back.last.minutes, 120);
-      expect(LoadSheddingSlot.decode('not json'), isEmpty);
-    });
   });
 }

@@ -10,7 +10,6 @@ import '../../state/app_state.dart';
 import '../appliances/appliances_screen.dart';
 import '../bills/history_screen.dart';
 import '../readings/add_reading_screen.dart';
-import '../settings/load_shedding_screen.dart';
 import '../settings/reminders_screen.dart';
 import '../settings/tools_screen.dart';
 import '../settings/widgets/notification_permission.dart';
@@ -78,9 +77,6 @@ class _HomeShellState extends State<HomeShell> {
         AppNav.push(const AddReadingScreen());
       case ReminderType.billDue:
         AppNav.goTab(1);
-      case ReminderType.powerCut:
-        AppNav.goTab(3);
-        AppNav.push(const LoadSheddingScreen());
       case ReminderType.weeklySummary || ReminderType.peakHours:
         AppNav.goTab(0);
       case null:

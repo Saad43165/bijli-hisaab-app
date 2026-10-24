@@ -13,7 +13,6 @@ import '../../shared/widgets/info_banner.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../state/app_state.dart';
 import '../../core/l10n/l10n.dart';
-import 'load_shedding_screen.dart';
 import 'widgets/notification_permission.dart';
 
 /// Tools → Reminders.
@@ -27,7 +26,6 @@ class RemindersScreen extends StatefulWidget {
         ReminderType.noReading => Art.stopwatch,
         ReminderType.weeklySummary => Art.barChart,
         ReminderType.peakHours => Art.hourglass,
-        ReminderType.powerCut => Art.battery,
       };
 
   @override
@@ -85,6 +83,20 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
     );
   }
 
+  /// Shows the next reminder of each kind right now, with its real text.
+  Future<void> _previewUpcoming(List<PlannedReminder> upcoming) async {
+    if (!await NotificationPermission.ensure(context)) {
+      await _checkHealth();
+      return;
+    }
+    final seen = <ReminderType>{};
+    var sent = 0;
+    for (final r in upcoming) {
+      if (seen.add(r.type) && await NotificationService.instance.preview(r)) sent++;
+    }
+    if (mounted) showSnack(context, 'Sent {0} previews — check your notifications.'.trf({'0': sent}));
+  }
+
   Widget _healthBanner(NotificationHealth h) {
     final service = NotificationService.instance;
     if (!h.allowed) {
@@ -92,7 +104,7 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
         icon: Icons.notifications_off_rounded,
         color: AppColors.dangerLight,
         title: 'Notifications are off'.tr,
-        message: 'You won\'t get slab warnings, bill or power-cut alerts.'.tr,
+        message: 'You won\'t get slab warnings or bill reminders.'.tr,
         actionLabel: 'Turn on'.tr,
         onAction: () async {
           await NotificationPermission.ensure(context);
@@ -104,7 +116,7 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
       return InfoBanner(
         icon: Icons.alarm_rounded,
         title: 'Alerts may come late'.tr,
-        message: 'Allow "Alarms & reminders" so power-cut and peak-hour alerts arrive on time.'.tr,
+        message: 'Allow "Alarms & reminders" so alerts arrive on time.'.tr,
         actionLabel: 'Allow'.tr,
         onAction: service.openExactAlarmSettings,
       );
@@ -157,17 +169,7 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
               child: Column(
                 children: [
                   for (final (i, t) in types.indexed) ...[
-                    if (t == ReminderType.powerCut)
-                      ListTile(
-                        leading: ArtTile(RemindersScreen.art(t), size: 40),
-                        title: Text(t.label),
-                        subtitle: Text(_powerCutSubtitle(state)),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap: () => Navigator.of(context)
-                            .push(MaterialPageRoute<void>(builder: (_) => const LoadSheddingScreen())),
-                      )
-                    else
-                      SwitchListTile(
+                    SwitchListTile(
                         secondary: ArtTile(RemindersScreen.art(t), size: 40),
                         title: Text(t.label),
                         subtitle: Text(t.description),
@@ -219,6 +221,12 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
                       icon: const Icon(Icons.schedule_rounded, size: 18),
                       label: Text('In 2 minutes'.tr),
                     ),
+                    if (on && upcoming.isNotEmpty)
+                      OutlinedButton.icon(
+                        onPressed: () => _previewUpcoming(upcoming),
+                        icon: const Icon(Icons.visibility_outlined, size: 18),
+                        label: Text('Preview coming-up alerts'.tr),
+                      ),
                   ],
                 ),
               ],
@@ -258,7 +266,7 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
             child: Text(
-              'Reminders update every time you add a reading or bill. Nothing is sent before 9 am or after 9:30 pm, except power-cut alerts.'.tr,
+              'Reminders update every time you add a reading or bill. Nothing is sent before 9 am or after 9:30 pm.'.tr,
               style: theme.textTheme.bodySmall?.copyWith(color: p.muted),
             ),
           ),
@@ -266,13 +274,6 @@ class _RemindersScreenState extends State<RemindersScreen> with WidgetsBindingOb
       ),
     );
   }
-}
-
-String _powerCutSubtitle(AppState state) {
-  final slots = state.loadShedding;
-  if (slots.isEmpty) return 'Add your load-shedding times'.tr;
-  if (!state.reminderOn(ReminderType.powerCut)) return 'Off'.tr;
-  return slots.map(LoadSheddingScreen.label).join(', ');
 }
 
 class _UpcomingTile extends StatelessWidget {
