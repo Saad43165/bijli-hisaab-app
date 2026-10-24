@@ -15,6 +15,12 @@ class HomeWidgetSync {
   /// The small 2×1 widget: units and status only.
   static const smallAndroidName = 'UsageWidgetSmallProvider';
 
+  /// "Bill this month" and "Daily budget".
+  static const billAndroidName = 'BillWidgetProvider';
+  static const budgetAndroidName = 'BudgetWidgetProvider';
+
+  static const _all = [androidName, smallAndroidName, billAndroidName, budgetAndroidName];
+
   /// What was last sent to the widget.
   static String? _last;
 
@@ -26,15 +32,34 @@ class HomeWidgetSync {
     required bool hasReading,
   }) {
     final s = summary;
+    final common = <String, Object>{
+      'billTitle': 'Bill this month'.tr,
+      'budgetTitle': 'Daily budget'.tr,
+      'addReading': '+ ${'Add reading'.tr}',
+      'daysFmt': '{0} {1} left'.trf({'0': '{0}', '1': 'days'.tr}),
+      'dayFmt': '{0} {1} left'.trf({'0': '{0}', '1': 'day'.tr}),
+    };
     if (s == null || !s.hasData) {
+      final hint = hasReading ? 'Add another reading to see this month'.tr : 'Tap to add today\'s reading'.tr;
       return {
+        ...common,
         'meter': meterLabel,
         'units': '—',
         'of': 'units this month'.tr,
         'progress': 0,
         'status': '',
         'statusColor': '#F5B700',
-        'line': hasReading ? 'Add another reading to see this month'.tr : 'Tap to add today\'s reading'.tr,
+        'line': hint,
+        'bill': '—',
+        'billUnits': hint,
+        'billUnitsShort': '',
+        'billLine': '',
+        'cycleEnd': '',
+        'budget': '—',
+        'budgetOf': hint,
+        'budgetLine': '',
+        'budgetProgress': 0,
+        'budgetColor': '#F5B700',
       };
     }
     final days = '{0} {1} left'.trf({'0': s.daysLeft, '1': s.daysLeft == 1 ? 'day'.tr : 'days'.tr});
@@ -55,9 +80,36 @@ class HomeWidgetSync {
       UsageStatus.overLimits => ('Highest slab'.tr, '#F06565'),
       UsageStatus.noData => ('', '#F5B700'),
     };
+    final used = Fmt.whole(s.unitsUsed);
+    final slab = s.isTou ? 'TOU' : s.estimateProjected.slabLabel;
+    final rate = s.dailyRate;
+    final (String budgetLine, String budgetColor, int budgetProgress) = budget == null || target == null
+        ? ('Recently {0} a day'.trf({'0': Fmt.oneDp(rate)}), color, 0)
+        : rate <= budget
+            ? ('Recently {0} a day · on track'.trf({'0': Fmt.oneDp(rate)}), '#34C38F', (rate / budget * 100).round())
+            : (
+                'Recently {0} a day · cut {1}'.trf({'0': Fmt.oneDp(rate), '1': Fmt.oneDp(rate - budget)}),
+                '#F06565',
+                100,
+              );
     return {
+      ...common,
+      'bill': Fmt.rs(s.estimateProjected.total),
+      'billUnits': target == null
+          ? '{0} units · slab {1}'.trf({'0': used, '1': slab})
+          : '{0} of {1} units · slab {2}'.trf({'0': used, '1': target, '2': slab}),
+      'billUnitsShort': '{0} units'.trf({'0': used}),
+      'billLine': 'heading for {0} units'.trf({'0': Fmt.whole(s.projectedUnits)}),
+      'cycleEnd': Fmt.isoDate(s.cycleEnd),
+      'budget': budget == null ? '—' : Fmt.oneDp(budget),
+      'budgetOf': budget == null || target == null
+          ? (target == null ? 'No cheaper slab left this month'.tr : 'Over the limit this month'.tr)
+          : 'units a day to stay under {0}'.trf({'0': target}),
+      'budgetLine': budgetLine,
+      'budgetColor': budgetColor,
+      'budgetProgress': budgetProgress.clamp(0, 100),
       'meter': meterLabel,
-      'units': Fmt.whole(s.unitsUsed),
+      'units': used,
       'of': target == null ? 'units this month'.tr : 'of {0} units'.trf({'0': target}),
       'progress': (s.progress * 100).round(),
       'status': s.isTou ? 'TOU' : status,
@@ -81,8 +133,9 @@ class HomeWidgetSync {
       for (final e in v.entries) {
         await HomeWidget.saveWidgetData(e.key, e.value);
       }
-      await HomeWidget.updateWidget(androidName: androidName);
-      await HomeWidget.updateWidget(androidName: smallAndroidName);
+      for (final name in _all) {
+        await HomeWidget.updateWidget(androidName: name);
+      }
     } catch (e) {
       // No widget placed yet, or the plugin isn't available (tests).
       debugPrint('Home widget update skipped: $e');

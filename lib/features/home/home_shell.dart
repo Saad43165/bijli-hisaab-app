@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/l10n/l10n.dart';
@@ -39,9 +42,12 @@ class _HomeShellState extends State<HomeShell> {
     AppNav.tab.value = 0;
     AppNav.tab.addListener(_onTab);
     NotificationService.instance.tapped.addListener(_onNotificationTap);
+    // Taps on the home-screen widgets ("+ Add reading", or the widget itself).
+    _widgetTaps = HomeWidget.widgetClicked.listen(_onWidgetTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // The app may have been opened by tapping a notification.
+      // The app may have been opened by tapping a notification or a widget.
       _onNotificationTap();
+      HomeWidget.initiallyLaunchedFromHomeWidget().then(_onWidgetTap, onError: (_) {});
       _askForNotificationsOnce();
     });
   }
@@ -50,7 +56,16 @@ class _HomeShellState extends State<HomeShell> {
   void dispose() {
     AppNav.tab.removeListener(_onTab);
     NotificationService.instance.tapped.removeListener(_onNotificationTap);
+    _widgetTaps?.cancel();
     super.dispose();
+  }
+
+  StreamSubscription<Uri?>? _widgetTaps;
+
+  void _onWidgetTap(Uri? uri) {
+    if (uri == null || !mounted) return;
+    AppNav.goTab(0);
+    if (uri.host == 'add_reading') AppNav.push(const AddReadingScreen());
   }
 
   static const _askedFlag = 'notification_prompt_shown';

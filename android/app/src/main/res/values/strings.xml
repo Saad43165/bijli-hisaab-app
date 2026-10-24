@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_description">Units this month, days left and your daily budget</string>
+    <string name="widget_description">Units this month against your slab limit, days left and status</string>
     <string name="widget_small_description">Units this month and your status</string>
+    <string name="widget_bill_label">Bill this month</string>
+    <string name="widget_bill_description">Estimated bill in rupees, units against your slab limit and days left</string>
+    <string name="widget_budget_label">Daily budget</string>
+    <string name="widget_budget_description">Units you can use a day to stay under your slab, with one-tap Add reading</string>
 </resources>

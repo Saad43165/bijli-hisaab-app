@@ -34,4 +34,23 @@ void main() {
     final one = HomeWidgetSync.values(meterLabel: 'Home', summary: null, hasReading: true);
     expect(one['line'], contains('another reading'));
   });
+
+  test('bill and daily budget widgets', () {
+    final v = HomeWidgetSync.values(meterLabel: 'Home', summary: summary(), hasReading: true);
+    expect(v['billUnits'], startsWith('150 of 200 units'));
+    expect(v['billUnitsShort'], '150 units');
+    expect(v['cycleEnd'], '2026-11-09');
+    expect(v['budget'], '2.9');
+    expect(v['budgetOf'], 'units a day to stay under 200');
+    expect(v['budgetLine'], 'Recently 11.5 a day · cut 8.6');
+    expect(v['budgetColor'], '#F06565');
+    expect(v['daysFmt'], '{0} days left');
+  });
+
+  test('empty state before any reading', () {
+    final v = HomeWidgetSync.values(meterLabel: 'Home', summary: null, hasReading: false);
+    expect(v['bill'], '—');
+    expect(v['budget'], '—');
+    expect(v['budgetOf'], contains('add today'));
+  });
 }

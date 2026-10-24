@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/constants/companies.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../services/usage_forecaster.dart';
 import '../../../shared/widgets/art.dart';
@@ -125,7 +126,9 @@ class _ShareSummarySheetState extends State<ShareSummarySheet> {
   }
 }
 
-/// The picture itself: 360×450 logical pixels (1080×1350 when shared).
+/// The picture itself: 360×450 logical pixels (1080×1350 when shared),
+/// every label in English with Urdu under it. Laid out the same on every
+/// phone: no text scaling, left to right, big numbers shrink to fit.
 class SummaryPicture extends StatelessWidget {
   const SummaryPicture({
     super.key,
@@ -142,128 +145,193 @@ class SummaryPicture extends StatelessWidget {
   final String meterName;
   final String company;
 
+  static const width = 360.0;
+  static const height = 450.0;
+
+  static const _en = AppTheme.fontFamily;
+  static const _ur = AppTheme.urduFontFamily;
+
+  static (String, String) _statusText(UsageStatus s) => switch (s) {
+        UsageStatus.safe => ('On track', 'ٹھیک ہے'),
+        UsageStatus.warn => ('Close to limit', 'حد کے قریب'),
+        UsageStatus.danger => ('Will cross', 'حد پار ہوگی'),
+        UsageStatus.overLimits => ('Highest slab', 'سب سے اونچا سلیب'),
+        UsageStatus.noData => ('', ''),
+      };
+
   @override
   Widget build(BuildContext context) {
     final s = summary;
-    final theme = Theme.of(context);
     final base = StatusStyle.of(context, s.status);
     final style = light ? base : base.onNavy();
     final fg = light ? AppColors.navy : Colors.white;
-    final muted = fg.withValues(alpha: light ? 0.6 : 0.65);
+    final muted = fg.withValues(alpha: light ? 0.62 : 0.68);
     final target = s.targetLimit;
     final progress = target == null || target == 0 ? 1.0 : (s.unitsUsed / target).clamp(0.0, 1.0);
     final projectedFrac = target == null || target == 0 ? 1.0 : (s.projectedUnits / target).clamp(0.0, 1.0);
     final barColor = s.status == UsageStatus.safe ? AppColors.amber : style.color;
 
-    Widget stat(String label, String value, {Color? color}) => Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: theme.textTheme.labelSmall?.copyWith(color: muted, fontSize: 10)),
-              const SizedBox(height: 2),
-              Text(value, style: theme.textTheme.titleMedium?.copyWith(color: color ?? fg)),
-            ],
+    TextStyle en(double size, {Color? color, FontWeight weight = FontWeight.w500, double height = 1.2}) =>
+        TextStyle(fontFamily: _en, fontSize: size, color: color ?? fg, fontWeight: weight, height: height);
+    TextStyle ur(double size, {Color? color}) =>
+        TextStyle(fontFamily: _ur, fontSize: size, color: color ?? muted, height: 1.55);
+
+    /// English line with its Urdu line under it.
+    Widget bi(String english, String urdu, {double size = 10, Color? color, CrossAxisAlignment align = CrossAxisAlignment.start}) =>
+        Column(
+          crossAxisAlignment: align,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(english, maxLines: 1, overflow: TextOverflow.ellipsis, style: en(size, color: color ?? muted, weight: FontWeight.w600)),
+            Text(urdu, maxLines: 1, overflow: TextOverflow.ellipsis, textDirection: TextDirection.rtl, style: ur(size, color: color)),
+          ],
+        );
+
+    /// A number that shrinks instead of being cut off.
+    Widget fit(String text, TextStyle st) => FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(text, maxLines: 1, style: st),
+        );
+
+    Widget stat(String label, String urdu, String value, {Color? color}) => Expanded(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                bi(label, urdu, size: 9.5),
+                const SizedBox(height: 2),
+                fit(value, en(18, color: color, weight: FontWeight.w800)),
+              ],
+            ),
           ),
         );
 
-    return Container(
-      width: 360,
-      height: 450,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: light
-              ? const [Color(0xFFFFF4CC), Color(0xFFFFFFFF)]
-              : const [Color(0xFF1B2F4E), AppColors.navy],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final (statusEn, statusUr) = _statusText(s.status);
+    final cycle = '${Fmt.dayShort(s.cycleStart)} – ${Fmt.dayShort(s.cycleEnd.subtract(const Duration(days: 1)))}';
+
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+          width: width,
+          height: height,
+          padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: light ? const [Color(0xFFFFF4CC), Color(0xFFFFFFFF)] : const [Color(0xFF1B2F4E), AppColors.navy],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const ArtImage(Art.brandBolt, size: 30),
-              const SizedBox(width: 8),
-              Text('Bijli Hisaab'.tr, style: theme.textTheme.titleMedium?.copyWith(color: fg)),
-              const Spacer(),
-              StatusPill(status: s.status, onDark: !light),
-            ],
-          ),
-          const SizedBox(height: 22),
-          Text(
-            '$meterName · $company',
-            style: theme.textTheme.bodyMedium?.copyWith(color: muted),
-          ),
-          Text(
-            '{0} – {1} · day {2} of {3}'.trf({'0': Fmt.dayShort(s.cycleStart), '1': Fmt.dayShort(s.cycleEnd.subtract(const Duration(days: 1))), '2': s.dayOfCycle, '3': s.daysTotal}),
-            style: theme.textTheme.bodySmall?.copyWith(color: muted),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                Fmt.whole(s.unitsUsed),
-                style: theme.textTheme.displaySmall?.copyWith(color: fg, fontSize: 64, height: 1),
-              ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  target == null ? 'units used'.tr : 'of {0} units'.trf({'0': target}),
-                  style: theme.textTheme.titleMedium?.copyWith(color: muted),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              height: 12,
-              child: Stack(
+              Row(
                 children: [
-                  Container(color: fg.withValues(alpha: light ? 0.08 : 0.10)),
-                  FractionallySizedBox(
-                    widthFactor: projectedFrac,
-                    child: Container(color: barColor.withValues(alpha: 0.30)),
+                  const ArtImage(Art.brandBolt, size: 30),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Bijli Hisaab', style: en(15, weight: FontWeight.w800)),
+                        Text('بجلی حساب', textDirection: TextDirection.rtl, style: ur(10.5)),
+                      ],
+                    ),
                   ),
-                  FractionallySizedBox(widthFactor: progress, child: Container(color: barColor)),
+                  if (statusEn.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(9, 3, 9, 1),
+                      decoration: BoxDecoration(
+                        color: style.color.withValues(alpha: light ? 0.14 : 0.18),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: bi(statusEn, statusUr, size: 9.5, color: style.color, align: CrossAxisAlignment.center),
+                    ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              stat('PER DAY'.tr, Fmt.oneDp(s.dailyRate)),
-              stat('MONTH END'.tr, '~${Fmt.whole(s.projectedUnits)}',
-                  color: s.status == UsageStatus.safe ? null : style.color),
-              stat('EST. BILL'.tr, Fmt.rs(s.estimateProjected.total)),
+              const SizedBox(height: 12),
+              Text('$meterName · $company', maxLines: 1, overflow: TextOverflow.ellipsis, style: en(11.5, color: muted)),
+              Text('$cycle · day ${s.dayOfCycle} of ${s.daysTotal}', maxLines: 1, style: en(10.5, color: muted)),
+              const SizedBox(height: 10),
+              bi('Units used', 'استعمال شدہ یونٹ', size: 10),
+              SizedBox(
+                height: 62,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(child: fit(Fmt.whole(s.unitsUsed), en(56, weight: FontWeight.w800, height: 1))),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: target == null
+                          ? bi('units', 'یونٹ', size: 12)
+                          : bi('of $target units', '$target یونٹ میں سے', size: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 11,
+                  child: Stack(
+                    children: [
+                      Container(color: fg.withValues(alpha: light ? 0.08 : 0.10)),
+                      FractionallySizedBox(
+                        widthFactor: projectedFrac,
+                        child: Container(color: barColor.withValues(alpha: 0.30)),
+                      ),
+                      FractionallySizedBox(widthFactor: progress, child: Container(color: barColor)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              bi('Heading for ~${Fmt.whole(s.projectedUnits)} units by month end',
+                  'مہینے کے آخر تک تقریباً ${Fmt.whole(s.projectedUnits)} یونٹ', size: 9.5),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  stat('Per day', 'روزانہ', Fmt.oneDp(s.dailyRate)),
+                  stat('Days left', 'باقی دن', '${s.daysLeft}'),
+                  stat('Estimated bill', 'متوقع بل', Fmt.rs(s.estimateProjected.total),
+                      color: s.status == UsageStatus.safe ? null : style.color),
+                ],
+              ),
+              const Spacer(),
+              if (s.safeDailyBudget != null && target != null)
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                  decoration: BoxDecoration(
+                    color: fg.withValues(alpha: light ? 0.06 : 0.07),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      fit('Stay under $target: max ${Fmt.oneDp(s.safeDailyBudget!)} units a day',
+                          en(12, weight: FontWeight.w700)),
+                      Text(
+                        '$target سے نیچے رہنے کے لیے روزانہ زیادہ سے زیادہ ${Fmt.oneDp(s.safeDailyBudget!)} یونٹ',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textDirection: TextDirection.rtl,
+                        style: ur(10.5, color: fg),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 8),
+              bi('Know your bill, save electricity · NEPRA rates, FCA & GST',
+                  'اپنا بل جانیں، بجلی بچائیں · نیپرا ریٹ، ایف سی اے اور جی ایس ٹی', size: 9),
             ],
           ),
-          const Spacer(),
-          if (s.safeDailyBudget != null && target != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: fg.withValues(alpha: light ? 0.06 : 0.07),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                'Stay under {0}: max {1} units a day for {2} days'.trf({'0': target, '1': Fmt.oneDp(s.safeDailyBudget!), '2': s.daysLeft}),
-                style: theme.textTheme.bodyMedium?.copyWith(color: fg, fontWeight: FontWeight.w600),
-              ),
-            ),
-          const SizedBox(height: 12),
-          Text(
-            'Estimate with NEPRA rates, FCA and GST'.tr,
-            style: theme.textTheme.bodySmall?.copyWith(color: muted, fontSize: 10.5),
-          ),
-        ],
+        ),
       ),
     );
   }

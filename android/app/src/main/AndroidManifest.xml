@@ -59,8 +59,8 @@
             </intent-filter>
         </receiver>
 
-        <!-- Home-screen widget: units this month, days left, daily budget -->
-        <receiver android:name=".UsageWidgetProvider" android:exported="true" android:label="Bijli Hisaab">
+        <!-- Home-screen widgets: units this month, bill this month, daily budget -->
+        <receiver android:name=".UsageWidgetProvider" android:exported="true" android:label="Units this month">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -68,13 +68,29 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/usage_widget_info" />
         </receiver>
-        <receiver android:name=".UsageWidgetSmallProvider" android:exported="true" android:label="Bijli Hisaab (small)">
+        <receiver android:name=".UsageWidgetSmallProvider" android:exported="true" android:label="Units this month (small)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/usage_widget_small_info" />
+        </receiver>
+        <receiver android:name=".BillWidgetProvider" android:exported="true" android:label="@string/widget_bill_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/bill_widget_info" />
+        </receiver>
+        <receiver android:name=".BudgetWidgetProvider" android:exported="true" android:label="@string/widget_budget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/budget_widget_info" />
         </receiver>
 
         <!-- Don't delete the meta-data below.
